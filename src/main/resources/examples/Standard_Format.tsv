@@ -1,0 +1,5 @@
+Organism	Organism ID	Tissue	Extract ID	Analyte	Analyte ID	Condition: origin
+Asparagus officinalis	plant 1	plant_extract	P1E1	SMALLMOLECULES	lab_id1	DE
+Asparagus officinalis	plant 1	plant_extract	P1E2	SMALLMOLECULES	lab_id2	DE
+Asparagus officinalis	plant 2	plant_extract	P2E1	SMALLMOLECULES	lab_id3	FR
+Asparagus officinalis	plant 2	plant_extract	P2E2	SMALLMOLECULES	lab_id4	FR

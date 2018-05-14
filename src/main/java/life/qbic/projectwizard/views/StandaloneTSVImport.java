@@ -45,13 +45,13 @@ import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.expdesign.model.ExperimentalDesignType;
 import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.expdesign.model.StructuredExperiment;
-import life.qbic.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.control.Functions;
 import life.qbic.projectwizard.uicomponents.ExperimentSummaryTable;
 import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
+import life.qbic.portal.portlet.ProjectWizardUI;
 
 public class StandaloneTSVImport extends VerticalLayout implements IRegistrationView {
 
@@ -94,9 +94,11 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     infos = new VerticalLayout();
     infos.setCaption("Format Information");
 
-    infos.addComponent(Styles.getPopupViewContaining(createTSVDownloadComponent(ExperimentalDesignType.QBIC,
-        "QBiC openBIS import format. Not recommended for external users.")));
-    infos.addComponent(Styles.getPopupViewContaining(createTSVDownloadComponent(ExperimentalDesignType.Standard,
+    infos.addComponent(
+        Styles.getPopupViewContaining(createTSVDownloadComponent(ExperimentalDesignType.QBIC,
+            "QBiC openBIS import format. Not recommended for external users.")));
+    infos.addComponent(Styles.getPopupViewContaining(createTSVDownloadComponent(
+        ExperimentalDesignType.Standard,
         "The Standard Import format for experimental designs containing information about organism, tissues/cell cultures and the analyte preparations.")));
     infos.addComponent(Styles.getPopupViewContaining(createTSVDownloadComponent(
         ExperimentalDesignType.MHC_Ligands_Finished,
@@ -125,7 +127,7 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     addComponent(summary);
     preview = new Button("Preview Sample Graph");
     preview.setEnabled(false);
-//    addComponent(preview);
+    // addComponent(preview);
 
     // sample registration button
     register = new Button("Register All");
@@ -150,9 +152,11 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     Button button = new Button("Download Example");
     v.addComponent(button);
 
-    String basepath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
-    FileDownloader tsvDL = new FileDownloader(
-        new FileResource(new File(basepath + "/WEB-INF/files/" + type.getFileName())));
+    final File example = new File(
+        getClass().getClassLoader().getResource("examples/" + type.getFileName()).getFile());
+    FileDownloader tsvDL = new FileDownloader(new FileResource(example));
+
+
     tsvDL.extend(button);
 
     return v;
@@ -278,16 +282,16 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
       @Override
       public void buttonClick(ClickEvent event) {
         Window subWindow = new Window(" Preview Graph");
-//        subWindow.setResizable(true);
+        // subWindow.setResizable(true);
         subWindow.setWidth("400px");
-//        subWindow.setHeight("350px");
+        // subWindow.setHeight("350px");
 
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
         layout.setMargin(true);
-//        GraphPage g = new GraphPage();
-//        layout.addComponent(g);
-//        g.loadProjectGraph(sampleGraph);
+        // GraphPage g = new GraphPage();
+        // layout.addComponent(g);
+        // g.loadProjectGraph(sampleGraph);
         Button ok = new Button("Close");
         ok.addClickListener(new ClickListener() {
 
