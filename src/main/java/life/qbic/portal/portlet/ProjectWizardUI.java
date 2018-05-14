@@ -108,7 +108,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
         this.openbis = new OpenBisClient(config.getDataSourceUser(), config.getDataSourcePassword(),
             config.getDataSourceUrl());
         this.openbis.login();
-        openbis.getProjectsOfSpace("CHICKEN_FARM");
       } catch (Exception e) {
         success = false;
         logger.error(
