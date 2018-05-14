@@ -27,7 +27,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.vaadin.ui.Upload;
 
-import life.qbic.portlet.ProjectWizardUI;
+import life.qbic.portal.portlet.ProjectWizardUI;
 
 /**
  * Uploader for tsv files

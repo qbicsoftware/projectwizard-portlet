@@ -39,7 +39,7 @@ import com.vaadin.ui.Upload.FinishedListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.VerticalLayout;
 
-import life.qbic.portlet.ProjectWizardUI;
+import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.model.AttachmentInformation;
 import life.qbic.portal.Styles;
 import life.qbic.portal.components.StandardTextField;

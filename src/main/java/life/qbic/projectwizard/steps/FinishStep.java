@@ -48,7 +48,7 @@ import com.vaadin.ui.Button.ClickListener;
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
-import life.qbic.portlet.ProjectWizardUI;
+import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.processes.TSVReadyRunnable;
 import life.qbic.projectwizard.registration.UpdateProgressBar;
 import life.qbic.projectwizard.uicomponents.UploadsPanel;

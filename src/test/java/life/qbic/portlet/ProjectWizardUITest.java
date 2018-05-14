@@ -3,7 +3,7 @@ package life.qbic.portlet;
 import org.junit.Test;
 
 import life.qbic.portal.portlet.QBiCPortletUI;
-import life.qbic.portlet.ProjectWizardUI;
+import life.qbic.portal.portlet.ProjectWizardUI;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

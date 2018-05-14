@@ -28,7 +28,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 
-import life.qbic.portlet.ProjectWizardUI;
+import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.io.NCBITerm;
 import life.qbic.projectwizard.io.OntologyParser;

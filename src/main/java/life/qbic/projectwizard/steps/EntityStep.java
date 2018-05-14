@@ -37,7 +37,7 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
-import life.qbic.portlet.ProjectWizardUI;
+import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.uicomponents.ConditionsPanel;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;

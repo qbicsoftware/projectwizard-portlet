@@ -12985,6 +12985,104 @@ div.v-layout.v-horizontal.v-widget {
 	overflow: hidden;
 }
 
+.mytheme .v-label-info {
+	border-color: #197DE1;
+	border-style: solid;
+	border-width: 1px;
+	box-shadow: 2px 2px 0 rgba(102, 153, 255, 0.5), -2px -2px 0 rgba(102, 153, 255, 0.5), -2px 2px 0 rgba(102, 153, 255, 0.5), 2px -2px 0 rgba(102, 153, 255, 0.5);
+	border-radius: 8px;
+	padding: 8px;
+}
+
+.mytheme .v-textfield-barcode-large {
+	font-family: monospace;
+	background-color: transparent !important;
+	border-top-style: none !important;
+	border-right-style: none !important;
+	border-bottom-style: none !important;
+	border-left-style: none !important;
+}
+
+.mytheme .v-textfield-barcode-preview {
+	font-family: monospace;
+	font-size: 75% !important;
+	background-color: transparent !important;
+	border-top-style: none !important;
+	border-right-style: none !important;
+	border-bottom-style: none !important;
+	border-left-style: none !important;
+}
+
+.mytheme .large_font_awesome .v-icon {
+	color: blue;
+	font-size: 20px;
+}
+
+.mytheme .v-caption-awesomecaption .v-captiontext {
+	font-family: FontAwesome;
+}
+
+.mytheme .v-icon-bigicon {
+	color: #197DE1;
+	font-size: 30px;
+	border: none;
+	border-style: none;
+	background: transparent;
+	padding: 0;
+	-webkit-border-radius: 0;
+	-moz-border-radius: 0;
+	border-radius: 0;
+	outline: none;
+}
+
+.mytheme .v-table-cell-content-red-hue {
+	color: black;
+	background: #fc9272;
+	font-weight: bold;
+}
+
+.mytheme .v-table-cell-content-yellow-hue {
+	color: black;
+	background: #fee391;
+	font-weight: bold;
+}
+
+.mytheme .v-table-cell-content-blue-hue1 {
+	color: black;
+	background: #d0d1e6;
+	font-weight: bold;
+}
+
+.mytheme .v-table-cell-content-blue-hue2 {
+	color: black;
+	background: #a6bddb;
+	font-weight: bold;
+}
+
+.mytheme .v-table-cell-content-blue-hue3 {
+	color: white;
+	background: #74a9cf;
+	font-weight: bold;
+}
+
+.mytheme .v-table-cell-content-blue-hue4 {
+	color: white;
+	background: #3690c0;
+	font-weight: bold;
+}
+
+.mytheme .v-table-cell-content-blue-hue5 {
+	color: white;
+	background: #0570b0;
+	font-weight: bold;
+}
+
+.mytheme .v-table-cell-content-blue-hue6 {
+	color: white;
+	background: #034e7b;
+	font-weight: bold;
+}
+
 .mytheme .portlet-footer {
 	font-size: 9pt;
 	text-align: right;

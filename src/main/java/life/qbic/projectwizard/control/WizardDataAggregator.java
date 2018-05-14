@@ -46,7 +46,7 @@ import life.qbic.datamodel.samples.OpenbisBiologicalSample;
 import life.qbic.datamodel.samples.OpenbisMHCExtractSample;
 import life.qbic.datamodel.samples.OpenbisTestSample;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
-import life.qbic.portlet.ProjectWizardUI;
+import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.control.WizardController.Steps;
 import life.qbic.projectwizard.model.MHCLigandExtractionProtocol;
 import life.qbic.projectwizard.model.MSExperimentModel;
