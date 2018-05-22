@@ -81,7 +81,7 @@ public class ExperimentImportController implements IRegistrationController {
   private final Uploader uploader = new Uploader();
   private OpenbisCreationController openbisCreator;
   private SamplePreparator prep;
-
+//
   private ProjectInfo projectInfo;
   private Map<String, Map<String, Object>> msProperties;
   private Map<String, Map<String, Object>> mhcProperties;
@@ -213,7 +213,7 @@ public class ExperimentImportController implements IRegistrationController {
                     missingCategoryToValues.put("Analytes",
                         new ArrayList<String>(prep.getAnalyteSet()));
                     initMissingInfoListener(prep, missingCategoryToValues, catToVocabulary);
-//                    view.initGraphPreview(prep.getSampleGraph());
+                    view.initGraphPreview(prep.getSampleGraph(), prep.getIDsToSamples());
                     break;
                   // MHC Ligands that have already been measured (Filenames exist)
                   case MHC_Ligands_Finished:

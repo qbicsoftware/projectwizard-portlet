@@ -54,7 +54,7 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean testMode = false;// TODO
-  public static boolean development = false;
+  public static boolean development = true;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 
@@ -76,7 +76,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
   protected Layout getPortletContent(final VaadinRequest request) {
     tabs.addStyleName(ValoTheme.TABSHEET_FRAMED);
     final VerticalLayout layout = new VerticalLayout();
-
+    
     // read in the configuration file
     config = ConfigurationManagerFactory.getInstance();
     tmpFolder = config.getTmpFolder();

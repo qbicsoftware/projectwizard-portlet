@@ -27,7 +27,6 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.FileResource;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.server.VaadinService;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -52,6 +51,7 @@ import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.portlet.ProjectWizardUI;
+import life.qbic.portal.samplegraph.GraphPage;
 
 public class StandaloneTSVImport extends VerticalLayout implements IRegistrationView {
 
@@ -127,7 +127,7 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     addComponent(summary);
     preview = new Button("Preview Sample Graph");
     preview.setEnabled(false);
-    // addComponent(preview);
+    addComponent(preview);
 
     // sample registration button
     register = new Button("Register All");
@@ -276,7 +276,8 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     registerInfo.setVisible(true);
   }
 
-  public void initGraphPreview(StructuredExperiment sampleGraph) {
+  public void initGraphPreview(StructuredExperiment sampleGraph,
+      Map<String, ISampleBean> idsToSamples) {
     preview.addClickListener(new ClickListener() {
 
       @Override
@@ -289,9 +290,9 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
         layout.setMargin(true);
-        // GraphPage g = new GraphPage();
-        // layout.addComponent(g);
-        // g.loadProjectGraph(sampleGraph);
+        GraphPage g = new GraphPage();
+        layout.addComponent(g);
+        g.setProjectGraph(sampleGraph, idsToSamples);
         Button ok = new Button("Close");
         ok.addClickListener(new ClickListener() {
 

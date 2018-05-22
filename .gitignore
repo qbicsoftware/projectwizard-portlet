@@ -1,5 +1,6 @@
 # Compiled class file
 *.class
+src/main/webapp/VAADIN/widgetsets/
 
 # Log file
 *.log
