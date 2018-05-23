@@ -232,7 +232,6 @@ public class ExperimentImportController implements IRegistrationController {
                     break;
                   default:
                     logger.error("Error parsing tsv: " + prep.getError());
-                    // view.showError(prep.getError());
                     Styles.notification("Failed to read file.", prep.getError(),
                         NotificationType.ERROR);
                     break;
@@ -690,13 +689,13 @@ public class ExperimentImportController implements IRegistrationController {
     }
     for (Sample s : samples) {
       String code = s.getCode();
-      // collect existing samples by their secondary name
-      String secondaryName = s.getProperties().get("Q_SECONDARY_NAME");
-      if (extIDToSample.containsKey(secondaryName))
-        logger.warn(secondaryName
+      // collect existing samples by their external id
+      String extID = s.getProperties().get("Q_EXTERNALDB_ID");
+      if (extIDToSample.containsKey(extID))
+        logger.warn(extID
             + " was found as a secondary name for multiple samples. This might"
             + " lead to inconsistencies if new samples are to be attached to this secondary name.");
-      extIDToSample.put(secondaryName, s);
+      extIDToSample.put(extID, s);
       if (SampleCodeFunctions.isQbicBarcode(code)) {
         if (SampleCodeFunctions.compareSampleCodes(firstFreeBarcode, code) <= 0) {
           firstFreeBarcode = SampleCodeFunctions.incrementSampleCode(code);

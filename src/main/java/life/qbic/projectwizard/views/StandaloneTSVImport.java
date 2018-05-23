@@ -89,6 +89,7 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
       @Override
       public void valueChange(ValueChangeEvent event) {
         upload.setEnabled(importOptions.getValue() != null);
+        preview.setVisible("Standard".equals(importOptions.getValue()));
       }
     });
     infos = new VerticalLayout();
