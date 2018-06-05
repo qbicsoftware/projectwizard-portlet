@@ -25,7 +25,6 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.WrappedPortletSession;
 import com.vaadin.ui.themes.ValoTheme;
-
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
@@ -47,6 +46,7 @@ import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
+import matrix.MatrixStep;
 
 @Theme("mytheme")
 @SuppressWarnings("serial")
@@ -76,7 +76,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
   protected Layout getPortletContent(final VaadinRequest request) {
     tabs.addStyleName(ValoTheme.TABSHEET_FRAMED);
     final VerticalLayout layout = new VerticalLayout();
-    
+
     // read in the configuration file
     config = ConfigurationManagerFactory.getInstance();
     tmpFolder = config.getTmpFolder();
@@ -204,7 +204,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
                                                                                           // when
                                                                                           // openbis
                                                                                           // is down
-
     ExperimentImportController uc =
         new ExperimentImportController(creationController, vocabularies, openbis, dbm);
     uc.init(user);

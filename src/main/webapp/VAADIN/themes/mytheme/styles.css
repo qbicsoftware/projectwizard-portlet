@@ -12994,25 +12994,6 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 8px;
 }
 
-.mytheme .v-textfield-barcode-large {
-	font-family: monospace;
-	background-color: transparent !important;
-	border-top-style: none !important;
-	border-right-style: none !important;
-	border-bottom-style: none !important;
-	border-left-style: none !important;
-}
-
-.mytheme .v-textfield-barcode-preview {
-	font-family: monospace;
-	font-size: 75% !important;
-	background-color: transparent !important;
-	border-top-style: none !important;
-	border-right-style: none !important;
-	border-bottom-style: none !important;
-	border-left-style: none !important;
-}
-
 .mytheme .large_font_awesome .v-icon {
 	color: blue;
 	font-size: 20px;

@@ -5,13 +5,13 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 	this.onStateChange = function() {
 		imagePath = this.getState().imagePath;
 		init_graph_circles(this.getState().project);
-	}
+	};
 
 	var pi = Math.PI;
 	var idToSample = {};
 	
 	function removeAllSpaces(text) {
-		return text.replace(/\s/g, "")
+		return text.replace(/\s/g, "");
 	}
 
 	function getTextWidth(text, font) {
@@ -24,13 +24,9 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 		return metrics.width;
 	}
 
-	var width_label = function(label) {
-		return getTextWidth(label, "14px arial") + 5;
-	}
-
 	var icons = {
-		"dna" : "dna.svg",
-		"rna" : "rna.svg",
+		"dna" : "dna_filled.svg",
+		"rna" : "rna_filled.svg",
 		"peptides" : "peptide.svg",
 		"proteins" : "protein.png",
 		"smallmolecules" : "mol.png"
@@ -55,7 +51,7 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 		var max_Y = 0, max_X = 0;// maximal node positions
 		var longest_label = "x";
 
-		var g = new dagre.graphlib.Graph()
+		var g = new dagre.graphlib.Graph();
 		// Set an object for the graph label
 		g.setGraph({marginx:margin,marginy:margin});
 
@@ -80,7 +76,7 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 				height : rad * 2
 			});
 			for (var j = 0; j < sample.childIDs.length; j++) {
-				g.setEdge(sample.id, sample.childIDs[j])
+				g.setEdge(sample.id, sample.childIDs[j]);
 			}
 			// for(var j = 0; j < sample.children.length; j++) {
 			// g.setEdge(sample.id, sample.children[j].id)
@@ -104,7 +100,7 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 		// var color = d3.scaleOrdinal(d3.schemeCategory20b)
 		var color = d3.scaleOrdinal(d3.schemeCategory10).domain(noSymbols);
 		if (noSymbols.length > 10) {
-			var color = d3.scaleOrdinal(d3.schemeCategory20).domain(noSymbols);
+			color = d3.scaleOrdinal(d3.schemeCategory20).domain(noSymbols);
 		}
 
 		dagre.layout(g);
@@ -223,11 +219,11 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 						}
 						if(data.leaf) {
 						// done and missing datasets (angles)
-						var angle_done = 360 * data.measuredPercent / 100
+						var angle_done = 360 * data.measuredPercent / 100;
 						if(angle_done != 0) {
 						var arc_done = d3.arc().innerRadius(rad).outerRadius(
 								rad + rad / 4).startAngle(0).endAngle(
-								angle_done * (pi / 180)) // converting from
+								angle_done * (pi / 180)); // converting from
 															// degrees to
 															// radians
 						d3.select("svg").append("path").attr("d", arc_done)
@@ -240,19 +236,16 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 								})
 								.on("mouseover", function(){
 									d3.select(this).attr("opacity",0.6);
-// return tooltip.style("visibility", "visible").text("Click for more
-// information");
 								})
 								.on("mouseout", function(){
 									d3.select(this).attr("opacity",1);
-// return tooltip.style("visibility", "hidden");
 								});
 						}
 						if(angle_done != 360) {
 						var arc_missing = d3.arc().innerRadius(rad)
 								.outerRadius(rad + rad / 4).startAngle(
 										angle_done * (pi / 180)).endAngle(
-										360 * (pi / 180))
+										360 * (pi / 180));
 						d3.select("svg").append("path").attr("d", arc_missing)
 								.attr("fill", "grey")
 							    .attr("stroke","black")
@@ -263,12 +256,9 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 										})
 								.on("mouseover", function(){
 									d3.select(this).attr("opacity",0.6);
-// return tooltip.style("visibility", "visible").text("Click for more
-// information");
 								})
 								.on("mouseout", function(){
 									d3.select(this).attr("opacity",1);
-// return tooltip.style("visibility", "hidden");
 								});
 						}
 						}
@@ -278,9 +268,7 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 								"14px").attr("stroke", "black").attr(
 								"text-anchor", "middle").attr("x", x + 22)
 								.attr("y", y - 22);
-								// .attr("y", y + 5);
 					}
-					// }
 				});
 
 		// legend
@@ -293,7 +281,6 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 						function(d, i) {
 							return legend_y + legend_entry_height * i + 10;
 						}).attr("r", rad / 2)
-				// .attr("stroke", "black")
 				.attr("fill", function(d) {
 					return color(d);
 				});
@@ -304,7 +291,6 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 							return legend_y + legend_entry_height
 									* (noSymbols.size + i) + 10;
 						}).attr("r", rad / 2)
-				// .attr("stroke", "black")
 				.attr("fill", "#3494F8");
 		d3.select("svg").selectAll("legends").data(used)
 				.enter().append("circle").attr("cx", legend_x).attr(
@@ -313,7 +299,6 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 							return legend_y + legend_entry_height
 									* (noSymbols.size + i) + 10;
 						}).attr("r", rad / 2)
-				// .attr("stroke","black")
 				.attr("fill", function(d) {
 					var type = removeAllSpaces(d.toLowerCase());
 					return "url(#legend_" + type + ")";
@@ -341,4 +326,4 @@ window.life_qbic_portal_samplegraph_ProjectGraph = function() {
 	}
 	;
 
-}
+};

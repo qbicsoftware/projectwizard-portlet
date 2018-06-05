@@ -46,7 +46,6 @@ import life.qbic.datamodel.samples.AOpenbisSample;
 import life.qbic.datamodel.samples.OpenbisMSSample;
 import life.qbic.datamodel.samples.OpenbisTestSample;
 import life.qbic.portal.portlet.ProjectWizardUI;
-import life.qbic.projectwizard.control.Functions;
 import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.model.MSExperimentModel;
 import life.qbic.projectwizard.uicomponents.EnzymePanel;
