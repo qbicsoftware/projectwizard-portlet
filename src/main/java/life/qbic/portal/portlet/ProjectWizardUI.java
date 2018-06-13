@@ -53,7 +53,7 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean testMode = false;// TODO
-  public static boolean development = true;
+  public static boolean development = false;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 
