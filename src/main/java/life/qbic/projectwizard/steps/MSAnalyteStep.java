@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.teemu.wizards.WizardStep;
@@ -117,6 +117,7 @@ public class MSAnalyteStep implements WizardStep {
     main.addComponent(analyteOptions);
 
     baseAnalyteSampleTable = new Table();
+    baseAnalyteSampleTable.setImmediate(true);
     baseAnalyteSampleTable.setStyleName(Styles.tableTheme);
     baseAnalyteSampleTable.addContainerProperty("Sample", Label.class, null);
     baseAnalyteSampleTable.addContainerProperty("Fractions", TextField.class, null);
@@ -247,18 +248,10 @@ public class MSAnalyteStep implements WizardStep {
 
             @Override
             public void buttonClick(ClickEvent event) {
-              showSampleSelectInfo();
               sampleSelect.reset();
+              cancelListeners();
+              cancelTableSelections();
               initWashSampleConnectionSelection(sampleSelect, rowID);
-            }
-
-            private void showSampleSelectInfo() {
-              if (!selectInfoWasShown) {
-                Styles.notification("Sample Selection",
-                    "You can click on any sample in any of the tables to connect it to this wash run.",
-                    NotificationType.DEFAULT);
-                selectInfoWasShown = true;
-              }
             }
           });
           row.add(sampleSelect);
@@ -277,11 +270,21 @@ public class MSAnalyteStep implements WizardStep {
 
         }
         washRuns.setPageLength(Math.min(10, washCount.getValue()));
+        showSampleSelectInfo();
       }
     });
 
     main.addComponent(washRunCount);
     main.addComponent(washRuns);
+  }
+
+  private void showSampleSelectInfo() {
+    if (!selectInfoWasShown) {
+      Styles.notification("Sample Selection",
+          "You can click on any sample in any of the tables to connect it to this wash run.",
+          NotificationType.DEFAULT);
+      selectInfoWasShown = true;
+    }
   }
 
   private void enableCol(String colName, boolean enable) {
@@ -331,16 +334,22 @@ public class MSAnalyteStep implements WizardStep {
           }
           parseTextRow(washRuns, washRow, "Name").setValue(info + " wash");
           parseTextRow(washRuns, washRow, "Lab ID").setValue(info2 + " wash");
-
-          cancelTableSelectionsAndListeners();
         } else {
           notifyUnmeasuredSample();
         }
+        cancelListeners();
+        cancelTableSelections();
       }
     });
     t.setSelectable(true);
   }
 
+  /**
+   * called whenever a wash button is clicked
+   * 
+   * @param sampleSelect
+   * @param washRow
+   */
   private void initWashSampleConnectionSelection(SampleSelectComponent sampleSelect, int washRow) {
     Table enrichTable = msEnrichmentTable.getTable();
     Table fractTable = msFractionationTable.getTable();
@@ -366,7 +375,7 @@ public class MSAnalyteStep implements WizardStep {
       return false;
   }
 
-  protected void cancelTableSelectionsAndListeners() {
+  protected void cancelListeners() {
     List<Table> tables = Arrays.asList(baseAnalyteSampleTable, msFractionationTable.getTable(),
         msEnrichmentTable.getTable());
     for (Table t : tables) {
@@ -374,6 +383,13 @@ public class MSAnalyteStep implements WizardStep {
       for (Object l : listeners) {
         t.removeValueChangeListener((ValueChangeListener) l);
       }
+    }
+  }
+
+  protected void cancelTableSelections() {
+    List<Table> tables = Arrays.asList(baseAnalyteSampleTable, msFractionationTable.getTable(),
+        msEnrichmentTable.getTable());
+    for (Table t : tables) {
       t.select(null);
       t.setSelectable(false);
     }
@@ -987,7 +1003,8 @@ public class MSAnalyteStep implements WizardStep {
     for (ExperimentModel analytes : source) {
       allSamples.addAll(analytes.getSamples());
     }
-    setAnalyteSamples(allSamples, null);// this resets the life.qbic.projectwizard.model, needed for pooling
+    setAnalyteSamples(allSamples, null);// this resets the life.qbic.projectwizard.model, needed for
+                                        // pooling
     this.msExperimentModel = new MSExperimentModel(msExperimentModel);
   }
 

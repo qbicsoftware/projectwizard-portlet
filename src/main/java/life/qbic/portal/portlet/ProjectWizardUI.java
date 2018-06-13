@@ -46,7 +46,6 @@ import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
-import matrix.MatrixStep;
 
 @Theme("mytheme")
 @SuppressWarnings("serial")

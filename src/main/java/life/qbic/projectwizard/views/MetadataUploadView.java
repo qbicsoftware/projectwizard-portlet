@@ -40,7 +40,6 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
-import life.qbic.projectwizard.control.Functions;
 import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.uicomponents.UploadComponent;
 import life.qbic.portal.Styles;
