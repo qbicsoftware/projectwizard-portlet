@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.xml.bind.JAXBException;
 
@@ -41,6 +43,8 @@ import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBVocabularies;
+import life.qbic.projectwizard.processes.MetadataUpdateReadyRunnable;
+import life.qbic.projectwizard.registration.UpdateProgressBar;
 import life.qbic.projectwizard.uicomponents.UploadComponent;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
@@ -65,6 +69,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
@@ -78,9 +83,13 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Upload.FinishedEvent;
 
-// import au.com.bytecode.opencsv.CSVReader;
 
 public class MetadataUploadView extends VerticalLayout {
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 4158374012412326889L;
 
   private OptionGroup typeOfData =
       new OptionGroup("Type of Metadata", new ArrayList<String>(Arrays.asList("Samples")));
@@ -88,6 +97,8 @@ public class MetadataUploadView extends VerticalLayout {
   private TabSheet sheet;
   private UploadComponent upload;
   private Button send;
+  private ProgressBar progressBar;
+  private Label progressInfo;
 
   private XMLParser xmlParser = new XMLParser();
   private IOpenBisClient openbis;
@@ -110,6 +121,7 @@ public class MetadataUploadView extends VerticalLayout {
   private List<String> codesInTSV;
 
   private boolean overWriteAllowed = false;
+  private final int BATCH_SIZE = 50;
 
   public MetadataUploadView(IOpenBisClient openbis, DBVocabularies vocabularies,
       boolean overWriteAllowed) {
@@ -162,7 +174,15 @@ public class MetadataUploadView extends VerticalLayout {
 
     send = new Button("Send to Database");
     send.setEnabled(false);
+    progressBar = new ProgressBar();
+    progressInfo = new Label();
+    showProgress(false);
     initListeners();
+  }
+
+  public void showProgress(boolean b) {
+    progressBar.setVisible(b);
+    // progressInfo.setVisible(b);
   }
 
   private void initListeners() {
@@ -185,30 +205,71 @@ public class MetadataUploadView extends VerticalLayout {
           }
       }
     });
+
+    MetadataUploadView view = this;
     send.addClickListener(new ClickListener() {
 
       @Override
       public void buttonClick(ClickEvent event) {
-        try {
-          ingestTable();
-          Styles.notification("Done!", "Your metadata was sent to the Database.",
-              NotificationType.SUCCESS);
-          sheet.removeComponent(getActiveTable());
-        } catch (Exception e) {
-          e.printStackTrace();
-          Styles.notification("Something went wrong!",
-              "Sorry, your metadata could not be registered. Please contact a delevoper.",
-              NotificationType.ERROR);
-        }
+        ingestTable(new MetadataUpdateReadyRunnable(view), progressBar, progressInfo);
+        send.setEnabled(false);
       }
     });
+  }
+
+  protected void ingestTable(final Runnable ready, final ProgressBar bar, final Label info) {
+    showProgress(true);
+    Thread t = new Thread(new Runnable() {
+      volatile int current = 0;
+
+      @Override
+      public void run() {
+        UI.getCurrent().access(new UpdateProgressBar(bar, info, 0.01));
+        Table sampleTable = getActiveTable();
+        List<Integer> ids = new ArrayList<Integer>();
+        for (Object row : sampleTable.getItemIds()) {
+          int id = (int) row;
+          if (id > -1)
+            ids.add(id);
+        }
+
+        int last = ids.size() - 1;
+        int steps = Math.max(1, (last / BATCH_SIZE) + 1);
+        int start = 0;
+        int end = -1;
+        while (end < last) {
+          current++;
+          end += Math.min(BATCH_SIZE, last - end);
+          List<Integer> batch = ids.subList(start, end+1);
+
+          logger.debug("sending metadata of samples " + start + "-" + end + " to openBIS.");
+          start = end + 1;
+
+          double frac = current * 1.0 / steps;
+          UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+          try {
+            ingestTable(batch);
+          } catch (IllegalArgumentException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch (JAXBException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
+        UI.getCurrent().setPollInterval(-1);
+        UI.getCurrent().access(ready);
+      }
+    });
+    t.start();
+    UI.getCurrent().setPollInterval(500);
   }
 
   public Table getActiveTable() {
     return (Table) sheet.getSelectedTab();
   }
 
-  protected void ingestTable() throws IllegalArgumentException, JAXBException {
+  protected void ingestTable(List<Integer> rows) throws IllegalArgumentException, JAXBException {
     Table sampleTable = getActiveTable();
     metadata = new HashMap<String, Object>();
     List<String> types = new ArrayList<String>();
@@ -229,7 +290,8 @@ public class MetadataUploadView extends VerticalLayout {
           if (attribute.contains("[") && attribute.contains("]")) {
             unit = parseUnit(attribute);
             attribute = attribute.replace(" [" + unit + "]", "");
-            prop = new Property(attribute, "", life.qbic.xml.properties.Unit.valueOf(unit), propType);
+            prop =
+                new Property(attribute, "", life.qbic.xml.properties.Unit.valueOf(unit), propType);
           } else
             prop = new Property(attribute, "", propType);
           conditions.add(prop);
@@ -240,8 +302,7 @@ public class MetadataUploadView extends VerticalLayout {
           types.add(attribute);
         }
         Map<String, String> curTypeMap = new HashMap<String, String>();
-        for (Object row : sampleTable.getItemIds()) {
-          int id = (int) row;
+        for (int id : rows) {
           if (id != -1) {
             String bc = getBarcodeInRow(id);
             String val = parseLabelCell(id, col);
@@ -281,7 +342,6 @@ public class MetadataUploadView extends VerticalLayout {
         newFactors.add(prop);
       }
       if (!newFactors.isEmpty())
-        // xmlPropertyMap.put(code, xmlParser.toString(xmlParser.createXMLFromFactors(newFactors)));
         xmlPropertyMap.put(code, xmlParser.toString(xmlParser.createXMLFromProperties(newFactors)));
     }
     for (Property condition : conditions) {
@@ -348,7 +408,8 @@ public class MetadataUploadView extends VerticalLayout {
     String projectCode = "";
     for (int j = 0; j < header.length; j++) {
       String word = data.get(0)[j];
-      if ((SampleCodeFunctions.isQbicBarcode(word) || word.contains("ENTITY-")) && barcodeCol == -1) {
+      if ((SampleCodeFunctions.isQbicBarcode(word) || word.contains("ENTITY-"))
+          && barcodeCol == -1) {
         barcodeCol = j;
         barcodeColName = header[barcodeCol];
         projectCode = word.substring(0, 5);
@@ -429,7 +490,7 @@ public class MetadataUploadView extends VerticalLayout {
       options.addAll(customProperties);
       options.addAll(sampleTypeToAttributes.get(type));
       // options.removeAll(hiddenProperties);
-      Table sampleTable = new Table(type + " Samples");
+      Table sampleTable = new Table();
       sampleTable.setWidth("100%");
       sampleTable.setStyleName(Styles.tableTheme);
       sampleTable.addContainerProperty(header[barcodeCol], String.class, null);
@@ -517,6 +578,7 @@ public class MetadataUploadView extends VerticalLayout {
           sampleTable.addItem(row.toArray(), i);
         }
       }
+      sampleTable.setCaption(type + " Samples (" + sampleTable.size() + ")");
       sheet.addTab(sampleTable);
       sampleTables.add(sampleTable);
       sampleTable.setPageLength(Math.min(20, sampleTable.size()));
@@ -524,6 +586,7 @@ public class MetadataUploadView extends VerticalLayout {
       reactToTableChange();
     }
     addComponent(send);
+    addComponent(progressBar);
     return true;
   }
 
@@ -636,20 +699,6 @@ public class MetadataUploadView extends VerticalLayout {
     c.select(null);
     c.setNullSelectionAllowed(false);
   }
-  //
-  // public static void main(String[] args) {
-  // int infoMaxLength = 21;
-  // String res = "ID01-spleen-150114-L243_TUE39";
-  // System.out.println(res.substring(0, Math.min(res.length(), infoMaxLength)));
-  //
-  // RegexpValidator factorLabelValidator = new RegexpValidator("([a-z]+_?[a-z]*)+([a-z]|[0-9]*)",
-  // "Name must start with a lower case letter and contain only lower case letters, numbers or
-  // underscores ('_'). Underscores must be followed by a letter.");
-  // List<String> tests = new ArrayList<String>(Arrays.asList("a", "a_1", "abc_abc_de1",
-  // "isotope12c_or13c", "abc", "abc1", "abc_1", "abc_asd1_x", "abc1_abc2"));
-  // for (String x : tests)
-  // System.out.println(x + ": " + factorLabelValidator.isValid(x));
-  // }
 
   private void createDelimiterChangeDialogue(String headline) {
     Window subWindow = new Window(" Unexpected number format");
@@ -1042,7 +1091,8 @@ public class MetadataUploadView extends VerticalLayout {
     return res;
   }
 
-  private String parseXMLConditionValue(String xml, String label, life.qbic.xml.properties.PropertyType type) {
+  private String parseXMLConditionValue(String xml, String label,
+      life.qbic.xml.properties.PropertyType type) {
     List<Property> props = new ArrayList<Property>();
     try {
       props = xmlParser.getAllPropertiesFromXML(xml);
@@ -1068,6 +1118,23 @@ public class MetadataUploadView extends VerticalLayout {
       return (String) ((ComboBox) cell).getValue();
     else
       return cell.toString();
+  }
+
+  public void ingestionComplete() throws InterruptedException {
+    // TODO
+    try {
+      Styles.notification("Done!", "Your metadata was sent to the Database.",
+          NotificationType.SUCCESS);
+      sheet.removeComponent(getActiveTable());
+    } catch (Exception e) {
+      e.printStackTrace();
+      Styles.notification("Something went wrong!",
+          "Sorry, your metadata could not be registered. Please contact a delevoper.",
+          NotificationType.ERROR);
+    }
+    Thread.sleep(1000);
+    showProgress(false);
+    send.setEnabled(false);
   }
 
 }

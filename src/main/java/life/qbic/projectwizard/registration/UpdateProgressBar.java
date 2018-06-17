@@ -21,7 +21,7 @@ public class UpdateProgressBar implements Runnable {
       status.setValue(((int) (current * 100)) + "% done.");
     } else {
       status.setCaption("Ready");
-      status.setValue("Registration complete!");
+      status.setValue("Registration Complete!");
     }
   }
 
