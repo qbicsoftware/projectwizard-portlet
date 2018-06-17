@@ -169,7 +169,7 @@ public class ExperimentImportController implements IRegistrationController {
                   new HashSet<String>(vocabs.getLcmsMethods()));
 
               VocabularyValidator validator = new VocabularyValidator(experimentTypeVocabularies);
-              boolean readSuccess = prep.processTSV(file, getImportType());
+              boolean readSuccess = prep.processTSV(file, getImportType(), true);
               boolean vocabValid = false;
               if (readSuccess) {
                 msProperties = prep.getSpecialExperimentsOfTypeOrNull("Q_MS_MEASUREMENT");
@@ -499,7 +499,7 @@ public class ExperimentImportController implements IRegistrationController {
                     }
                     exp = specialExpToExpCode.get(t.getExperiment());
                     // get parent sample for code
-                    String parentExtID = t.fetchParentIDs().get(0);
+                    String parentExtID = t.getParentIDs().get(0);
                     String parentCode = extCodeToBarcode.get(parentExtID);// .getCode();
                     int msRun = 1;
                     code = "";
@@ -513,11 +513,11 @@ public class ExperimentImportController implements IRegistrationController {
                 t.setExperiment(exp);
                 t.setCode(code);
                 extCodeToBarcode.put((String) props.get("Q_EXTERNALDB_ID"), code);// t);
-                List<String> parents = t.fetchParentIDs();
-                t.setParents("");
+                List<String> parents = t.getParentIDs();
+//                t.setParents(""); maybe needed?
                 for (String parentExtID : parents) {
                   if (extCodeToBarcode.containsKey(parentExtID))
-                    t.addParent(extCodeToBarcode.get(parentExtID));// .getCode());
+                    t.addParentID(extCodeToBarcode.get(parentExtID));// .getCode());
                   else
                     logger.warn(
                         "Parent could not be translated, because no ext id to code mapping was found for ext id "

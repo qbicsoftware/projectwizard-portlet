@@ -474,7 +474,7 @@ public class WizardController implements IRegistrationController {
           String code = project + "000";
           String sampleType = "Q_ATTACHMENT_SAMPLE";
           boolean pilot = contextStep.isPilot();
-          ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, sampleType, "", "",
+          ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, sampleType, "", new ArrayList<String>(),
               new HashMap<String, Object>());
           samples.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, desc,
@@ -986,7 +986,7 @@ public class WizardController implements IRegistrationController {
             }
             createTSV();
             try {
-              prep.processTSV(dataAggregator.getTSV(), ExperimentalDesignType.QBIC);
+              prep.processTSV(dataAggregator.getTSV(), ExperimentalDesignType.QBIC, false);
             } catch (IOException | JAXBException e) {
               e.printStackTrace();
             }
@@ -1019,7 +1019,7 @@ public class WizardController implements IRegistrationController {
             }
             createTSV();
             try {
-              prep.processTSV(dataAggregator.getTSV(), ExperimentalDesignType.QBIC);
+              prep.processTSV(dataAggregator.getTSV(), ExperimentalDesignType.QBIC, false);
             } catch (IOException | JAXBException e) {
               e.printStackTrace();
             }
