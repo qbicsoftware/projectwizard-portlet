@@ -70,6 +70,7 @@ import life.qbic.datamodel.samples.AOpenbisSample;
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.SamplePreparator;
+import life.qbic.expdesign.io.QBiCDesignReader;
 import life.qbic.expdesign.model.ExperimentalDesignType;
 import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
@@ -986,7 +987,7 @@ public class WizardController implements IRegistrationController {
             }
             createTSV();
             try {
-              prep.processTSV(dataAggregator.getTSV(), ExperimentalDesignType.QBIC, false);
+              prep.processTSV(dataAggregator.getTSV(), new QBiCDesignReader(), false);
             } catch (IOException | JAXBException e) {
               e.printStackTrace();
             }
@@ -1019,7 +1020,7 @@ public class WizardController implements IRegistrationController {
             }
             createTSV();
             try {
-              prep.processTSV(dataAggregator.getTSV(), ExperimentalDesignType.QBIC, false);
+              prep.processTSV(dataAggregator.getTSV(), new QBiCDesignReader(), false);
             } catch (IOException | JAXBException e) {
               e.printStackTrace();
             }
