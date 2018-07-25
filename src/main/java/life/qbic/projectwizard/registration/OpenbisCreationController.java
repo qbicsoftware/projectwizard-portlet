@@ -414,6 +414,8 @@ public class OpenbisCreationController {
       }
     }
     Map<String, Object> params = new HashMap<String, Object>();
+    params.put("user", user);
+
     for (ISampleBean sample : samples) {
       if (openbis.sampleExists(sample.getCode())) {
         logger.warn(sample.getCode() + " already exists in " + p
@@ -428,7 +430,6 @@ public class OpenbisCreationController {
         map.put("space", space);
         map.put("project", project);
         map.put("experiment", exp);
-        map.put("user", user);
         map.put("type", sample.getType());
         if (!sample.getSecondaryName().isEmpty()) {
           map.put("Q_SECONDARY_NAME", sample.getSecondaryName());
@@ -465,12 +466,12 @@ public class OpenbisCreationController {
       return false;
     }
     Map<String, Object> params = new HashMap<String, Object>();
+    params.put("user", user);
     Map<String, Object> map = new HashMap<String, Object>();
     map.put("code", code);
     map.put("space", space);
     map.put("project", project);
     map.put("experiment", exp);
-    map.put("user", user);
     map.put("type", type);
     map.put("metadata", metadata);
     params.put(code, map);
