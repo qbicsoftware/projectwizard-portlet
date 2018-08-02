@@ -11,4 +11,6 @@
 
 
     <inherits name="org.vaadin.hene.flexibleoptiongroup.widgetset.FlexibleOptionGroupWidgetset" />
+
+    <inherits name="com.wcs.wcslib.vaadin.widget.multifileupload.WidgetSet" />
 </module>
