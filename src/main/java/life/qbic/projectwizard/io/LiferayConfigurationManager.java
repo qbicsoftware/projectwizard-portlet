@@ -24,7 +24,7 @@ import com.liferay.util.portlet.PortletProps; // util-java.jar
 /**
  * Implements {@see ConfigurationManager} Portal dependent
  * 
- * @author wojnar
+ * @author wojnar friedrich
  * 
  */
 public enum LiferayConfigurationManager implements ConfigurationManager {
@@ -34,6 +34,7 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
   public static final String DATASOURCE_URL = "datasource.url";
 
   public static final String TMP_FOLDER = "tmp.folder";
+  public static final String ISA_CONFIG = "isa.config.folder";
   public static final String BARCODE_SCRIPTS_FOLDER = "barcode.scripts";
   public static final String BARCODE_RESULTS = "barcode.results";
   public static final String BARCODE_PATH_VARIABLE = "path.variable";
@@ -60,6 +61,7 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
   private String dataSourceUrl;
 
   private String tmpFolder;
+  private String isaConfigPath;
   private String barcodeScriptsFolder;
   private String barcodePathVariable;
   private String barcodeResultsFolder;
@@ -96,6 +98,7 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
     dataSourceUrl = portletConfig.getProperty(DATASOURCE_URL);
 
     tmpFolder = portletConfig.getProperty(TMP_FOLDER);
+    isaConfigPath = portletConfig.getProperty(ISA_CONFIG);
     barcodeScriptsFolder = portletConfig.getProperty(BARCODE_SCRIPTS_FOLDER);
     barcodePathVariable = portletConfig.getProperty(BARCODE_PATH_VARIABLE);
     barcodeResultsFolder = portletConfig.getProperty(BARCODE_RESULTS);
@@ -217,6 +220,11 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
   @Override
   public String getDeletionGrp() {
     return deletionGroup;
+  }
+
+  @Override
+  public String getISAConfigPath() {
+    return isaConfigPath;
   }
 
 }

@@ -205,7 +205,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
                                                                                           // is down
     ExperimentImportController uc =
         new ExperimentImportController(creationController, vocabularies, openbis, dbm);
-    uc.init(user);
+    uc.init(user, config.getISAConfigPath());
     tabs.addTab(uc.getView(), "Import Project").setIcon(FontAwesome.FILE);
 
     boolean overwriteAllowed = isAdmin || canOverwrite();

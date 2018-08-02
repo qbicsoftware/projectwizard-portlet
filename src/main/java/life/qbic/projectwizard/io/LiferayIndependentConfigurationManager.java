@@ -26,7 +26,7 @@ import java.util.Properties;
 /**
  * Implements {@see ConfigurationManager}. Does not need Portal environment.
  * 
- * @author wojnar
+ * @author wojnar friedrich
  * 
  */
 
@@ -37,6 +37,7 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
   public static final String DATASOURCE_URL = "datasource.url";
 
   public static final String TMP_FOLDER = "tmp.folder";
+  public static final String ISA_CONFIG = "isa.config.folder";
   public static final String SCRIPTS_FOLDER = "barcode.scripts";
   public static final String BARCODE_RESULTS = "barcode.results";
   public static final String PATH_VARIABLE = "path.variable";
@@ -63,6 +64,7 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
   private String dataSourceUrl;
 
   private String tmpFolder;
+  private String isaConfigPath;
   private String scriptsFolder;
   private String pathVariable;
   private String barcodeResultsFolder;
@@ -118,6 +120,7 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
       dataSourcePass = portletConfig.getProperty(DATASOURCE_PASS);
       dataSourceUrl = portletConfig.getProperty(DATASOURCE_URL);
 
+      isaConfigPath = portletConfig.getProperty(ISA_CONFIG);
       tmpFolder = portletConfig.getProperty(TMP_FOLDER);
       scriptsFolder = portletConfig.getProperty(SCRIPTS_FOLDER);
       barcodeResultsFolder = portletConfig.getProperty(BARCODE_RESULTS);
@@ -244,5 +247,10 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
   @Override
   public String getDeletionGrp() {
     return deletionGroup;
+  }
+
+  @Override
+  public String getISAConfigPath() {
+    return isaConfigPath;
   }
 }
