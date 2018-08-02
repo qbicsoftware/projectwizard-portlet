@@ -72,6 +72,7 @@ import life.qbic.expdesign.model.ExperimentalDesignType;
 import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.expdesign.model.StructuredExperiment;
 import life.qbic.isatab.ISAReader;
+import life.qbic.isatab.ISAToQBIC;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.io.DBVocabularies;
@@ -169,29 +170,30 @@ public class ExperimentImportController implements IRegistrationController {
       }
     });
   }
-  
+
   public void isaPrepComplete(List<Study> studies, String error) {
     MissingInfoComponent newQ = new MissingInfoComponent();
     view.replaceComponent(questionaire, newQ);
     if (error != null) {
-      Styles.notification("Failed to read ISA format.", error,
-          NotificationType.ERROR);
+      Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
+      view.resetFormatSelection();
       view.listISAStudies(new ArrayList<Study>());
     } else {
       Styles.notification("Upload complete.",
-          "ISA-Tab has been successfully uploaded, please select a study.", NotificationType.SUCCESS);
+          "ISA-Tab has been successfully uploaded, please select a study.",
+          NotificationType.SUCCESS);
       view.listISAStudies(studies);
     }
   }
 
-  public void init(final String user) {
+  public void init(final String user, final String isaConfigPath) {
     ExperimentImportController control = this;
     Upload upload = new Upload("Upload your file here", uploader);
     MultiUploadComponent multiUpload = new MultiUploadComponent();
     final ExperimentImportController controller = this;
 
     final AllUploadFinishedHandler allUploadFinishedHandler = new AllUploadFinishedHandler() {
-      
+
       @Override
       public void finished() {
         Thread t = new Thread(new Runnable() {
@@ -199,7 +201,7 @@ public class ExperimentImportController implements IRegistrationController {
           @Override
           public void run() {
             File folder = multiUpload.getISAFolder();
-            ISAReader isaParser = new ISAReader();
+            ISAReader isaParser = new ISAReader(isaConfigPath, new ISAToQBIC());
             List<Study> studies = isaParser.listStudies(folder);
             String error = isaParser.getError();
             if (error == null)
@@ -539,7 +541,6 @@ public class ExperimentImportController implements IRegistrationController {
               TSVSampleBean t = (TSVSampleBean) b;
               String extID = (String) t.getMetadata().get("Q_EXTERNALDB_ID");
               if (extIDToSample.containsKey(extID)) {
-                System.out.println(extID);
                 existing.add(t);
                 extCodeToBarcode.put(extID, extIDToSample.get(extID).getCode());
               } else {
@@ -621,14 +622,17 @@ public class ExperimentImportController implements IRegistrationController {
                 extCodeToBarcode.put((String) props.get("Q_EXTERNALDB_ID"), code);// t);
                 List<String> parents = t.getParentIDs();
                 // t.setParents(""); maybe needed?
+                List<String> newParents = new ArrayList<String>();
                 for (String parentExtID : parents) {
                   if (extCodeToBarcode.containsKey(parentExtID))
-                    t.addParentID(extCodeToBarcode.get(parentExtID));// .getCode());
+                    newParents.add(extCodeToBarcode.get(parentExtID));
                   else
                     logger.warn(
                         "Parent could not be translated, because no ext id to code mapping was found for ext id "
                             + parentExtID);
                 }
+                for (String p : newParents)
+                  t.addParentID(p);
               }
             }
             // remove existing samples from registration process

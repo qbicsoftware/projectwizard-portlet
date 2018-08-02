@@ -25,13 +25,21 @@ import org.isatools.isacreator.model.Study;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.event.FieldEvents.FocusEvent;
+import com.vaadin.event.FieldEvents.FocusListener;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.FileResource;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.server.VaadinService;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
@@ -87,10 +95,7 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
 
 
     importOptions = new OptionGroup("Import Format");
-    importOptions.addItems("QBiC", "Standard", "ISA-Tab (prototype)", "MHC Ligandomics (measured)");// ,
-                                                                                                    // "MHC
-                                                                                                    // Ligandomics
-    // (preparation)");
+    importOptions.addItems("QBiC", "Standard", "ISA-Tab (prototype)", "MHC Ligandomics (measured)");
 
     importOptions.addValueChangeListener(new ValueChangeListener() {
       @Override
@@ -98,11 +103,8 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
         for (Object cl : preview.getListeners(ClickEvent.class))
           preview.removeClickListener((ClickListener) cl);
         Object value = importOptions.getValue();
-        if (value != null) {
-          enableMultiUpload("ISA-Tab (prototype)".equals(value));
-
-          preview.setVisible("Standard".equals(value));
-        }
+        enableMultiUpload("ISA-Tab (prototype)".equals(value));
+        preview.setVisible("Standard".equals(value));
       }
     });
     infos = new VerticalLayout();
@@ -121,10 +123,43 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
   protected void enableMultiUpload(boolean enable) {
     isaBox.removeAllComponents();
     if (enable) {
-      isaBox.addComponent(multiUpload.getUpload());
-      isaBox.addComponent(new Button("Upload ISA"));
+
+      Window subWindow = new Window(" Upload ISA-Tab");
+      subWindow.setWidth("400px");
+
+      VerticalLayout layout = new VerticalLayout();
+      layout.setSpacing(true);
+      layout.setMargin(true);
+      Label info = new Label("Please upload all files belonging to the ISA study.");
+      layout.addComponent(info);
+      layout.addComponent(multiUpload.getUpload());
+
+      Button ok = new Button("Ok");
+
+      ok.addClickListener(new ClickListener() {
+        @Override
+        public void buttonClick(ClickEvent event) {
+          subWindow.close();
+          layout.removeAllComponents();
+        }
+      });
+      layout.addComponent(ok);
       isaStudyBox.setVisible(true);
       isaBox.addComponent(isaStudyBox);
+      String baseDir = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
+      // src/main/webapp
+      Resource res = new FileResource(new File(baseDir + "/VAADIN/img/isatools.png"));
+      Image imNotYourC_Pal = new Image(null, res);
+      layout.addComponent(imNotYourC_Pal);
+
+      subWindow.setContent(layout);
+      // Center it in the browser window
+      subWindow.center();
+      subWindow.setModal(true);
+      subWindow.setIcon(FontAwesome.TABLE);
+      subWindow.setResizable(false);
+      ProjectWizardUI ui = (ProjectWizardUI) UI.getCurrent();
+      ui.addWindow(subWindow);
     } else {
       isaStudyBox.setVisible(false);
       isaBox.addComponent(upload);
@@ -176,22 +211,31 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
   }
 
   private Component createTSVDownloadComponent(ExperimentalDesignType type) {
-    VerticalLayout v = new VerticalLayout();
-    v.setSpacing(true);
-    Label l = new Label(type.getDescription());
-    l.setWidth("300px");
-    v.addComponent(l);
-    Button button = new Button("Download Example");
-    v.addComponent(button);
+    if (type.equals(ExperimentalDesignType.ISA)) {
+      VerticalLayout v = new VerticalLayout();
+      Label l = new Label("For the ISA specification see:");
+      Link link = new Link("http://isa-specs.readthedocs.io/en/latest/isatab.html",
+              new ExternalResource("http://isa-specs.readthedocs.io/en/latest/isatab.html"));
+   // Open the URL in a new window/tab
+      link.setTargetName("_blank");
+      v.addComponent(l);
+      v.addComponent(link);
+      return v;
+    } else {
+      VerticalLayout v = new VerticalLayout();
+      v.setSpacing(true);
+      Label l = new Label(type.getDescription());
+      l.setWidth("300px");
+      v.addComponent(l);
+      Button button = new Button("Download Example");
+      v.addComponent(button);
 
-    final File example = new File(
-        getClass().getClassLoader().getResource("examples/" + type.getFileName()).getFile());
-    FileDownloader tsvDL = new FileDownloader(new FileResource(example));
-
-
-    tsvDL.extend(button);
-
-    return v;
+      final File example = new File(
+          getClass().getClassLoader().getResource("examples/" + type.getFileName()).getFile());
+      FileDownloader tsvDL = new FileDownloader(new FileResource(example));
+      tsvDL.extend(button);
+      return v;
+    }
   }
 
   public Button getRegisterButton() {
@@ -355,10 +399,15 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
   }
 
   public void listISAStudies(List<Study> studies) {
+    isaStudyBox.setVisible(!studies.isEmpty());
     isaStudyBox.removeAllItems();
     for (Study s : studies)
       isaStudyBox.addItem(s.getStudyId());
     isaStudyBox.setEnabled(!studies.isEmpty());
+  }
+
+  public void resetFormatSelection() {
+    importOptions.setValue(importOptions.getNullSelectionItemId());
   }
 
 }
