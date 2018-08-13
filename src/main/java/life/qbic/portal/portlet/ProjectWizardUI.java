@@ -1,9 +1,13 @@
 package life.qbic.portal.portlet;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.portlet.PortletContext;
 import javax.portlet.PortletSession;
@@ -25,9 +29,11 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.WrappedPortletSession;
 import com.vaadin.ui.themes.ValoTheme;
+
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
 import life.qbic.datamodel.attachments.AttachmentConfig;
@@ -35,6 +41,7 @@ import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClientMock;
 import life.qbic.portal.portlet.QBiCPortletUI;
+import life.qbic.portal.samplegraph.GraphPage;
 import life.qbic.portal.utils.PortalUtils;
 import life.qbic.projectwizard.control.ExperimentImportController;
 import life.qbic.projectwizard.control.WizardController;
@@ -155,6 +162,52 @@ public class ProjectWizardUI extends QBiCPortletUI {
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
       initView(dbm, vocabs, userID);
       layout.addComponent(tabs);
+
+//      System.out.println("preparation");
+//      Map<String, String> reverseTaxMap = taxMap.entrySet().stream()
+//          .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+//      Map<String, String> reverseTissueMap = tissueMap.entrySet().stream()
+//          .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+//      String space = "MULTISCALEHCC";
+//      String project = "QMSHS";
+//      String projectID = "/" + space + "/" + project;
+//      String expID = "/CHICKEN_FARM/QAFWA/QAFWAE10";
+//
+//      System.out.println("go!");
+//      System.out.println("old parser");
+//      List<DataSet> datasets = openbis.getDataSetsOfProjectByIdentifier(projectID);
+//      List<Sample> samples =
+//          openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(projectID);
+//      ProjectParser p = new ProjectParser(reverseTaxMap, reverseTissueMap);
+//      StructuredExperiment res = null;
+//      Instant start = Instant.now();
+//
+//       try {
+//       res = p.parseSamplesBreadthFirst(samples, datasets);
+//       } catch (JAXBException e1) {
+//       // TODO Auto-generated catch block
+//       e1.printStackTrace();
+//       }
+//      Instant end = Instant.now();
+//      System.out.println("res: " + res);
+//      System.out.println(Duration.between(start, end));
+//
+//      System.out.println("new parser");
+//      
+//      p = new ProjectParser(reverseTaxMap, reverseTissueMap);
+//      start = Instant.now();
+//      String expDesignXML =
+//          openbis.getExperimentById2(expID).get(0).getProperties().get("Q_EXP_DESIGN_TEST");
+//
+//       try {
+//       res = p.parseSamplesBreadthFirst(samples, datasets, expDesignXML);
+//       } catch (JAXBException e) {
+//       // TODO Auto-generated catch block
+//       e.printStackTrace();
+//       }
+//      end = Instant.now();
+//      System.out.println("res: " + res);
+//      System.out.println(Duration.between(start, end));
     }
     return layout;
   }
@@ -259,14 +312,40 @@ public class ProjectWizardUI extends QBiCPortletUI {
     }
     return false;
   }
+  
+  public static String getPathToVaadinFolder() {
+      StringBuilder pathBuilder = new StringBuilder();
+      if (PortalUtils.isLiferayPortlet()) {
+        Properties prop = new Properties();
+        //workaround
+        GraphPage p = new GraphPage();
+        InputStream in = p.getClass().getClassLoader()
+            .getResourceAsStream("WEB-INF/liferay-plugin-package.properties");
+        try {
+          prop.load(in);
+          in.close();
+        } catch (IOException e1) {
+          // TODO Auto-generated catch block
+          e1.printStackTrace();
+        }
+        String portletName = prop.getProperty("name");
 
-  private String getPortletContextName(VaadinRequest request) {
-    WrappedPortletSession wrappedPortletSession =
-        (WrappedPortletSession) request.getWrappedSession();
-    PortletSession portletSession = wrappedPortletSession.getPortletSession();
+        URI location = UI.getCurrent().getPage().getLocation();
+        // http
+        pathBuilder.append(location.getScheme());
+        pathBuilder.append("://");
+        // host+port
+        pathBuilder.append(location.getAuthority());
 
-    final PortletContext context = portletSession.getPortletContext();
-    final String portletContextName = context.getPortletContextName();
-    return portletContextName;
-  }
+        String port = (Integer.toString(location.getPort()));
+        if (location.toString().contains(port)) {
+          pathBuilder.append(":");
+          pathBuilder.append(port);
+        }
+        pathBuilder.append("/");
+        pathBuilder.append(portletName);
+      }
+      pathBuilder.append("/VAADIN/");
+      return pathBuilder.toString();
+    }
 }
