@@ -25,14 +25,11 @@ import org.isatools.isacreator.model.Study;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.event.FieldEvents.FocusEvent;
-import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.FileResource;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -146,9 +143,9 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
       layout.addComponent(ok);
       isaStudyBox.setVisible(true);
       isaBox.addComponent(isaStudyBox);
-      String baseDir = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
+//      String baseDir = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
       // src/main/webapp
-      Resource res = new FileResource(new File(baseDir + "/VAADIN/img/isatools.png"));
+      Resource res = new ExternalResource(ProjectWizardUI.getPathToVaadinFolder()+"img/isatools.png");
       Image imNotYourC_Pal = new Image(null, res);
       layout.addComponent(imNotYourC_Pal);
 
