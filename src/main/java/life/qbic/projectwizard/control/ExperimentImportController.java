@@ -202,8 +202,14 @@ public class ExperimentImportController implements IRegistrationController {
           public void run() {
             File folder = multiUpload.getISAFolder();
             ISAReader isaParser = new ISAReader(isaConfigPath, new ISAToQBIC());
-            List<Study> studies = isaParser.listStudies(folder);
-            String error = isaParser.getError();
+            String error = null;
+            List<Study> studies = new ArrayList<Study>();
+            try {
+              studies = isaParser.listStudies(folder);
+              error = isaParser.getError();
+            } catch (NullPointerException e) {
+              error = "Investigation file not found or not the right format.";
+            }
             if (error == null)
               initISAHandler(isaParser, folder);
 
