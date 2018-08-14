@@ -467,6 +467,7 @@ public class OpenbisCreationController {
     }
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("user", user);
+
     Map<String, Object> map = new HashMap<String, Object>();
     map.put("code", code);
     map.put("space", space);

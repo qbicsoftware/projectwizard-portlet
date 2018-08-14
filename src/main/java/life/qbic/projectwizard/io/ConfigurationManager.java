@@ -65,4 +65,6 @@ public interface ConfigurationManager {
   public String getMetadataWriteGrp();
 
   public String getDeletionGrp();
+
+  public String getISAConfigPath();
 }

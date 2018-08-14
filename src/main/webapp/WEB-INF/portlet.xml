@@ -8,7 +8,7 @@
 
 	<portlet>
 		<description>Create hierarchical experiments using factorial design.</description>
-		<portlet-name>projectwizard-portlet</portlet-name>
+		<portlet-name>${project.artifactId}</portlet-name>
 		<display-name>ProjectWizard Portlet</display-name>
 
 		<portlet-class>com.vaadin.server.VaadinPortlet</portlet-class>

@@ -32,6 +32,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.isatools.isacreator.model.Study;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -42,10 +43,13 @@ import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload.FinishedEvent;
 import com.vaadin.ui.Upload.FinishedListener;
+import com.wcs.wcslib.vaadin.widget.multifileupload.ui.AllUploadFinishedHandler;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
@@ -60,25 +64,33 @@ import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.SamplePreparator;
 import life.qbic.expdesign.VocabularyValidator;
+import life.qbic.expdesign.io.EasyDesignReader;
+import life.qbic.expdesign.io.IExperimentalDesignReader;
+import life.qbic.expdesign.io.MHCLigandDesignReader;
+import life.qbic.expdesign.io.QBiCDesignReader;
 import life.qbic.expdesign.model.ExperimentalDesignType;
 import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.expdesign.model.StructuredExperiment;
+import life.qbic.isatab.ISAReader;
+import life.qbic.isatab.ISAToQBIC;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.model.MHCTyping;
+import life.qbic.projectwizard.processes.ISAParseReady;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
-import life.qbic.projectwizard.views.StandaloneTSVImport;
+import life.qbic.projectwizard.views.ExperimentImportView;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
+import life.qbic.projectwizard.uicomponents.MultiUploadComponent;
 
 
 public class ExperimentImportController implements IRegistrationController {
 
-  private StandaloneTSVImport view;
+  private ExperimentImportView view;
   private final Uploader uploader = new Uploader();
   private OpenbisCreationController openbisCreator;
   private SamplePreparator prep;
@@ -109,7 +121,7 @@ public class ExperimentImportController implements IRegistrationController {
 
   public ExperimentImportController(OpenbisCreationController creator, DBVocabularies vocabularies,
       IOpenBisClient openbis, DBManager dbm) {
-    view = new StandaloneTSVImport();
+    view = new ExperimentImportView();
     this.dbm = dbm;
     this.questionaire = view.getMissingInfoComponent();
     this.vocabs = vocabularies;
@@ -128,10 +140,91 @@ public class ExperimentImportController implements IRegistrationController {
     this.openbisCreator = creator;
   }
 
-  public void init(final String user) {
+
+  public void initISAHandler(ISAReader isaParser, File folder) {
+    ComboBox isaStudyBox = view.getISAStudyBox();
+    isaStudyBox.addValueChangeListener(new ValueChangeListener() {
+
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        Object study = isaStudyBox.getValue();
+        if (study != null)
+          isaParser.selectStudyToParse(study.toString());
+        boolean readSuccess = false;
+        try {
+          prep = new SamplePreparator();
+          readSuccess = prep.processTSV(folder, isaParser, true);
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (JAXBException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        if (readSuccess) {
+          handleImportResults(ExperimentalDesignType.ISA, prep.getSummary());
+        } else {
+          String error = prep.getError();
+          Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
+        }
+      }
+    });
+  }
+
+  public void isaPrepComplete(List<Study> studies, String error) {
+    MissingInfoComponent newQ = new MissingInfoComponent();
+    view.replaceComponent(questionaire, newQ);
+    if (error != null) {
+      Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
+      view.resetFormatSelection();
+      view.listISAStudies(new ArrayList<Study>());
+    } else {
+      Styles.notification("Upload complete.",
+          "ISA-Tab has been successfully uploaded, please select a study.",
+          NotificationType.SUCCESS);
+      view.listISAStudies(studies);
+    }
+  }
+
+  public void init(final String user, final String isaConfigPath) {
     ExperimentImportController control = this;
     Upload upload = new Upload("Upload your file here", uploader);
-    view.initView(upload);
+    MultiUploadComponent multiUpload = new MultiUploadComponent();
+    final ExperimentImportController controller = this;
+
+    final AllUploadFinishedHandler allUploadFinishedHandler = new AllUploadFinishedHandler() {
+
+      @Override
+      public void finished() {
+        Thread t = new Thread(new Runnable() {
+
+          @Override
+          public void run() {
+            File folder = multiUpload.getISAFolder();
+            ISAReader isaParser = new ISAReader(isaConfigPath, new ISAToQBIC());
+            String error = null;
+            List<Study> studies = new ArrayList<Study>();
+            try {
+              studies = isaParser.listStudies(folder);
+              error = isaParser.getError();
+            } catch (NullPointerException e) {
+              error = "Investigation file not found or not the right format.";
+            }
+            if (error == null)
+              initISAHandler(isaParser, folder);
+
+            UI.getCurrent().access(new ISAParseReady(controller, studies, error));
+            UI.getCurrent().setPollInterval(-1);
+          }
+        });
+        UI.getCurrent().setPollInterval(10);
+        t.start();
+
+      }
+    };
+    multiUpload.setFinishedHandler(allUploadFinishedHandler);
+
+    view.initView(upload, multiUpload);
     upload.setButtonCaption("Upload");
     // Listen for events regarding the success of upload.
     upload.addFailedListener(uploader);
@@ -170,7 +263,27 @@ public class ExperimentImportController implements IRegistrationController {
                   new HashSet<String>(vocabs.getLcmsMethods()));
 
               VocabularyValidator validator = new VocabularyValidator(experimentTypeVocabularies);
-              boolean readSuccess = prep.processTSV(file, getImportType(), true);
+
+              IExperimentalDesignReader reader = null;
+              boolean parseGraph = true;
+              switch (getImportType()) {
+                case QBIC:
+                  reader = new QBiCDesignReader();
+                  break;
+                case Standard:
+                  reader = new EasyDesignReader();
+                  int size = reader.countEntities(file);
+                  // TODO figure something out
+                  if (size > 300)
+                    parseGraph = false;
+                  break;
+                case MHC_Ligands_Finished:
+                  reader = new MHCLigandDesignReader();
+                default:
+                  break;
+              }
+
+              boolean readSuccess = prep.processTSV(file, reader, parseGraph);
               boolean vocabValid = false;
               if (readSuccess) {
                 msProperties = prep.getSpecialExperimentsOfTypeOrNull("Q_MS_MEASUREMENT");
@@ -191,54 +304,8 @@ public class ExperimentImportController implements IRegistrationController {
                 }
                 Styles.notification("Upload successful",
                     "Experiment was successfully uploaded and read.", NotificationType.SUCCESS);
-                switch (getImportType()) {
-                  // Standard hierarchic QBiC design
-                  case QBIC:
-                    view.setSummary(summaries);
-                    view.setProcessed(prep.getProcessed());
-                    view.setRegEnabled(true);
-                    projectInfo = prep.getProjectInfo();
-                    break;
-                  // Standard non-hierarchic design without QBiC specific keywords
-                  case Standard:
-                    Map<String, List<String>> catToVocabulary = new HashMap<String, List<String>>();
-                    catToVocabulary.put("Species", new ArrayList<String>(taxMap.keySet()));
-                    catToVocabulary.put("Tissues", new ArrayList<String>(tissueMap.keySet()));
-                    catToVocabulary.put("Analytes", new ArrayList<String>(analytesVocabulary));
-                    Map<String, List<String>> missingCategoryToValues =
-                        new HashMap<String, List<String>>();
-                    missingCategoryToValues.put("Species",
-                        new ArrayList<String>(prep.getSpeciesSet()));
-                    missingCategoryToValues.put("Tissues",
-                        new ArrayList<String>(prep.getTissueSet()));
-                    missingCategoryToValues.put("Analytes",
-                        new ArrayList<String>(prep.getAnalyteSet()));
-                    initMissingInfoListener(prep, missingCategoryToValues, catToVocabulary);
-                    StructuredExperiment nodes = prep.getSampleGraph();
-                    if (!nodes.getFactorsToSamples().keySet().isEmpty())
-                      view.initGraphPreview(nodes, prep.getIDsToSamples());
-                    break;
-                  // MHC Ligands that have already been measured (Filenames exist)
-                  case MHC_Ligands_Finished:
-                    catToVocabulary = new HashMap<String, List<String>>();
-                    catToVocabulary.put("Species", new ArrayList<String>(taxMap.keySet()));
-                    catToVocabulary.put("Tissues", new ArrayList<String>(tissueMap.keySet()));
-                    catToVocabulary.put("Analytes", new ArrayList<String>(analytesVocabulary));
-                    missingCategoryToValues = new HashMap<String, List<String>>();
-                    missingCategoryToValues.put("Species",
-                        new ArrayList<String>(prep.getSpeciesSet()));
-                    missingCategoryToValues.put("Tissues",
-                        new ArrayList<String>(prep.getTissueSet()));
-                    missingCategoryToValues.put("Analytes",
-                        new ArrayList<String>(prep.getAnalyteSet()));
-                    initMissingInfoListener(prep, missingCategoryToValues, catToVocabulary);
-                    break;
-                  default:
-                    logger.error("Error parsing tsv: " + prep.getError());
-                    Styles.notification("Failed to read file.", prep.getError(),
-                        NotificationType.ERROR);
-                    break;
-                }
+                handleImportResults(getImportType(), summaries);
+
               } else {
                 if (!readSuccess) {
                   String error = prep.getError();
@@ -282,7 +349,7 @@ public class ExperimentImportController implements IRegistrationController {
         String src = event.getButton().getCaption();
         if (src.equals("Register All")) {
           view.getRegisterButton().setEnabled(false);
-          view.showRegistration();
+          view.showRegistrationProgress();
           // collect experiment information
           complexExperiments = new ArrayList<OpenbisExperiment>();
           complexExperiments
@@ -318,6 +385,50 @@ public class ExperimentImportController implements IRegistrationController {
       }
     };
     view.getRegisterButton().addClickListener(cl);
+  }
+
+  protected void handleImportResults(ExperimentalDesignType importType,
+      List<SampleSummaryBean> summaries) {
+    switch (getImportType()) {
+      // Standard hierarchic QBiC design
+      case QBIC:
+        view.setSummary(summaries);
+        view.setProcessed(prep.getProcessed());
+        view.setRegEnabled(true);
+        projectInfo = prep.getProjectInfo();
+        break;
+      // Standard non-hierarchic design without QBiC specific keywords
+      case Standard:
+        prepareCompletionDialog();
+        StructuredExperiment nodes = prep.getSampleGraph();
+        if (!nodes.getFactorsToSamples().keySet().isEmpty())
+          view.initGraphPreview(nodes, prep.getIDsToSamples());
+        break;
+      case ISA:
+        prepareCompletionDialog();
+        Map<String, ISampleBean> idsToSamples = prep.getIDsToSamples();
+        view.initGraphPreview(prep.getSampleGraph(), idsToSamples);
+        // // MHC Ligands that have already been measured (Filenames exist)
+      case MHC_Ligands_Finished:
+        prepareCompletionDialog();
+        break;
+      default:
+        logger.error("Error parsing tsv: " + prep.getError());
+        Styles.notification("Failed to read file.", prep.getError(), NotificationType.ERROR);
+        break;
+    }
+  }
+
+  private void prepareCompletionDialog() {
+    Map<String, List<String>> catToVocabulary = new HashMap<String, List<String>>();
+    catToVocabulary.put("Species", new ArrayList<String>(taxMap.keySet()));
+    catToVocabulary.put("Tissues", new ArrayList<String>(tissueMap.keySet()));
+    catToVocabulary.put("Analytes", new ArrayList<String>(analytesVocabulary));
+    Map<String, List<String>> missingCategoryToValues = new HashMap<String, List<String>>();
+    missingCategoryToValues.put("Species", new ArrayList<String>(prep.getSpeciesSet()));
+    missingCategoryToValues.put("Tissues", new ArrayList<String>(prep.getTissueSet()));
+    missingCategoryToValues.put("Analytes", new ArrayList<String>(prep.getAnalyteSet()));
+    initMissingInfoListener(prep, missingCategoryToValues, catToVocabulary);
   }
 
   protected String addBarcodesToTSV(List<String> tsv, List<List<ISampleBean>> levels,
@@ -372,7 +483,6 @@ public class ExperimentImportController implements IRegistrationController {
       Map<String, List<String>> catToVocabulary) {
     extCodeToBarcode = new HashMap<String, String>();
 
-    // TODO where is this added? does it need to be added?
     ProjectInformationComponent projectInfoComponent =
         new ProjectInformationComponent(vocabs.getSpaces(), vocabs.getPeople().keySet());
 
@@ -518,14 +628,17 @@ public class ExperimentImportController implements IRegistrationController {
                 extCodeToBarcode.put((String) props.get("Q_EXTERNALDB_ID"), code);// t);
                 List<String> parents = t.getParentIDs();
                 // t.setParents(""); maybe needed?
+                List<String> newParents = new ArrayList<String>();
                 for (String parentExtID : parents) {
                   if (extCodeToBarcode.containsKey(parentExtID))
-                    t.addParentID(extCodeToBarcode.get(parentExtID));// .getCode());
+                    newParents.add(extCodeToBarcode.get(parentExtID));
                   else
                     logger.warn(
                         "Parent could not be translated, because no ext id to code mapping was found for ext id "
                             + parentExtID);
                 }
+                for (String p : newParents)
+                  t.addParentID(p);
               }
             }
             // remove existing samples from registration process

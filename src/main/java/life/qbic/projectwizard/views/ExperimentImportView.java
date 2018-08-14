@@ -21,16 +21,22 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.isatools.isacreator.model.Study;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.FileResource;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Resource;
+import com.vaadin.server.VaadinService;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
@@ -39,6 +45,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
 
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.expdesign.model.ExperimentalDesignType;
@@ -50,10 +57,11 @@ import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
+import life.qbic.projectwizard.uicomponents.MultiUploadComponent;
 import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.portal.samplegraph.GraphPage;
 
-public class StandaloneTSVImport extends VerticalLayout implements IRegistrationView {
+public class ExperimentImportView extends VerticalLayout implements IRegistrationView {
 
   /**
    * 
@@ -62,8 +70,9 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
   private Button register;
   private OptionGroup importOptions;
   private VerticalLayout infos;
-  // private Label error;
+  private VerticalLayout isaBox;
   private Upload upload;
+  private MultiUploadComponent multiUpload;
   private MissingInfoComponent questionaire;
   private ExperimentSummaryTable summary;
   private Button preview;
@@ -71,10 +80,11 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
   private Label registerInfo;
   private ProgressBar bar;
   private Button downloadTSV;
+  private ComboBox isaStudyBox;
 
-  private static final Logger logger = LogManager.getLogger(StandaloneTSVImport.class);
+  private static final Logger logger = LogManager.getLogger(ExperimentImportView.class);
 
-  public StandaloneTSVImport() {
+  public ExperimentImportView() {
     setMargin(true);
     setSpacing(true);
 
@@ -82,31 +92,78 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
 
 
     importOptions = new OptionGroup("Import Format");
-    importOptions.addItems("QBiC", "Standard", "MHC Ligandomics (measured)");// , "MHC Ligandomics
-                                                                             // (preparation)");
+    importOptions.addItems("QBiC", "Standard", "ISA-Tab (prototype)", "MHC Ligandomics (measured)");
 
     importOptions.addValueChangeListener(new ValueChangeListener() {
       @Override
       public void valueChange(ValueChangeEvent event) {
-        upload.setEnabled(importOptions.getValue() != null);
-        preview.setVisible("Standard".equals(importOptions.getValue()));
+        for (Object cl : preview.getListeners(ClickEvent.class))
+          preview.removeClickListener((ClickListener) cl);
+        Object value = importOptions.getValue();
+        enableMultiUpload("ISA-Tab (prototype)".equals(value));
+        preview.setVisible("Standard".equals(value));
       }
     });
     infos = new VerticalLayout();
     infos.setCaption("Format Information");
 
     infos.addComponent(
-        Styles.getPopupViewContaining(createTSVDownloadComponent(ExperimentalDesignType.QBIC,
-            "QBiC openBIS import format. Not recommended for external users.")));
-    infos.addComponent(Styles.getPopupViewContaining(createTSVDownloadComponent(
-        ExperimentalDesignType.Standard,
-        "The Standard Import format for experimental designs containing information about organism, tissues/cell cultures and the analyte preparations.")));
-    infos.addComponent(Styles.getPopupViewContaining(createTSVDownloadComponent(
-        ExperimentalDesignType.MHC_Ligands_Finished,
-        "Import format for tables of mass spectrometry measurements of MHC Ligands (Immunology group).")));
+        Styles.getPopupViewContaining(createTSVDownloadComponent(ExperimentalDesignType.QBIC)));
+    infos.addComponent(
+        Styles.getPopupViewContaining(createTSVDownloadComponent(ExperimentalDesignType.Standard)));
+    infos.addComponent(
+        Styles.getPopupViewContaining(createTSVDownloadComponent(ExperimentalDesignType.ISA)));
+    infos.addComponent(Styles.getPopupViewContaining(
+        createTSVDownloadComponent(ExperimentalDesignType.MHC_Ligands_Finished)));
   }
 
-  public void initView(Upload upload) {
+  protected void enableMultiUpload(boolean enable) {
+    isaBox.removeAllComponents();
+    if (enable) {
+
+      Window subWindow = new Window(" Upload ISA-Tab");
+      subWindow.setWidth("400px");
+
+      VerticalLayout layout = new VerticalLayout();
+      layout.setSpacing(true);
+      layout.setMargin(true);
+      Label info = new Label("Please upload all files belonging to the ISA study.");
+      layout.addComponent(info);
+      layout.addComponent(multiUpload.getUpload());
+
+      Button ok = new Button("Ok");
+
+      ok.addClickListener(new ClickListener() {
+        @Override
+        public void buttonClick(ClickEvent event) {
+          subWindow.close();
+          layout.removeAllComponents();
+        }
+      });
+      layout.addComponent(ok);
+      isaStudyBox.setVisible(true);
+      isaBox.addComponent(isaStudyBox);
+//      String baseDir = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
+      // src/main/webapp
+      Resource res = new ExternalResource(ProjectWizardUI.getPathToVaadinFolder()+"img/isatools.png");
+      Image imNotYourC_Pal = new Image(null, res);
+      layout.addComponent(imNotYourC_Pal);
+
+      subWindow.setContent(layout);
+      // Center it in the browser window
+      subWindow.center();
+      subWindow.setModal(true);
+      subWindow.setIcon(FontAwesome.TABLE);
+      subWindow.setResizable(false);
+      ProjectWizardUI ui = (ProjectWizardUI) UI.getCurrent();
+      ui.addWindow(subWindow);
+    } else {
+      isaStudyBox.setVisible(false);
+      isaBox.addComponent(upload);
+    }
+  }
+
+  public void initView(Upload upload, MultiUploadComponent multiUpload) {
     HorizontalLayout optionsInfo = new HorizontalLayout();
     optionsInfo.addComponent(importOptions);
     optionsInfo.addComponent(infos);
@@ -116,8 +173,14 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
 
     // file upload component
     this.upload = upload;
-    addComponent(this.upload);
-    upload.setEnabled(false);
+    this.multiUpload = multiUpload;
+    isaBox = new VerticalLayout();
+    isaBox.setSpacing(true);
+    addComponent(isaBox);
+
+    isaStudyBox = new ComboBox("Study");
+    isaStudyBox.setImmediate(true);
+    isaStudyBox.setNullSelectionAllowed(false);
 
     // missing info input layout
     addComponent(questionaire);
@@ -144,23 +207,32 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     addComponent(bar);
   }
 
-  private Component createTSVDownloadComponent(ExperimentalDesignType type, String info) {
-    VerticalLayout v = new VerticalLayout();
-    v.setSpacing(true);
-    Label l = new Label(info);
-    l.setWidth("300px");
-    v.addComponent(l);
-    Button button = new Button("Download Example");
-    v.addComponent(button);
+  private Component createTSVDownloadComponent(ExperimentalDesignType type) {
+    if (type.equals(ExperimentalDesignType.ISA)) {
+      VerticalLayout v = new VerticalLayout();
+      Label l = new Label("For the ISA specification see:");
+      Link link = new Link("http://isa-specs.readthedocs.io/en/latest/isatab.html",
+              new ExternalResource("http://isa-specs.readthedocs.io/en/latest/isatab.html"));
+   // Open the URL in a new window/tab
+      link.setTargetName("_blank");
+      v.addComponent(l);
+      v.addComponent(link);
+      return v;
+    } else {
+      VerticalLayout v = new VerticalLayout();
+      v.setSpacing(true);
+      Label l = new Label(type.getDescription());
+      l.setWidth("300px");
+      v.addComponent(l);
+      Button button = new Button("Download Example");
+      v.addComponent(button);
 
-    final File example = new File(
-        getClass().getClassLoader().getResource("examples/" + type.getFileName()).getFile());
-    FileDownloader tsvDL = new FileDownloader(new FileResource(example));
-
-
-    tsvDL.extend(button);
-
-    return v;
+      final File example = new File(
+          getClass().getClassLoader().getResource("examples/" + type.getFileName()).getFile());
+      FileDownloader tsvDL = new FileDownloader(new FileResource(example));
+      tsvDL.extend(button);
+      return v;
+    }
   }
 
   public Button getRegisterButton() {
@@ -240,6 +312,8 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
           return ExperimentalDesignType.MHC_Ligands_Plan;
         case "MHC Ligandomics (measured)":
           return ExperimentalDesignType.MHC_Ligands_Finished;
+        case "ISA-Tab (prototype)":
+          return ExperimentalDesignType.ISA;
         default:
           return ExperimentalDesignType.Standard;
       }
@@ -272,28 +346,26 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     tsvDL.extend(downloadTSV);
   }
 
-  public void showRegistration() {
+  public void showRegistrationProgress() {
     bar.setVisible(true);
     registerInfo.setVisible(true);
   }
 
-  public void initGraphPreview(StructuredExperiment sampleGraph,
+  public void initGraphPreview(StructuredExperiment structuredExperiment,
       Map<String, ISampleBean> idsToSamples) {
     preview.addClickListener(new ClickListener() {
 
       @Override
       public void buttonClick(ClickEvent event) {
         Window subWindow = new Window(" Preview Graph");
-        // subWindow.setResizable(true);
         subWindow.setWidth("400px");
-        // subWindow.setHeight("350px");
 
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
         layout.setMargin(true);
         GraphPage g = new GraphPage();
         layout.addComponent(g);
-        g.setProjectGraph(sampleGraph, idsToSamples);
+        g.setProjectGraph(structuredExperiment, idsToSamples);
         Button ok = new Button("Close");
         ok.addClickListener(new ClickListener() {
 
@@ -316,6 +388,23 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
       }
     });
     preview.setEnabled(true);
+    preview.setVisible(true);
+  }
+
+  public ComboBox getISAStudyBox() {
+    return isaStudyBox;
+  }
+
+  public void listISAStudies(List<Study> studies) {
+    isaStudyBox.setVisible(!studies.isEmpty());
+    isaStudyBox.removeAllItems();
+    for (Study s : studies)
+      isaStudyBox.addItem(s.getStudyId());
+    isaStudyBox.setEnabled(!studies.isEmpty());
+  }
+
+  public void resetFormatSelection() {
+    importOptions.setValue(importOptions.getNullSelectionItemId());
   }
 
 }

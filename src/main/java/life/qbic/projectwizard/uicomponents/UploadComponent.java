@@ -162,7 +162,7 @@ public class UploadComponent extends VerticalLayout
     try {
       file.delete();
     } catch (Exception e) {
-      // Silent exception. If we can't delete the file, it's not big problem. May the file did not
+      // Silent exception. If we can't delete the file, it's not big problem. Maybe the file did not
       // even exist.
     }
   }

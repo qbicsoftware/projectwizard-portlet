@@ -122,20 +122,18 @@ public class ConditionPropertyPanel extends VerticalLayout {
    * @return
    */
   public List<Property> getFactors() {
-    logger.debug("debugging input of conditions: ");
     List<Property> res = new ArrayList<Property>();
     life.qbic.xml.properties.Unit unit = null;
     if (unitField.getValue() != null)
       unit = (life.qbic.xml.properties.Unit) unitField.getValue();
-    logger.debug("whole string:>" + values.getValue() + "<end");
     for (String val : values.getValue().split("\n")) {
+      val = val.trim();
       if (unit != null)
         res.add(new Property(condition.toLowerCase().replace(" ", "_"), val, unit,
             PropertyType.Factor));
       else
         res.add(new Property(condition.toLowerCase().replace(" ", "_"), val, PropertyType.Factor));
     }
-    logger.debug("resulting list: " + res);
     return res;
   }
 

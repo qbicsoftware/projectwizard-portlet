@@ -1,23 +1,28 @@
-# Compiled class file
-*.class
-src/main/webapp/VAADIN/widgetsets/
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
 
-# Log file
-*.log
+# VS Code
+.vscode
+ 
+# Intellij
+.idea/
+*.iml
+*.iws
+ 
+# Mac
+.DS_Store
+ 
+# Maven
+target/
 
-# BlueJ files
-*.ctxt
+# Some of our applications generate logs, which should be ignored by git
+logs/
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# Other
+**/.factorypath
 
-# Package Files #
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+# compiled Vaadin widgetsets
+src/main/webapp/VAADIN/widgetsets

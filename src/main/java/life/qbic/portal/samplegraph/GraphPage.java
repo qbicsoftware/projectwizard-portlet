@@ -1,12 +1,8 @@
 package life.qbic.portal.samplegraph;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,14 +15,13 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.expdesign.model.StructuredExperiment;
-import life.qbic.portal.utils.PortalUtils;
+import life.qbic.portal.portlet.ProjectWizardUI;
 
 public class GraphPage extends VerticalLayout {
 
@@ -37,53 +32,8 @@ public class GraphPage extends VerticalLayout {
 
   private ProjectGraph sampleGraph;
 
-
-  public GraphPage(Map<String, String> taxMap, Map<String, String> tissueMap) {
-    // Map<String, String> reverseTaxMap = taxMap.entrySet().stream()
-    // .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-    // Map<String, String> reverseTissueMap = tissueMap.entrySet().stream()
-    // .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-    //
-    // parser = new ProjectParser(reverseTaxMap, reverseTissueMap);
-  }
-
   public GraphPage() {
     setSpacing(true);
-  }
-
-  private String buildImagePath() {
-    StringBuilder pathBuilder = new StringBuilder();
-
-    if (PortalUtils.isLiferayPortlet()) {
-      Properties prop = new Properties();
-      InputStream in = this.getClass().getClassLoader()
-          .getResourceAsStream("WEB-INF/liferay-plugin-package.properties");
-      try {
-        prop.load(in);
-        in.close();
-      } catch (IOException e1) {
-        // TODO Auto-generated catch block
-        e1.printStackTrace();
-      }
-      String portletName = prop.getProperty("name");
-
-      URI location = UI.getCurrent().getPage().getLocation();
-      // http
-      pathBuilder.append(location.getScheme());
-      pathBuilder.append("://");
-      // host+port
-      pathBuilder.append(location.getAuthority());
-
-      String port = (Integer.toString(location.getPort()));
-      if (location.toString().contains(port)) {
-        pathBuilder.append(":");
-        pathBuilder.append(port);
-      }
-      pathBuilder.append("/");
-      pathBuilder.append(portletName);
-    }
-    pathBuilder.append("/VAADIN/img/");
-    return pathBuilder.toString();
   }
 
   public void setProjectGraph(StructuredExperiment graph, Map<String, ISampleBean> idsToSamples) {
@@ -107,7 +57,7 @@ public class GraphPage extends VerticalLayout {
         Object factor = factorBox.getValue();
         if (sampleGraph != null)
           parent.removeComponent(sampleGraph);
-        sampleGraph = new ProjectGraph(parent, buildImagePath());
+        sampleGraph = new ProjectGraph(parent, ProjectWizardUI.getPathToVaadinFolder()+"img/");
         sampleGraph.setSizeFull();
         parent.addComponent(sampleGraph);
         if (factor != null) {

@@ -28,15 +28,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
@@ -49,8 +51,10 @@ import life.qbic.projectwizard.uicomponents.UploadComponent;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.portlet.ProjectWizardUI;
+//import life.qbic.xml.manager.NewXMLParser;
 import life.qbic.xml.manager.XMLParser;
 import life.qbic.xml.properties.Property;
+//import life.qbic.xml.study.Qexperiment;
 
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
@@ -101,6 +105,7 @@ public class MetadataUploadView extends VerticalLayout {
   private Label progressInfo;
 
   private XMLParser xmlParser = new XMLParser();
+//  private NewXMLParser newXMLParser = new NewXMLParser();
   private IOpenBisClient openbis;
   private Map<String, Object> metadata;
   private List<String> customProperties = new ArrayList<String>(
@@ -122,6 +127,8 @@ public class MetadataUploadView extends VerticalLayout {
 
   private boolean overWriteAllowed = false;
   private final int BATCH_SIZE = 50;
+
+//  private JAXBElement<Qexperiment> expDesign;
 
   public MetadataUploadView(IOpenBisClient openbis, DBVocabularies vocabularies,
       boolean overWriteAllowed) {
@@ -168,6 +175,9 @@ public class MetadataUploadView extends VerticalLayout {
           parseTSV(upload.getFile());
         } catch (IOException e) {
           e.printStackTrace();
+        } catch (JAXBException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
         }
       }
     });
@@ -202,6 +212,9 @@ public class MetadataUploadView extends VerticalLayout {
             reload.setVisible(true);
           } catch (IOException e) {
             e.printStackTrace();
+          } catch (JAXBException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
           }
       }
     });
@@ -217,6 +230,54 @@ public class MetadataUploadView extends VerticalLayout {
     });
   }
 
+//  protected void ingestTableNew(final Runnable ready, final ProgressBar bar, final Label info) {
+//    showProgress(true);
+//    Thread t = new Thread(new Runnable() {
+//      volatile int current = 0;
+//
+//      @Override
+//      public void run() {
+//        UI.getCurrent().access(new UpdateProgressBar(bar, info, 0.01));
+//        Table sampleTable = getActiveTable();
+//        List<Integer> ids = new ArrayList<Integer>();
+//        for (Object row : sampleTable.getItemIds()) {
+//          int id = (int) row;
+//          if (id > -1)
+//            ids.add(id);
+//        }
+//
+//        int last = ids.size() - 1;
+//        int steps = Math.max(1, (last / BATCH_SIZE) + 1);
+//        int start = 0;
+//        int end = -1;
+//        while (end < last) {
+//          current++;
+//          end += Math.min(BATCH_SIZE, last - end);
+//          List<Integer> batch = ids.subList(start, end + 1);
+//
+//          logger.debug("sending metadata of samples " + start + "-" + end + " to openBIS.");
+//          start = end + 1;
+//
+//          double frac = current * 1.0 / steps;
+//          UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+//          try {
+//            ingestRows(batch);
+//          } catch (IllegalArgumentException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//          } catch (JAXBException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//          }
+//        }
+//        UI.getCurrent().setPollInterval(-1);
+//        UI.getCurrent().access(ready);
+//      }
+//    });
+//    t.start();
+//    UI.getCurrent().setPollInterval(500);
+//  }
+  
   protected void ingestTable(final Runnable ready, final ProgressBar bar, final Label info) {
     showProgress(true);
     Thread t = new Thread(new Runnable() {
@@ -240,7 +301,7 @@ public class MetadataUploadView extends VerticalLayout {
         while (end < last) {
           current++;
           end += Math.min(BATCH_SIZE, last - end);
-          List<Integer> batch = ids.subList(start, end+1);
+          List<Integer> batch = ids.subList(start, end + 1);
 
           logger.debug("sending metadata of samples " + start + "-" + end + " to openBIS.");
           start = end + 1;
@@ -248,7 +309,7 @@ public class MetadataUploadView extends VerticalLayout {
           double frac = current * 1.0 / steps;
           UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
           try {
-            ingestTable(batch);
+            ingestRows(batch);
           } catch (IllegalArgumentException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -269,7 +330,7 @@ public class MetadataUploadView extends VerticalLayout {
     return (Table) sheet.getSelectedTab();
   }
 
-  protected void ingestTable(List<Integer> rows) throws IllegalArgumentException, JAXBException {
+  protected void ingestRows(List<Integer> rows) throws IllegalArgumentException, JAXBException {
     Table sampleTable = getActiveTable();
     metadata = new HashMap<String, Object>();
     List<String> types = new ArrayList<String>();
@@ -365,7 +426,7 @@ public class MetadataUploadView extends VerticalLayout {
       return new Property(propWithOutVal.getLabel(), value, propWithOutVal.getType());
   }
 
-  protected boolean parseTSV(File file) throws IOException {
+  protected boolean parseTSV(File file) throws IOException, JAXBException {
     for (Table t : sampleTables) {
       t.removeAllItems();
       sheet.removeComponent(t);
@@ -433,6 +494,12 @@ public class MetadataUploadView extends VerticalLayout {
     }
     List<Sample> projectSamples =
         openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(projectCode);
+//    List<Experiment> exps = openbis.getExperimentById2(projectCode + "E1");
+//    // TODO
+//    Experiment designExperiment = exps.isEmpty() ? null : exps.get(0);
+//    expDesign = newXMLParser
+//        .parseXMLString(designExperiment.getProperties().get("Q_EXPERIMENTAL_DESIGN_TEST"));
+
     codesToSamples = new HashMap<String, Sample>();
     Map<String, List<String>> sampleTypeToAttributes = new HashMap<String, List<String>>();
     Map<String, DataTypeCode> propertyToType = new HashMap<String, DataTypeCode>();
@@ -646,11 +713,11 @@ public class MetadataUploadView extends VerticalLayout {
       if (needsDelimiterChange)
         createDelimiterChangeDialogue(headline);
     } else {
-      createNotRightTypeDialogue(headline, moreInfo, barcode);
+      createWrongTypeDialogue(headline, moreInfo, barcode);
     }
   }
 
-  private void createNotRightTypeDialogue(String headline, String moreInfo, String barcode) {
+  private void createWrongTypeDialogue(String headline, String moreInfo, String barcode) {
     Window subWindow = new Window(" Wrong data type!");
     subWindow.setWidth("400px");
 
@@ -1076,6 +1143,7 @@ public class MetadataUploadView extends VerticalLayout {
           typeName = typeName.replace(" [" + unit + "]", "");
         }
         openbisVal = parseXMLConditionValue(props.get("Q_PROPERTIES"), typeName, propType);
+        // openbisVal = getXMLConditionValueForSample(barcode, typeName, propType);TODO
       } else
         openbisVal = props.get(typeCode);
       if (propToReverseVocabulary.containsKey(typeCode))
@@ -1090,6 +1158,33 @@ public class MetadataUploadView extends VerticalLayout {
     }
     return res;
   }
+
+//  private String getXMLConditionValueForSample(String code, String label,
+//      life.qbic.xml.properties.PropertyType type) {
+//    String res = "";
+//    if (type.equals(life.qbic.xml.properties.PropertyType.Factor)) {
+//      Map<Pair<String, String>, Property> factors =
+//          newXMLParser.getFactorsForLabelsAndSamples(expDesign);
+//      Pair<String, String> key = new ImmutablePair<String, String>(label, code);
+//      if (factors.containsKey(key)) {
+//        Property f = factors.get(key);
+//        res = f.getValue();
+//        if (f.hasUnit())
+//          res += " " + f.getUnit();
+//      }
+//    }
+//    if (type.equals(life.qbic.xml.properties.PropertyType.Property)) {
+//      Map<String, List<Property>> properties = newXMLParser.getPropertiesForSampleCode(expDesign);
+//      for (Property p : properties.get(code)) {
+//        if (p.getLabel().equals(label)) {
+//          res = p.getValue();
+//          if (p.hasUnit())
+//            res += " " + p.getUnit();
+//        }
+//      }
+//    }
+//    return res;
+//  }
 
   private String parseXMLConditionValue(String xml, String label,
       life.qbic.xml.properties.PropertyType type) {
