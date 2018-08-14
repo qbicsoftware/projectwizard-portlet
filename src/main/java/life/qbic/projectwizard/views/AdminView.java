@@ -27,6 +27,8 @@ import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.adminviews.MCCView;
 import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
+//import life.qbic.xml.manager.NewXMLParser;
+//import life.qbic.xml.study.Qexperiment;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 

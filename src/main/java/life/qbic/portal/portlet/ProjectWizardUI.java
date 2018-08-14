@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.portlet.PortletContext;
-import javax.portlet.PortletSession;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.teemu.wizards.Wizard;
@@ -27,7 +24,6 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
-import com.vaadin.server.WrappedPortletSession;
 import com.vaadin.ui.themes.ValoTheme;
 
 import com.vaadin.ui.Label;
@@ -60,7 +56,7 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean testMode = false;// TODO
-  public static boolean development = false;
+  public static boolean development = true;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 
