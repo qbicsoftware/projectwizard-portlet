@@ -356,6 +356,7 @@ public class ExperimentImportController implements IRegistrationController {
               .addAll(collectComplexExperiments(msProperties, ExperimentType.Q_MS_MEASUREMENT));
           complexExperiments.addAll(
               collectComplexExperiments(mhcProperties, ExperimentType.Q_MHC_LIGAND_EXTRACTION));
+          System.out.println(view.getSamples());
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(view.getSamples(),
               projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
               view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control), user,
@@ -627,7 +628,7 @@ public class ExperimentImportController implements IRegistrationController {
                 t.setCode(code);
                 extCodeToBarcode.put((String) props.get("Q_EXTERNALDB_ID"), code);// t);
                 List<String> parents = t.getParentIDs();
-                // t.setParents(""); maybe needed?
+                t.setParents(new ArrayList<ISampleBean>());
                 List<String> newParents = new ArrayList<String>();
                 for (String parentExtID : parents) {
                   if (extCodeToBarcode.containsKey(parentExtID))
