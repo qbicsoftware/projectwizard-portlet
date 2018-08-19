@@ -356,7 +356,6 @@ public class ExperimentImportController implements IRegistrationController {
               .addAll(collectComplexExperiments(msProperties, ExperimentType.Q_MS_MEASUREMENT));
           complexExperiments.addAll(
               collectComplexExperiments(mhcProperties, ExperimentType.Q_MHC_LIGAND_EXTRACTION));
-          System.out.println(view.getSamples());
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(view.getSamples(),
               projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
               view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control), user,
@@ -437,15 +436,19 @@ public class ExperimentImportController implements IRegistrationController {
     StringBuilder builder = new StringBuilder(5000);
     switch (designType) {
       case Standard:
+        int anltIDPos = -1;
         int extIDPos = -1;
         for (String line : tsv) {
           String[] splt = line.split("\t");
-          if (extIDPos < 0) {
-            extIDPos = Arrays.asList(splt).indexOf("Analyte ID");// TODO generalize?
+          if (anltIDPos < 0) {
+            anltIDPos = Arrays.asList(splt).indexOf("Analyte ID");
+            extIDPos = Arrays.asList(splt).indexOf("Extract ID");
             builder.append("QBiC Code\t" + line + "\n");
           } else {
-            String extID = splt[extIDPos];
-            String code = extCodeToBarcode.get(extID);// .getCode();
+            String extID = splt[anltIDPos];
+            if(extID==null || extID.isEmpty())
+              extID = splt[extIDPos];
+            String code = extCodeToBarcode.get(extID);
             builder.append(code + "\t" + line + "\n");
           }
         }
