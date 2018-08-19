@@ -42,6 +42,16 @@
 	</repositories>
 	<dependencies>
 		<dependency>
+			<groupId>life.qbic</groupId>
+			<artifactId>core-utils-lib</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>life.qbic</groupId>
+			<artifactId>portal-utils-lib</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
 		</dependency>
@@ -56,7 +66,7 @@
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>experimental-design-lib</artifactId>
-			<version>0.12.0</version>
+			<version>0.12.1</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
 		<dependency>

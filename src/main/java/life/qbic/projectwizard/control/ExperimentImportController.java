@@ -436,15 +436,19 @@ public class ExperimentImportController implements IRegistrationController {
     StringBuilder builder = new StringBuilder(5000);
     switch (designType) {
       case Standard:
+        int anltIDPos = -1;
         int extIDPos = -1;
         for (String line : tsv) {
           String[] splt = line.split("\t");
-          if (extIDPos < 0) {
-            extIDPos = Arrays.asList(splt).indexOf("Analyte ID");// TODO generalize?
+          if (anltIDPos < 0) {
+            anltIDPos = Arrays.asList(splt).indexOf("Analyte ID");
+            extIDPos = Arrays.asList(splt).indexOf("Extract ID");
             builder.append("QBiC Code\t" + line + "\n");
           } else {
-            String extID = splt[extIDPos];
-            String code = extCodeToBarcode.get(extID);// .getCode();
+            String extID = splt[anltIDPos];
+            if(extID==null || extID.isEmpty())
+              extID = splt[extIDPos];
+            String code = extCodeToBarcode.get(extID);
             builder.append(code + "\t" + line + "\n");
           }
         }
@@ -627,7 +631,7 @@ public class ExperimentImportController implements IRegistrationController {
                 t.setCode(code);
                 extCodeToBarcode.put((String) props.get("Q_EXTERNALDB_ID"), code);// t);
                 List<String> parents = t.getParentIDs();
-                // t.setParents(""); maybe needed?
+                t.setParents(new ArrayList<ISampleBean>());
                 List<String> newParents = new ArrayList<String>();
                 for (String parentExtID : parents) {
                   if (extCodeToBarcode.containsKey(parentExtID))

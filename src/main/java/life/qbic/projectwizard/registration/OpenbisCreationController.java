@@ -415,6 +415,7 @@ public class OpenbisCreationController {
     }
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("user", user);
+
     for (ISampleBean sample : samples) {
       if (openbis.sampleExists(sample.getCode())) {
         logger.warn(sample.getCode() + " already exists in " + p
