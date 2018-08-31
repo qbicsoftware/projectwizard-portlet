@@ -95,7 +95,7 @@ public class SampleCounter {
   }
 
   public String getNewBarcode() {
-    if (barcode == null) {
+    if (barcode == null || barcode.isEmpty()) {
       barcode = project + "001A";
       barcode = barcode + SampleCodeFunctions.checksum(barcode);
     }

@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 
@@ -56,18 +57,21 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
+import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.datamodel.identifiers.TooManySamplesException;
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.projects.ProjectInfo;
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.datamodel.samples.TSVSampleBean;
+import life.qbic.expdesign.ParserHelpers;
 import life.qbic.expdesign.SamplePreparator;
 import life.qbic.expdesign.VocabularyValidator;
 import life.qbic.expdesign.io.EasyDesignReader;
 import life.qbic.expdesign.io.IExperimentalDesignReader;
 import life.qbic.expdesign.io.MHCLigandDesignReader;
 import life.qbic.expdesign.io.QBiCDesignReader;
+import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
 import life.qbic.expdesign.model.ExperimentalDesignType;
 import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.expdesign.model.StructuredExperiment;
@@ -83,6 +87,7 @@ import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.projectwizard.views.ExperimentImportView;
+import life.qbic.xml.study.TechnologyType;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.projectwizard.uicomponents.MultiUploadComponent;
@@ -111,13 +116,17 @@ public class ExperimentImportController implements IRegistrationController {
   private IOpenBisClient openbis;
   private DBManager dbm;
   private DBVocabularies vocabs;
+  private Experiment currentDesignExperiment;
   private int firstFreeExperimentID;
   private int firstFreeEntityID;
   private String firstFreeBarcode;
   private String nextBarcode;
   Map<String, String> extCodeToBarcode;
 
-  Logger logger = LogManager.getLogger(ExperimentImportController.class);
+  private final Logger logger = LogManager.getLogger(ExperimentImportController.class);
+  protected String experimentalDesignXML;
+  private Map<String, Map<String, Object>> entitiesToUpdate;
+  private ArrayList<Sample> currentProjectSamples;
 
   public ExperimentImportController(OpenbisCreationController creator, DBVocabularies vocabularies,
       IOpenBisClient openbis, DBManager dbm) {
@@ -272,10 +281,6 @@ public class ExperimentImportController implements IRegistrationController {
                   break;
                 case Standard:
                   reader = new EasyDesignReader();
-                  int size = reader.countEntities(file);
-                  // TODO figure something out
-                  if (size > 300)
-                    parseGraph = false;
                   break;
                 case MHC_Ligands_Finished:
                   reader = new MHCLigandDesignReader();
@@ -352,6 +357,10 @@ public class ExperimentImportController implements IRegistrationController {
           view.showRegistrationProgress();
           // collect experiment information
           complexExperiments = new ArrayList<OpenbisExperiment>();
+          if (entitiesToUpdate.isEmpty()) {
+            complexExperiments.add(prepareXMLPropertyForNewExperiment(view.getSamples()));
+          }
+          projectInfo = prep.getProjectInfo();
           complexExperiments
               .addAll(collectComplexExperiments(msProperties, ExperimentType.Q_MS_MEASUREMENT));
           complexExperiments.addAll(
@@ -359,7 +368,7 @@ public class ExperimentImportController implements IRegistrationController {
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(view.getSamples(),
               projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
               view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control), user,
-              projectInfo.isPilot());
+              entitiesToUpdate, projectInfo.isPilot());
           List<String> tsv = prep.getOriginalTSV();
           switch (getImportType()) {
             case Standard:
@@ -387,6 +396,30 @@ public class ExperimentImportController implements IRegistrationController {
     view.getRegisterButton().addClickListener(cl);
   }
 
+  // TODO this should be done while the samples are read
+  protected OpenbisExperiment prepareXMLPropertyForNewExperiment(List<List<ISampleBean>> samples) {
+    ExperimentType designExpType = ExperimentType.Q_EXPERIMENTAL_DESIGN;
+    List<ISampleBean> lst = samples.stream().flatMap(x -> x.stream()).collect(Collectors.toList());
+    String experiment = null;
+    for (ISampleBean s : lst) {
+      String project = s.getProject();
+      String type = s.getType();
+      int lowest = Integer.MAX_VALUE;
+      if (SampleCodeFunctions.sampleTypesToExpTypes.get(type).equals(designExpType)) {
+        int num = ExperimentCodeFunctions.getNumSuffixOfExperimentCode(project, s.getExperiment());
+        if (num > -1 && num < lowest) {
+          lowest = num;
+          experiment = s.getExperiment();
+        }
+      }
+    }
+
+    Map<String, Object> propsMap = new HashMap<>();
+    propsMap.put(experiment, experimentalDesignXML);
+    return new OpenbisExperiment(experiment, designExpType, propsMap);
+  }
+
+
   protected void handleImportResults(ExperimentalDesignType importType,
       List<SampleSummaryBean> summaries) {
     switch (getImportType()) {
@@ -395,7 +428,9 @@ public class ExperimentImportController implements IRegistrationController {
         view.setSummary(summaries);
         view.setProcessed(prep.getProcessed());
         view.setRegEnabled(true);
-        projectInfo = prep.getProjectInfo();
+        String project = prep.getProcessed().get(0).get(0).getProject();
+        findFirstExistingDesignExperimentCodeOrNull(project);
+        prepDesignXML(prep.getTechnologyTypes());
         break;
       // Standard non-hierarchic design without QBiC specific keywords
       case Standard:
@@ -418,6 +453,47 @@ public class ExperimentImportController implements IRegistrationController {
         break;
     }
   }
+
+  private void prepDesignXML(List<TechnologyType> techTypes) {
+    // create Experimental Design XML, first reset both values
+    experimentalDesignXML = "";
+    entitiesToUpdate = new HashMap<String, Map<String, Object>>();
+
+    ExperimentalDesignPropertyWrapper importedDesignProperties =
+        prep.getExperimentalDesignProperties();
+    if (currentDesignExperiment != null) {
+      entitiesToUpdate.put(currentDesignExperiment.getCode(),
+          ParserHelpers.getExperimentalDesignMap(currentDesignExperiment.getProperties(),
+              importedDesignProperties, techTypes));
+    } else {
+      try {
+        experimentalDesignXML = ParserHelpers.createDesignXML(importedDesignProperties, techTypes);
+      } catch (JAXBException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private Experiment findFirstExistingDesignExperimentCodeOrNull(String project) {
+    List<Experiment> experiments = openbis.getExperimentsOfProjectByCode(project);
+    int firstDesignExperiment = Integer.MAX_VALUE;
+    // reset
+    currentDesignExperiment = null;
+    for (Experiment e : experiments) {
+      String expType = e.getExperimentTypeCode();
+      String code = e.getCode();
+      int num = ExperimentCodeFunctions.getNumSuffixOfExperimentCode(project, code);
+      if (expType.equals("Q_EXPERIMENTAL_DESIGN") && num > -1) {
+        if (num < firstDesignExperiment) {
+          firstDesignExperiment = num;
+          currentDesignExperiment = e;
+        }
+      }
+    }
+    return currentDesignExperiment;
+  }
+
 
   private void prepareCompletionDialog() {
     Map<String, List<String>> catToVocabulary = new HashMap<String, List<String>>();
@@ -446,7 +522,7 @@ public class ExperimentImportController implements IRegistrationController {
             builder.append("QBiC Code\t" + line + "\n");
           } else {
             String extID = splt[anltIDPos];
-            if(extID==null || extID.isEmpty())
+            if (extID == null || extID.isEmpty())
               extID = splt[extIDPos];
             String code = extCodeToBarcode.get(extID);
             builder.append(code + "\t" + line + "\n");
@@ -540,6 +616,9 @@ public class ExperimentImportController implements IRegistrationController {
           Set<String> msCodes = new HashSet<String>();
           dnaSampleCodeToMHCType = new HashMap<String, MHCTyping>();
           Map<String, String> specialExpToExpCode = new HashMap<String, String>();
+          Set<TechnologyType> techTypes = new HashSet<>();
+          techTypes.addAll(prep.getTechnologyTypes());
+
           for (List<ISampleBean> level : processed) {
             String type = level.get(0).getType();
             String exp = "";
@@ -587,6 +666,8 @@ public class ExperimentImportController implements IRegistrationController {
                     newVal = questionaire.getVocabularyLabelForValue("Analytes",
                         props.get("Q_SAMPLE_TYPE"));
                     props.put("Q_SAMPLE_TYPE", newVal);
+                    // TODO check if this is not too unspecific for ligandomics
+                    techTypes.add(ParserHelpers.typeToTechnology.get(newVal));
                     if (getImportType().equals(ExperimentalDesignType.MHC_Ligands_Finished)) {
                       if ("DNA".equals(newVal)) {
                         List<String> c1 = (List<String>) props.get("MHC_I");
@@ -645,10 +726,16 @@ public class ExperimentImportController implements IRegistrationController {
                   t.addParentID(p);
               }
             }
+            // techTypes.addAll(techTypes);
             // remove existing samples from registration process
             level.removeAll(existing);
             samplesToRegister |= !level.isEmpty();
           }
+
+          // create Experimental Design XML
+          List<TechnologyType> types = new ArrayList<>(techTypes);
+          prepDesignXML(types);
+
           fixSpecialExperiments(specialExpToExpCode);
           view.setProcessed(processed);
         }
@@ -789,25 +876,37 @@ public class ExperimentImportController implements IRegistrationController {
     firstFreeExperimentID = 1;
     firstFreeEntityID = 1;
     firstFreeBarcode = "";// TODO cleanup where not needed
-    List<Sample> samples = new ArrayList<Sample>();
+    currentProjectSamples = new ArrayList<Sample>();
     if (openbis.projectExists(space, project)) {
-      samples.addAll(openbis
+      currentProjectSamples.addAll(openbis
           .getSamplesWithParentsAndChildrenOfProjectBySearchService("/" + space + "/" + project));
     }
-    for (Experiment e : openbis.getExperimentsOfProjectByCode(project)) {
+    List<Experiment> experiments = openbis.getExperimentsOfProjectByCode(project);
+    // find first experiment of type "Q_EXPERIMENTAL_DESIGN" - it will have all the experimental
+    // information
+    int firstDesignExperiment = Integer.MAX_VALUE;
+    for (Experiment e : experiments) {
+      String expType = e.getExperimentTypeCode();
       String code = e.getCode();
       String[] split = code.split(project + "E");
       if (code.startsWith(project + "E") && split.length > 1) {
-        int num = 0;
+        int num = Integer.MAX_VALUE;
         try {
           num = Integer.parseInt(split[1]);
         } catch (Exception e2) {
         }
-        if (firstFreeExperimentID <= num)
+        if (expType.equals("Q_EXPERIMENTAL_DESIGN")) {
+          if (num < firstDesignExperiment) {
+            firstDesignExperiment = num;
+            currentDesignExperiment = e;
+          }
+        }
+        if (firstFreeExperimentID <= num) {
           firstFreeExperimentID = num + 1;
+        }
       }
     }
-    for (Sample s : samples) {
+    for (Sample s : currentProjectSamples) {
       String code = s.getCode();
       // collect existing samples by their external id
       String extID = s.getProperties().get("Q_EXTERNALDB_ID");

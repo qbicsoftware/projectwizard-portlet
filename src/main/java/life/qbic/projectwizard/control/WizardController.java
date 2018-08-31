@@ -65,12 +65,15 @@ import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.datamodel.experiments.ExperimentBean;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
+import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.samples.AOpenbisSample;
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.datamodel.samples.TSVSampleBean;
+import life.qbic.expdesign.ParserHelpers;
 import life.qbic.expdesign.SamplePreparator;
 import life.qbic.expdesign.io.QBiCDesignReader;
+import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
 import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBManager;
@@ -87,6 +90,7 @@ import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.xml.notes.Note;
 import life.qbic.xml.properties.Property;
+import life.qbic.xml.study.TechnologyType;
 
 /**
  * Controller for the sample/experiment creation wizard
@@ -112,10 +116,12 @@ public class WizardController implements IRegistrationController {
   private List<Note> notes;
   private SamplePreparator prep = new SamplePreparator();
   protected List<String> designExperimentTypes;
+  private String newExperimentalDesignXML;
 
   private Logger logger = LogManager.getLogger(WizardController.class);
 
   private AttachmentConfig attachConfig;
+  protected Map<String, Map<String, Object>> entitiesToUpdate;
 
   /**
    * 
@@ -210,7 +216,7 @@ public class WizardController implements IRegistrationController {
   }
 
   /**
-   * Test is a project has biological entities registered. Used to know availability of context
+   * Test is a project has biological entities registered. Used to check availability of context
    * options
    * 
    * @param spaceCode Code of the selected openBIS space
@@ -230,7 +236,7 @@ public class WizardController implements IRegistrationController {
   }
 
   /**
-   * Test is a project has biological extracts registered. Used to know availability of context
+   * Test is a project has biological extracts registered. Used to check availability of context
    * options
    * 
    * @param spaceCode Code of the selected openBIS space
@@ -275,8 +281,8 @@ public class WizardController implements IRegistrationController {
    * Initialize all possible steps in the wizard and the listeners used
    */
   public void init(final String user) {
-    WizardController control = this;
     this.w = new Wizard();
+    WizardController control = this;
     w.getFinishButton().setVisible(false);
     w.getFinishButton().setStyleName(ValoTheme.BUTTON_DANGER);
     w.getCancelButton().setStyleName(ValoTheme.BUTTON_DANGER);
@@ -301,10 +307,7 @@ public class WizardController implements IRegistrationController {
     final FinishStep finishStep = new FinishStep(w, attachConfig);
 
     final MSAnalyteStep protFracStep = new MSAnalyteStep(vocabularies, "PROTEINS");
-    // final PoolingStep afterProtFracPooling = new
-    // PoolingStep(Steps.Protein_Fractionation_Pooling);
     final MSAnalyteStep pepFracStep = new MSAnalyteStep(vocabularies, "PEPTIDES");
-    // final PoolingStep afterPepFracPooling = new PoolingStep(Steps.Peptide_Fractionation_Pooling);
 
     steps = new HashMap<Steps, WizardStep>();
     steps.put(Steps.Project_Context, contextStep);
@@ -319,8 +322,6 @@ public class WizardController implements IRegistrationController {
     steps.put(Steps.Test_Sample_Pooling, poolStep2);
     steps.put(Steps.Protein_Fractionation, protFracStep);
     steps.put(Steps.Peptide_Fractionation, pepFracStep);
-    // steps.put(Steps.Protein_Fractionation_Pooling, afterProtFracPooling);
-    // steps.put(Steps.Peptide_Fractionation_Pooling, afterPepFracPooling);
     steps.put(Steps.Registration, regStep);
     steps.put(Steps.Finish, finishStep);
 
@@ -440,7 +441,6 @@ public class WizardController implements IRegistrationController {
           regStep.getRegisterButton().setEnabled(false);
           ProjectContextStep contextStep = (ProjectContextStep) steps.get(Steps.Project_Context);
           String desc = contextStep.getDescription();
-          String altTitle = contextStep.getExpSecondaryName();
           boolean afterMS = w.getSteps().contains(steps.get(Steps.Protein_Fractionation));
           // Additional information set in the protein and/or peptide step(s)
           notes = new ArrayList<Note>();
@@ -474,13 +474,14 @@ public class WizardController implements IRegistrationController {
           String code = project + "000";
           String sampleType = "Q_ATTACHMENT_SAMPLE";
           boolean pilot = contextStep.isPilot();
-          ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, sampleType, "", new ArrayList<String>(),
-              new HashMap<String, Object>());
+          ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, sampleType, "",
+              new ArrayList<String>(), new HashMap<String, Object>());
           samples.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
+            List<OpenbisExperiment> informativeExperiments = dataAggregator.getExperimentsWithMetadata(newExperimentalDesignXML);
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, desc,
-              dataAggregator.getExperimentsWithMetadata(), regStep.getProgressBar(),
+              informativeExperiments, regStep.getProgressBar(),
               regStep.getProgressLabel(), new RegisteredSamplesReadyRunnable(regStep, control),
-              user, pilot);
+              user, entitiesToUpdate, pilot);
           w.addStep(steps.get(Steps.Finish));
         }
       }
@@ -817,6 +818,7 @@ public class WizardController implements IRegistrationController {
     f.setValidationVisible(true);
 
     WizardProgressListener wl = new WizardProgressListener() {
+
       @Override
       public void wizardCompleted(WizardCompletedEvent event) {}
 
@@ -975,8 +977,8 @@ public class WizardController implements IRegistrationController {
             List<AOpenbisSample> all = new ArrayList<AOpenbisSample>();
             if (!afterMS) {
               all.addAll(dataAggregator.getTests());
-//              all.addAll(
-                  dataAggregator.createPoolingSamples(poolStep2.getPools());
+              // all.addAll(
+              dataAggregator.createPoolingSamples(poolStep2.getPools());
               dataAggregator.setTests(all);
             }
             if (containsFractionation()) {
@@ -1006,6 +1008,21 @@ public class WizardController implements IRegistrationController {
               }
               s.setSampleContent(String.join(", ", translations));
             }
+            ExperimentalDesignPropertyWrapper preliminaryDesign =
+                prep.getExperimentalDesignProperties();
+            List<TechnologyType> techTypes = prep.getTechnologyTypes();
+            entitiesToUpdate = dataAggregator.getEntitiesToUpdate(preliminaryDesign, techTypes);
+            newExperimentalDesignXML = null;
+            if (entitiesToUpdate.isEmpty()) {
+              try {
+                newExperimentalDesignXML =
+                    ParserHelpers.createDesignXML(preliminaryDesign, techTypes);
+              } catch (JAXBException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+              }
+            }
+
             regStep.setSummary(summaries);
             regStep.setProcessed(prep.getProcessed());
           }
@@ -1178,8 +1195,20 @@ public class WizardController implements IRegistrationController {
         contextStep.enableCopyContextOption(hasBioEntities);
 
         List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
+        int minExperiment = Integer.MAX_VALUE;
+        dataAggregator.setExistingExpDesignExperiment(null);
         for (Experiment e : openbis.getExperimentsOfProjectByCode(existingProject)) {
-          if (designExperimentTypes.contains(e.getExperimentTypeCode())) {
+          String type = e.getExperimentTypeCode();
+          if (designExperimentTypes.contains(type)) {
+            if (type.equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {
+              int expNum = ExperimentCodeFunctions.getNumSuffixOfExperimentCode(existingProject,
+                  e.getCode());
+              if (expNum < minExperiment && expNum != -1) {
+                minExperiment = expNum;
+                dataAggregator.setExistingExpDesignExperiment(e);
+              }
+            }
+
             Date date = e.getRegistrationDetails().getRegistrationDate();
             SimpleDateFormat dt1 = new SimpleDateFormat("yy-MM-dd");
             String dt = "";

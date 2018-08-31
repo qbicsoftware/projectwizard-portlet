@@ -20,10 +20,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -41,11 +45,15 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.datamodel.samples.TSVSampleBean;
+import life.qbic.expdesign.ParserHelpers;
+import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.control.IRegistrationController;
 import life.qbic.projectwizard.control.SampleCounter;
@@ -56,8 +64,12 @@ import life.qbic.projectwizard.views.IRegistrationView;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.components.StandardTextField;
+import life.qbic.xml.manager.StudyXMLParser;
 import life.qbic.xml.manager.XMLParser;
 import life.qbic.xml.properties.Property;
+import life.qbic.xml.study.Qexperiment;
+import life.qbic.xml.study.Qproperty;
+import life.qbic.xml.study.TechnologyType;
 
 public class MCCView extends VerticalLayout implements IRegistrationView, IRegistrationController {
   /**
@@ -73,6 +85,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
   private String user;
   // view
   private final String mccSpace = "MULTISCALEHCC";
+  private List<TechnologyType> techTypes;
   private ComboBox mccProjects;
   private StandardTextField newProject;
   private StandardTextField treatment;
@@ -88,14 +101,20 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
   private Label registerInfo;
   private Button addSamples;
 
-  // life.qbic.projectwizard.model
   private List<Sample> entities;
   private List<String> patients;
   private Set<String> cases;
   private SampleCounter counter;
 
+  private String project;
+
   public MCCView(IOpenBisClient openbis, OpenbisCreationController creationController,
       String user) {
+    techTypes = new ArrayList<TechnologyType>();
+    techTypes.add(new TechnologyType("Transcriptomics"));
+    techTypes.add(new TechnologyType("Proteomics"));
+    techTypes.add(new TechnologyType("Metabolomics"));
+
     this.openbis = openbis;
     this.creator = creationController;
     this.user = user;
@@ -259,14 +278,32 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
         logger.info("Adding MCC Patient.");
         List<List<ISampleBean>> samps = null;
         samps = prepDefaultMCCSamples();
-        // for (List<ISampleBean> ss : samps)
-        // for (ISampleBean s : ss)
-        // logger.debug("Created samples: " + s);
         addSamples.setEnabled(false);
-        creator.prepareXMLProps(samps);
-        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null,
-            new ArrayList<OpenbisExperiment>(), bar, registerInfo,
-            new RegisteredSamplesReadyRunnable(getView(), getView()), user, false);
+        List<ISampleBean> allSamples =
+            samps.stream().flatMap(x -> x.stream()).collect(Collectors.toList());
+        ExperimentalDesignPropertyWrapper design =
+            ParserHelpers.samplesWithMetadataToExperimentalFactorStructure(allSamples);
+        Map<String, Map<String, Object>> entitiesToUpdate =
+            new HashMap<String, Map<String, Object>>();
+
+        String expID = "/" + mccSpace + "/" + project + "/" + project + "E1";
+
+        List<Experiment> exps = openbis.getExperimentById2(expID);
+        List<OpenbisExperiment> infoExperiments = new ArrayList<>();
+        if (!exps.isEmpty()) {
+          entitiesToUpdate.put(exps.get(0).getCode(), ParserHelpers
+              .getExperimentalDesignMap(exps.get(0).getProperties(), design, techTypes));
+        } else {
+          Map<String, Object> props = new HashMap<>();
+//          props.put(key, value);
+          //TODO create new xml from samples
+          infoExperiments.add(
+              new OpenbisExperiment(project + "E1", ExperimentType.Q_EXPERIMENTAL_DESIGN, props));
+        }
+        // TODO test for new projects
+        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
+            registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
+            entitiesToUpdate, false);
       }
     });
   }
@@ -349,7 +386,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
     List<ISampleBean> pAliquots = new ArrayList<ISampleBean>();
     List<ISampleBean> molecules = new ArrayList<ISampleBean>();
 
-    String project = (String) mccProjects.getValue();
+    project = (String) mccProjects.getValue();
     if (!newProject.isEmpty())
       project = newProject.getValue();
 
@@ -384,7 +421,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
       String ID = counter.getNewBarcode();
       metadata.put("Q_EXTERNALDB_ID", urineExtIDBase + lower);
       uAliquots.add(new TSVSampleBean(ID, project + "E3", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-          "aliquot #" + i, new ArrayList<String>(Arrays.asList(urineID)), (HashMap<String, Object>) metadata.clone()));
+          "aliquot #" + i, new ArrayList<String>(Arrays.asList(urineID)),
+          (HashMap<String, Object>) metadata.clone()));
     }
     for (int i = 1; i < 4; i++) {
       String plasmaExtID = extIDBase + "B:" + i;

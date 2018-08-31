@@ -45,6 +45,8 @@ import life.qbic.datamodel.samples.OpenbisBiologicalEntity;
 import life.qbic.datamodel.samples.OpenbisBiologicalSample;
 import life.qbic.datamodel.samples.OpenbisMHCExtractSample;
 import life.qbic.datamodel.samples.OpenbisTestSample;
+import life.qbic.expdesign.ParserHelpers;
+import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.control.WizardController.Steps;
@@ -63,6 +65,7 @@ import life.qbic.projectwizard.steps.ProjectContextStep;
 import life.qbic.projectwizard.steps.TestStep;
 import life.qbic.xml.manager.XMLParser;
 import life.qbic.xml.properties.Property;
+import life.qbic.xml.study.TechnologyType;
 
 /**
  * Aggregates the data from the wizard needed to create the experimental setup in the form of TSVs
@@ -130,6 +133,7 @@ public class WizardDataAggregator {
   private MSExperimentModel fractionationProperties;
   private List<ExperimentType> informativeExpTypes = new ArrayList<ExperimentType>(
       Arrays.asList(ExperimentType.Q_MHC_LIGAND_EXTRACTION, ExperimentType.Q_MS_MEASUREMENT));
+  private Experiment expDesignExperiment;
 
   /**
    * Creates a new WizardDataAggregator
@@ -916,60 +920,6 @@ public class WizardDataAggregator {
     }
   }
 
-  // /**
-  // * Copy existing context and their samples from the information set in the wizard and the
-  // * wizard steps. After this function a tsv with the copied context can be created
-  // *
-  // * @throws JAXBException
-  // */
-  // public void copyExperiment() throws JAXBException {
-  // prepareBasics();
-  // factorMap = new HashMap<String, Factor>();
-  // context = new ArrayList<OpenbisExperiment>();
-  //
-  // ExperimentBean exp = s1.getExperimentName();
-  // String type = exp.getExperiment_type();
-  //
-  // List<Sample> openbisEntities = new ArrayList<Sample>();
-  // List<Sample> openbisExtracts = new ArrayList<Sample>();
-  // List<Sample> openbisTests = new ArrayList<Sample>();
-  //
-  // List<Sample> originals = openbis.getSamplesofExperiment(exp.getID());
-  // Map<String, String> copies = new HashMap<String, String>();
-  //
-  // if (type.equals(ExperimentType.Q_EXPERIMENTAL_DESIGN.toString())) {
-  //
-  // openbisEntities = originals;
-  // openbisExtracts = getLowerSamples(openbisEntities);
-  // openbisTests = getLowerSamples(openbisExtracts);
-  //
-  // entities = copySamples(parseEntities(openbisEntities), copies);
-  // extracts = copySamples(parseExtracts(openbisExtracts), copies);
-  // tests = copySamples(parseTestSamples(openbisTests), copies);
-  // } else if (type.equals(ExperimentType.Q_SAMPLE_EXTRACTION.toString())) {
-  //
-  // openbisExtracts = originals;
-  // openbisEntities = getUpperSamples(openbisExtracts);
-  // openbisTests = getLowerSamples(openbisExtracts);
-  //
-  // entities = parseEntities(openbisEntities);
-  //
-  // extracts = copySamples(parseExtracts(openbisExtracts), copies);
-  // tests = copySamples(parseTestSamples(openbisTests), copies);
-  //
-  // } else if (type.equals(ExperimentType.Q_SAMPLE_PREPARATION.toString())) {
-  //
-  // openbisTests = originals;
-  // openbisExtracts = getUpperSamples(openbisTests);
-  // openbisEntities = getUpperSamples(openbisExtracts);
-  //
-  // entities = parseEntities(openbisEntities);
-  // extracts = parseExtracts(openbisExtracts);
-  //
-  // tests = copySamples(parseTestSamples(openbisTests), copies);
-  // }
-  // }
-
   /**
    * Copy a list of samples, used by the copy context function
    * 
@@ -1176,11 +1126,13 @@ public class WizardDataAggregator {
   }
 
   // TODO should be parsed from the tsv?
-  public List<OpenbisExperiment> getExperimentsWithMetadata() {
+  public List<OpenbisExperiment> getExperimentsWithMetadata(String designXML) {
     List<OpenbisExperiment> res = new ArrayList<OpenbisExperiment>();
     for (OpenbisExperiment e : experiments) {
+      if(designXML!=null && e.getType().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {
+        e.getMetadata().put("Q_EXPERIMENTAL_SETUP", designXML);
+      }
       if (informativeExpTypes.contains(e.getType()) || e.containsProperties()) {
-
         res.add(e);
       }
     }
@@ -1256,10 +1208,6 @@ public class WizardDataAggregator {
   public List<OpenbisExperiment> getExperiments() {
     return experiments;
   }
-
-  // public void setHasFractionationExperiment(boolean b) {
-  // this.hasFractionationExperiment = b;
-  // }
 
   public void setFractionationExperimentsProperties(
       MSExperimentModel fractionationPropertiesFromLastStep) {
@@ -1433,6 +1381,20 @@ public class WizardDataAggregator {
     }
     RegisteredAnalyteInformation res = new RegisteredAnalyteInformation(infos.keySet(),
         measurePeptides, shortGel, purificationMethod);
+    return res;
+  }
+
+  public void setExistingExpDesignExperiment(Experiment e) {
+    expDesignExperiment = e;
+  }
+
+  public Map<String, Map<String, Object>> getEntitiesToUpdate(
+      ExperimentalDesignPropertyWrapper importedDesignProperties, List<TechnologyType> techTypes) {
+    Map<String, Map<String, Object>> res = new HashMap<>();
+    if (expDesignExperiment != null) {
+      res.put(expDesignExperiment.getCode(), ParserHelpers.getExperimentalDesignMap(
+          expDesignExperiment.getProperties(), importedDesignProperties, techTypes));
+    }
     return res;
   }
 }

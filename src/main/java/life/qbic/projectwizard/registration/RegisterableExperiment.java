@@ -8,10 +8,10 @@ import life.qbic.datamodel.samples.ISampleBean;
 
 public class RegisterableExperiment {
 
-  String code;
-  String type;
-  List<ISampleBean> samples;
-  Map<String, Object> properties;
+  private String code;
+  private String type;
+  private List<ISampleBean> samples;
+  private Map<String, Object> properties;
 
   public RegisterableExperiment(String code, ExperimentType type, List<ISampleBean> samples,
       Map<String, Object> properties) {

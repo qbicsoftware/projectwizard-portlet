@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,11 +17,6 @@ import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
-import life.qbic.xml.loci.GeneLocus;
-import life.qbic.xml.manager.LociParser;
-import life.qbic.xml.manager.XMLParser;
-import life.qbic.xml.properties.Property;
-import life.qbic.xml.properties.PropertyType;
 
 
 /**
@@ -178,64 +171,64 @@ public class OpenbisCreationController {
     return true;
   }
 
-  public void prepareXMLProps(List<List<ISampleBean>> samples) {
-    for (List<ISampleBean> list : samples) {
-      for (ISampleBean s : list) {
-        Map<String, Object> metadata = s.getMetadata();
-        XMLParser p = new XMLParser();
-        LociParser lp = new LociParser();
-        List<Property> factors = new ArrayList<Property>();
-        if (metadata.get("XML_FACTORS") != null) {
-          String[] fStrings = ((String) metadata.get("XML_FACTORS")).split(";");
-          for (String factor : fStrings) {
-            if (factor.length() > 1) {
-              String[] fields = factor.split(":");
-              for (int i = 0; i < fields.length; i++)
-                fields[i] = fields[i].trim();
-              String lab = fields[0].replace(" ", "");
-              String val = fields[1];
-              if (fields.length > 2) {
-                life.qbic.xml.properties.Unit unit =
-                    life.qbic.xml.properties.Unit.valueOf(fields[2]);
-                factors.add(new Property(lab, val, unit, PropertyType.Factor));
-              } else
-                factors.add(new Property(lab, val, PropertyType.Factor));
-            }
-          }
-          try {
-            metadata.put("Q_PROPERTIES", p.toString(p.createXMLFromProperties(factors)));// TODO
-                                                                                         // other
-                                                                                         // property
-                                                                                         // types
-          } catch (JAXBException e) {
-            e.printStackTrace();
-          }
-        }
-        metadata.remove("XML_FACTORS");
-
-        List<GeneLocus> loci = new ArrayList<GeneLocus>();
-        if (metadata.get("XML_LOCI") != null) {
-          String[] lStrings = ((String) metadata.get("XML_LOCI")).split(";");
-          for (String locus : lStrings) {
-            if (locus.length() > 1) {
-              String[] fields = locus.split(":");
-              for (int i = 0; i < fields.length; i++)
-                fields[i] = fields[i].trim();
-              String lab = fields[0];
-              String[] alleles = fields[1].split("/");
-              loci.add(new GeneLocus(lab, new ArrayList<String>(Arrays.asList(alleles))));
-            }
-          }
-          try {
-            metadata.put("Q_LOCI", lp.toString(lp.createXMLFromLoci(loci)));
-          } catch (JAXBException e) {
-            e.printStackTrace();
-          }
-        }
-        metadata.remove("XML_LOCI");
-      }
-    }
-  }
+  // public void prepareXMLProps(List<List<ISampleBean>> samples) {
+  // for (List<ISampleBean> list : samples) {
+  // for (ISampleBean s : list) {
+  // Map<String, Object> metadata = s.getMetadata();
+  // XMLParser p = new XMLParser();
+  // LociParser lp = new LociParser();
+  // List<Property> factors = new ArrayList<Property>();
+  // if (metadata.get("XML_FACTORS") != null) {
+  // String[] fStrings = ((String) metadata.get("XML_FACTORS")).split(";");
+  // for (String factor : fStrings) {
+  // if (factor.length() > 1) {
+  // String[] fields = factor.split(":");
+  // for (int i = 0; i < fields.length; i++)
+  // fields[i] = fields[i].trim();
+  // String lab = fields[0].replace(" ", "");
+  // String val = fields[1];
+  // if (fields.length > 2) {
+  // life.qbic.xml.properties.Unit unit =
+  // life.qbic.xml.properties.Unit.valueOf(fields[2]);
+  // factors.add(new Property(lab, val, unit, PropertyType.Factor));
+  // } else
+  // factors.add(new Property(lab, val, PropertyType.Factor));
+  // }
+  // }
+  // try {
+  // metadata.put("Q_PROPERTIES", p.toString(p.createXMLFromProperties(factors)));// TODO
+  // // other
+  // // property
+  // // types
+  // } catch (JAXBException e) {
+  // e.printStackTrace();
+  // }
+  // }
+  // metadata.remove("XML_FACTORS");
+  //
+  // List<GeneLocus> loci = new ArrayList<GeneLocus>();
+  // if (metadata.get("XML_LOCI") != null) {
+  // String[] lStrings = ((String) metadata.get("XML_LOCI")).split(";");
+  // for (String locus : lStrings) {
+  // if (locus.length() > 1) {
+  // String[] fields = locus.split(":");
+  // for (int i = 0; i < fields.length; i++)
+  // fields[i] = fields[i].trim();
+  // String lab = fields[0];
+  // String[] alleles = fields[1].split("/");
+  // loci.add(new GeneLocus(lab, new ArrayList<String>(Arrays.asList(alleles))));
+  // }
+  // }
+  // try {
+  // metadata.put("Q_LOCI", lp.toString(lp.createXMLFromLoci(loci)));
+  // } catch (JAXBException e) {
+  // e.printStackTrace();
+  // }
+  // }
+  // metadata.remove("XML_LOCI");
+  // }
+  // }
+  // }
 
   private List<List<ISampleBean>> splitSamplesIntoBatches(List<ISampleBean> samples,
       int targetSize) {
@@ -267,131 +260,171 @@ public class OpenbisCreationController {
   public void registerProjectWithExperimentsAndSamplesBatchWise(
       final List<List<ISampleBean>> tsvSampleHierarchy, final String description,
       final List<OpenbisExperiment> informativeExperiments, final ProgressBar bar, final Label info,
-      final Runnable ready, final String user, final boolean isPilot) {
+      final Runnable ready, final String user, Map<String, Map<String, Object>> entitiesToUpdate,
+      final boolean isPilot) {
     errors = "";
 
-    logger.debug("User sending samples: " + user);
-    Thread t = new Thread(new Runnable() {
-      volatile int current = -1;
+    System.out.println("experiments");
+    for (OpenbisExperiment e : informativeExperiments)
+      System.out.println(e.getMetadata());
+    System.out.println("entitiesToUpdate");
+    System.out.println(entitiesToUpdate);
+    for (String experiment : entitiesToUpdate.keySet()) {
+      long modificationTime = openbis.getExperimentById2(experiment).get(0).getRegistrationDetails()
+          .getModificationDate().getTime();
 
-      @Override
-      public void run() {
-        info.setCaption("Collecting information");
-        UI.getCurrent().access(new UpdateProgressBar(bar, info, 0.01));
-        RegisterableProject p = new RegisterableProject(tsvSampleHierarchy, description,
-            informativeExperiments, isPilot);
-        List<RegisterableExperiment> exps = p.getExperiments();
-        String space = p.getSpace().toUpperCase();
-        String project = p.getProjectCode();
-        String desc = p.getDescription();
+      HashMap<String, Object> parameters = new HashMap<String, Object>();
+      parameters.put("user", user);
+      parameters.put("identifier", experiment);
+      parameters.put("properties", entitiesToUpdate.get(experiment));
+      openbis.triggerIngestionService("update-experiment-metadata", parameters);
 
-        int splitSteps = 0;
-        // find out which experiments have so many samples they should be sent in multiple packages
-        for (RegisterableExperiment exp : exps) {
-          splitSteps += exp.getSamples().size() / (SPLIT_AT_ENTITY_SIZE + 1);
-        }
+      long newModificationTime = modificationTime;
+      double TIMEOUT = 10000;
 
-        // final int todo = exps.size() + splitSteps + 1;// TODO huge number of samples should be
-        // split
-        // into groups
-        final int todo = tsvSampleHierarchy.size() + splitSteps + 1;
-        // of 50 or 100. this needs to be reflected in the progress
-        // bar
-        current++;
-        double frac = current * 1.0 / todo;
-        info.setCaption("Registering Project and Experiments");
-        UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-        if (!openbis.projectExists(space, project))
-          registerProject(space, project, desc, user);
-        boolean success = registerExperiments(space, project, exps, user);
-        if (!success) {
-          // experiments were not registered, break registration
-          errors = "Experiments could not be registered.";
-          bar.setVisible(false);
-          info.setCaption("An error occured.");
-          UI.getCurrent().setPollInterval(-1);
-          UI.getCurrent().access(ready);
-          return;
-        }
-
+      while (newModificationTime == modificationTime || TIMEOUT < 0) {
+        newModificationTime = openbis.getExperimentById2(experiment).get(0).getRegistrationDetails()
+            .getModificationDate().getTime();
         try {
-          Thread.sleep(500);
-        } catch (InterruptedException e) {
-          logger.error("thread sleep waiting for experiment creation interruped.");
-          e.printStackTrace();
+          Thread.sleep(300);
+          TIMEOUT -= 300;
+        } catch (InterruptedException e1) {
+          // TODO Auto-generated catch block
+          e1.printStackTrace();
         }
-        // for (RegisterableExperiment exp : exps) { old version!
-        int i = 0;
-        for (List<ISampleBean> level : tsvSampleHierarchy) {
-          i++;
-          logger.info("registration of level " + i);
-          // List<ISampleBean> level = exp.getSamples(); old version!
-          info.setCaption("Registering samples");
-          current++;
-          frac = current * 1.0 / todo;
-          UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-          boolean batchSuccess;
-          if (level.size() > SPLIT_AT_ENTITY_SIZE) {
-            for (List<ISampleBean> batch : splitSamplesIntoBatches(level, SPLIT_AT_ENTITY_SIZE)) {
-              batchSuccess = registerSampleBatchInETL(batch, user);
-              if (!batchSuccess) {
-                bar.setVisible(false);
-                info.setCaption("An error occured.");
-                UI.getCurrent().setPollInterval(-1);
-                UI.getCurrent().access(ready);
-                return;
-              }
-              ISampleBean last = batch.get(batch.size() - 1);
-              logger.info("waiting for last batch sample to reach openbis");
-              int step = 50;
-              int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
-              while (!openbis.sampleExists(last.getCode()) && max > 0) {
-                try {
-                  Thread.sleep(step);
-                  max -= step;
-                } catch (InterruptedException e) {
-                  e.printStackTrace();
-                }
-              }
-              current++;
-              frac = current * 1.0 / todo;
-              UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-            }
-          } else {
-            batchSuccess = registerSampleBatchInETL(level, user);
-            if (!batchSuccess) {
-              bar.setVisible(false);
-              info.setCaption("An error occured.");
-              UI.getCurrent().setPollInterval(-1);
-              UI.getCurrent().access(ready);
-              return;
-            }
-          }
-          if (level.size() > 0) {
-            ISampleBean last = level.get(level.size() - 1);
-            logger.info("waiting for last sample to reach openbis");
-            int step = 50;
-            int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
-            while (!openbis.sampleExists(last.getCode()) && max > 0) {
-              try {
-                Thread.sleep(step);
-                max -= step;
-              } catch (InterruptedException e) {
-                e.printStackTrace();
-              }
-            }
-          }
-        }
-        current++;
-        frac = current * 1.0 / todo;
-        UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
 
-        UI.getCurrent().setPollInterval(-1);
-        UI.getCurrent().access(ready);
       }
-    });
-    t.start();
-    UI.getCurrent().setPollInterval(100);
+      if (TIMEOUT < 0) {
+        errors = "could not update existing experimental design, not registering samples!";
+        logger.error(errors);
+        return;
+      } else {
+        logger.debug("completed update of experimental design successfully");
+      }
+    }
+    
+     logger.debug("User sending samples: " + user);
+     Thread t = new Thread(new Runnable() {
+     volatile int current = -1;
+    
+     @Override
+     public void run() {
+     info.setCaption("Collecting information");
+     UI.getCurrent().access(new UpdateProgressBar(bar, info, 0.01));
+     RegisterableProject p = new RegisterableProject(tsvSampleHierarchy, description,
+     informativeExperiments, isPilot);
+     List<RegisterableExperiment> exps = p.getExperiments();
+     String space = p.getSpace().toUpperCase();
+     String project = p.getProjectCode();
+     String desc = p.getDescription();
+    
+     int splitSteps = 0;
+     // find out which experiments have so many samples they should be sent in multiple packages
+     for (RegisterableExperiment exp : exps) {
+     splitSteps += exp.getSamples().size() / (SPLIT_AT_ENTITY_SIZE + 1);
+     }
+    
+     // final int todo = exps.size() + splitSteps + 1;// TODO huge number of samples should be
+     // split
+     // into groups
+     final int todo = tsvSampleHierarchy.size() + splitSteps + 1;
+     // of 50 or 100. this needs to be reflected in the progress
+     // bar
+     current++;
+     double frac = current * 1.0 / todo;
+     info.setCaption("Registering Project and Experiments");
+     UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+     if (!openbis.projectExists(space, project))
+     registerProject(space, project, desc, user);
+     boolean success = registerExperiments(space, project, exps, user);
+     if (!success) {
+     // experiments were not registered, break registration
+     errors = "Experiments could not be registered.";
+     bar.setVisible(false);
+     info.setCaption("An error occured.");
+     UI.getCurrent().setPollInterval(-1);
+     UI.getCurrent().access(ready);
+     return;
+     }
+    
+     try {
+     Thread.sleep(500);
+     } catch (InterruptedException e) {
+     logger.error("thread sleep waiting for experiment creation interruped.");
+     e.printStackTrace();
+     }
+     // for (RegisterableExperiment exp : exps) { old version!
+     int i = 0;
+     for (List<ISampleBean> level : tsvSampleHierarchy) {
+     i++;
+     logger.info("registration of level " + i);
+     // List<ISampleBean> level = exp.getSamples(); old version!
+     info.setCaption("Registering samples");
+     current++;
+     frac = current * 1.0 / todo;
+     UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+     boolean batchSuccess;
+     if (level.size() > SPLIT_AT_ENTITY_SIZE) {
+     for (List<ISampleBean> batch : splitSamplesIntoBatches(level, SPLIT_AT_ENTITY_SIZE)) {
+     batchSuccess = registerSampleBatchInETL(batch, user);
+     if (!batchSuccess) {
+     bar.setVisible(false);
+     info.setCaption("An error occured.");
+     UI.getCurrent().setPollInterval(-1);
+     UI.getCurrent().access(ready);
+     return;
+     }
+     ISampleBean last = batch.get(batch.size() - 1);
+     logger.info("waiting for last batch sample to reach openbis");
+     int step = 50;
+     int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
+     while (!openbis.sampleExists(last.getCode()) && max > 0) {
+     try {
+     Thread.sleep(step);
+     max -= step;
+     } catch (InterruptedException e) {
+     e.printStackTrace();
+     }
+     }
+     current++;
+     frac = current * 1.0 / todo;
+     UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+     }
+     } else {
+     batchSuccess = registerSampleBatchInETL(level, user);
+     if (!batchSuccess) {
+     bar.setVisible(false);
+     info.setCaption("An error occured.");
+     UI.getCurrent().setPollInterval(-1);
+     UI.getCurrent().access(ready);
+     return;
+     }
+     }
+     if (level.size() > 0) {
+     ISampleBean last = level.get(level.size() - 1);
+     logger.info("waiting for last sample to reach openbis");
+     int step = 50;
+     int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
+     while (!openbis.sampleExists(last.getCode()) && max > 0) {
+     try {
+     Thread.sleep(step);
+     max -= step;
+     } catch (InterruptedException e) {
+     e.printStackTrace();
+     }
+     }
+     }
+     }
+     current++;
+     frac = current * 1.0 / todo;
+     UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+    
+     UI.getCurrent().setPollInterval(-1);
+     UI.getCurrent().access(ready);
+     }
+     });
+     t.start();
+     UI.getCurrent().setPollInterval(100);
   }
 
   public boolean registerSampleBatchInETL(List<ISampleBean> samples, String user) {
@@ -441,41 +474,6 @@ public class OpenbisCreationController {
       }
     }
     logger.info("Sending batch of new samples to Ingestion Service.");
-    openbis.ingest("DSS1", "register-sample-batch", params);
-    return true;
-  }
-
-  /**
-   * register a single sample in openbis. space, project, experiment and type have to exist in
-   * openbis! no parents can be registered in this way!
-   * 
-   * @param code
-   * @param space
-   * @param project
-   * @param experiment
-   * @param type
-   * @param user
-   * @param metadata
-   * @return
-   */
-  public boolean registerSample(String code, String space, String project, String exp, String type,
-      String user, Map<String, Object> metadata) {
-    errors = "";
-    if (openbis.sampleExists(code)) {
-      errors = "Sample " + code + " already exists.";
-      return false;
-    }
-    Map<String, Object> params = new HashMap<String, Object>();
-    params.put("user", user);
-
-    Map<String, Object> map = new HashMap<String, Object>();
-    map.put("code", code);
-    map.put("space", space);
-    map.put("project", project);
-    map.put("experiment", exp);
-    map.put("type", type);
-    map.put("metadata", metadata);
-    params.put(code, map);
     openbis.ingest("DSS1", "register-sample-batch", params);
     return true;
   }
