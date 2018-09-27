@@ -18,17 +18,34 @@ package life.qbic.projectwizard.views;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import life.qbic.datamodel.experiments.ExperimentType;
+import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
+import life.qbic.expdesign.ParserHelpers;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.adminviews.MCCView;
 import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
-//import life.qbic.xml.manager.NewXMLParser;
-//import life.qbic.xml.study.Qexperiment;
+import life.qbic.xml.manager.StudyXMLParser;
+import life.qbic.xml.manager.XMLParser;
+import life.qbic.xml.properties.Property;
+import life.qbic.xml.properties.PropertyType;
+import life.qbic.xml.study.Qexperiment;
+import life.qbic.xml.study.Qproperty;
+import life.qbic.xml.study.TechnologyType;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 
@@ -40,6 +57,9 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
+
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 
 public class AdminView extends VerticalLayout {
 
@@ -59,6 +79,7 @@ public class AdminView extends VerticalLayout {
   private Button createSpace;
   // mcc patients
   private MCCView addMultiScale;
+  private ExperimentalDesignConversionView conversionView;
 
   // edit data
 
@@ -67,7 +88,7 @@ public class AdminView extends VerticalLayout {
 
   // logger
   private Logger logger = LogManager.getLogger(AdminView.class);
-
+  
   public AdminView(IOpenBisClient openbis, DBVocabularies vocabularies,
       OpenbisCreationController creationController, String user) {
     this.user = user;
@@ -104,93 +125,19 @@ public class AdminView extends VerticalLayout {
     // MULTISCALE
     addMultiScale = new MCCView(openbis, creationController, user);
     addMultiScale.setSpacing(true);
-    addMultiScale.setMargin(true);
+    addMultiScale.setMargin(true);   
 
     tabs.addTab(addMultiScale, "Add Multiscale Samples");
+    
+    // Convert Projects to new experimental design
+    conversionView = new ExperimentalDesignConversionView(openbis);
+    tabs.addTab(conversionView, "Project Migration");
 
-    // tabs.addTab(new PrototypeView(), "Prototypes");
+//     tabs.addTab(new PrototypeView(), "Prototypes");
 
     addComponent(tabs);
-
     initButtons();
-//    System.out.println("testing");
-//    try {
-//      test();
-//    } catch (IllegalArgumentException | JAXBException e) {
-//      // TODO Auto-generated catch block
-//      e.printStackTrace();
-//    }
   }
-
-//  private void test() throws IllegalArgumentException, JAXBException {
-//    Map<String, Map<Pair<String,String>, List<String>>> expDesign =
-//        new HashMap<String, Map<Pair<String,String>, List<String>>>();
-//    Map<String, List<Property>> otherProps = new HashMap<String, List<Property>>();
-//    Set<String> types = new HashSet<String>(Arrays.asList("Q_BIOLOGICAL_SAMPLE",
-//        "Q_BIOLOGICAL_ENTITY", "Q_TEST_SAMPLE", "Q_MHC_LIGAND_EXTRACT"));
-//    System.out.println("before fetch");
-//    List<Sample> samples = openbis.getSamplesOfProject("/MULTISCALEHCC/QMSHS");
-//    int size = samples.size();
-//    System.out.println(size);
-//    int currentPercent = 0;
-//    int current = 0;
-//    for (Sample s : samples) {
-//      if (types.contains(s.getSampleTypeCode())) {
-//        current++;
-//        int newPercent = current * 100 / size;
-//        if (currentPercent != newPercent)
-//          System.out.println(newPercent);
-//        currentPercent = newPercent;
-//
-//        String code = s.getCode();
-//        XMLParser par = new XMLParser();
-//        List<Property> props = par.getAllPropertiesFromXML(s.getProperties().get("Q_PROPERTIES"));
-//        for (Property p : props) {
-//          if (p.getType().equals(PropertyType.Factor)) {
-//            String lab = p.getLabel();
-//            String val = p.getValue();
-//            String unit = "";
-//            if (p.hasUnit())
-//              unit = p.getUnit().getValue();
-//            Pair<String,String> valunit = new ImmutablePair<String,String>(val, unit);
-//            if (expDesign.containsKey(lab)) {
-//              Map<Pair<String,String>, List<String>> levels = expDesign.get(lab);
-//              if (levels.containsKey(valunit)) {
-//                levels.get(valunit).add(code);
-//              } else {
-//                levels.put(valunit, new ArrayList<String>(Arrays.asList(code)));
-//              }
-//            } else {
-//              Map<Pair<String,String>, List<String>> newLevel = new HashMap<Pair<String,String>, List<String>>();
-//              newLevel.put(valunit, new ArrayList<String>(Arrays.asList(code)));
-//              expDesign.put(lab, newLevel);
-//            }
-//
-//          } else {
-//            if (otherProps.containsKey(code)) {
-//              otherProps.get(code).add(p);
-//            } else {
-//              otherProps.put(code, new ArrayList<Property>(Arrays.asList(p)));
-//            }
-//          }
-//        }
-//      }
-//    }
-//    NewXMLParser p = new NewXMLParser();
-//    JAXBElement<Qexperiment> res = p.createNewDesign(
-//        new ArrayList<String>(Arrays.asList("Genomics", "Ligandomics")), expDesign, otherProps);
-//    String xml = p.toString(res);
-//    try {
-//      File file = new File("/Users/frieda/Desktop/qmshs.xml");
-//      FileWriter fileWriter = new FileWriter(file);
-//      fileWriter.write(xml);
-//      fileWriter.flush();
-//      fileWriter.close();
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
-//    System.out.println("done");
-//  }
 
   private void initButtons() {
     createSpace.addClickListener(new Button.ClickListener() {
