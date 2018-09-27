@@ -214,7 +214,7 @@ public class ProjectInformationComponent extends VerticalLayout {
    */
   public String getSelectedProject() {
     if (selectionNull())
-      return project.getValue();
+      return project.getValue().toUpperCase();
     else {
       String project = projectBox.getValue().toString();
       if (project.contains(" "))
@@ -312,7 +312,7 @@ public class ProjectInformationComponent extends VerticalLayout {
   }
 
   public ProjectInfo getProjectInfo() {
-    return new ProjectInfo(projectDescription.getValue(), getSecondaryName(), false,
+    return new ProjectInfo(getSpaceCode(), getSelectedProject(), projectDescription.getValue(), getSecondaryName(), false,
         getPerson(PersonType.Investigator), getPerson(PersonType.Contact),
         getPerson(PersonType.Manager));
   }
