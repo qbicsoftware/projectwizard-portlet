@@ -477,11 +477,19 @@ public class WizardController implements IRegistrationController {
           ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, sampleType, "",
               new ArrayList<String>(), new HashMap<String, Object>());
           samples.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
-            List<OpenbisExperiment> informativeExperiments = dataAggregator.getExperimentsWithMetadata(newExperimentalDesignXML);
+          List<OpenbisExperiment> informativeExperiments =
+              dataAggregator.getExperimentsWithMetadata();
+          if (newExperimentalDesignXML != null) {
+            logger.debug("set new xml: " + newExperimentalDesignXML);
+
+            Map<String, Object> props = new HashMap<>();
+            props.put("Q_EXPERIMENTAL_SETUP", newExperimentalDesignXML);
+            informativeExperiments.add(
+                new OpenbisExperiment(project + "_INFO", ExperimentType.Q_PROJECT_DETAILS, props));
+          }
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, desc,
-              informativeExperiments, regStep.getProgressBar(),
-              regStep.getProgressLabel(), new RegisteredSamplesReadyRunnable(regStep, control),
-              user, entitiesToUpdate, pilot);
+              informativeExperiments, regStep.getProgressBar(), regStep.getProgressLabel(),
+              new RegisteredSamplesReadyRunnable(regStep, control), user, entitiesToUpdate, pilot);
           w.addStep(steps.get(Steps.Finish));
         }
       }
@@ -1060,7 +1068,9 @@ public class WizardController implements IRegistrationController {
           int timeout = 20;
           while (!openbis.projectExists(space, proj) && timeout > 0) {
             logger.error(
-                "Project " + proj + "(" + space + ")" + "could not be found after registration.");
+                "Project " + proj + " (" + space + ") " + "could not be found after registration.");
+            logger.debug("timeout in "+timeout);
+            timeout--;
             try {
               Thread.sleep(500);
             } catch (InterruptedException e) {
@@ -1081,8 +1091,9 @@ public class WizardController implements IRegistrationController {
               samplesByExperiment.put(exp, lis);
             }
           }
-          finishStep.setExperimentInfos(space, proj, p.getDescription(), samplesByExperiment,
-              openbis);
+          String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, proj);
+          finishStep.setExperimentInfos(space, proj, designExpID, p.getDescription(),
+              samplesByExperiment, openbis);
         }
       }
 
@@ -1195,20 +1206,17 @@ public class WizardController implements IRegistrationController {
         contextStep.enableCopyContextOption(hasBioEntities);
 
         List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
-        int minExperiment = Integer.MAX_VALUE;
+        logger.debug("set design null");
         dataAggregator.setExistingExpDesignExperiment(null);
         for (Experiment e : openbis.getExperimentsOfProjectByCode(existingProject)) {
           String type = e.getExperimentTypeCode();
+          System.out.println(type);
+          System.out.println(e.getCode());
+          if (type.equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
+            System.out.println("setting design experiment");
+            dataAggregator.setExistingExpDesignExperiment(e);
+          }
           if (designExperimentTypes.contains(type)) {
-            if (type.equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {
-              int expNum = ExperimentCodeFunctions.getNumSuffixOfExperimentCode(existingProject,
-                  e.getCode());
-              if (expNum < minExperiment && expNum != -1) {
-                minExperiment = expNum;
-                dataAggregator.setExistingExpDesignExperiment(e);
-              }
-            }
-
             Date date = e.getRegistrationDetails().getRegistrationDate();
             SimpleDateFormat dt1 = new SimpleDateFormat("yy-MM-dd");
             String dt = "";
@@ -1382,7 +1390,7 @@ public class WizardController implements IRegistrationController {
       logger.info("Registration complete!");
       for (OpenbisExperiment e : exps) {
         if (e.getType().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {
-          String id = projectIdentifier + "/" + e.getOpenbisName();
+          String id = projectIdentifier + "/" + e.getExperimentCode();
           for (Note n : notes) {
             writeNoteToOpenbis(id, n);
           }
@@ -1396,7 +1404,7 @@ public class WizardController implements IRegistrationController {
       if (managerID != -1)
         dbm.addPersonToProject(projectID, managerID, "Manager");
       for (OpenbisExperiment e : exps) {
-        String identifier = projectIdentifier + "/" + e.getOpenbisName();
+        String identifier = projectIdentifier + "/" + e.getExperimentCode();
         int expID = dbm.addExperimentToDB(identifier);
         if (e.getPersonID() > -1) {
           int person = e.getPersonID();

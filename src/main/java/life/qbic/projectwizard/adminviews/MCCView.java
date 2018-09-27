@@ -50,6 +50,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
+import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.ParserHelpers;
@@ -286,7 +287,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
         Map<String, Map<String, Object>> entitiesToUpdate =
             new HashMap<String, Map<String, Object>>();
 
-        String expID = "/" + mccSpace + "/" + project + "/" + project + "E1";
+        String expID = ExperimentCodeFunctions.getInfoExperimentID(mccSpace, project);
 
         List<Experiment> exps = openbis.getExperimentById2(expID);
         List<OpenbisExperiment> infoExperiments = new ArrayList<>();
@@ -298,7 +299,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
 //          props.put(key, value);
           //TODO create new xml from samples
           infoExperiments.add(
-              new OpenbisExperiment(project + "E1", ExperimentType.Q_EXPERIMENTAL_DESIGN, props));
+              new OpenbisExperiment(project + "_INFO", ExperimentType.Q_PROJECT_DETAILS, props));
         }
         // TODO test for new projects
         creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,

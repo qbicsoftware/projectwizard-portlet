@@ -14,6 +14,7 @@ import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 
 import life.qbic.datamodel.experiments.OpenbisExperiment;
+import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
@@ -264,30 +265,30 @@ public class OpenbisCreationController {
       final boolean isPilot) {
     errors = "";
 
-    System.out.println("experiments");
-    for (OpenbisExperiment e : informativeExperiments)
-      System.out.println(e.getMetadata());
-    System.out.println("entitiesToUpdate");
-    System.out.println(entitiesToUpdate);
+    RegisterableProject p =
+        new RegisterableProject(tsvSampleHierarchy, description, informativeExperiments, isPilot);
+
     for (String experiment : entitiesToUpdate.keySet()) {
-      long modificationTime = openbis.getExperimentById2(experiment).get(0).getRegistrationDetails()
+      String expID = ExperimentCodeFunctions.getExperimentIdentifier(p.getSpace(),
+          p.getProjectCode(), experiment);
+      long modificationTime = openbis.getExperimentById2(expID).get(0).getRegistrationDetails()
           .getModificationDate().getTime();
 
       HashMap<String, Object> parameters = new HashMap<String, Object>();
       parameters.put("user", user);
-      parameters.put("identifier", experiment);
+      parameters.put("identifier", expID);
       parameters.put("properties", entitiesToUpdate.get(experiment));
       openbis.triggerIngestionService("update-experiment-metadata", parameters);
 
       long newModificationTime = modificationTime;
       double TIMEOUT = 10000;
 
-      while (newModificationTime == modificationTime || TIMEOUT < 0) {
-        newModificationTime = openbis.getExperimentById2(experiment).get(0).getRegistrationDetails()
+      while (newModificationTime == modificationTime && TIMEOUT > 0) {
+        newModificationTime = openbis.getExperimentById2(expID).get(0).getRegistrationDetails()
             .getModificationDate().getTime();
+        TIMEOUT -= 300;
         try {
           Thread.sleep(300);
-          TIMEOUT -= 300;
         } catch (InterruptedException e1) {
           // TODO Auto-generated catch block
           e1.printStackTrace();
@@ -302,129 +303,127 @@ public class OpenbisCreationController {
         logger.debug("completed update of experimental design successfully");
       }
     }
-    
-     logger.debug("User sending samples: " + user);
-     Thread t = new Thread(new Runnable() {
-     volatile int current = -1;
-    
-     @Override
-     public void run() {
-     info.setCaption("Collecting information");
-     UI.getCurrent().access(new UpdateProgressBar(bar, info, 0.01));
-     RegisterableProject p = new RegisterableProject(tsvSampleHierarchy, description,
-     informativeExperiments, isPilot);
-     List<RegisterableExperiment> exps = p.getExperiments();
-     String space = p.getSpace().toUpperCase();
-     String project = p.getProjectCode();
-     String desc = p.getDescription();
-    
-     int splitSteps = 0;
-     // find out which experiments have so many samples they should be sent in multiple packages
-     for (RegisterableExperiment exp : exps) {
-     splitSteps += exp.getSamples().size() / (SPLIT_AT_ENTITY_SIZE + 1);
-     }
-    
-     // final int todo = exps.size() + splitSteps + 1;// TODO huge number of samples should be
-     // split
-     // into groups
-     final int todo = tsvSampleHierarchy.size() + splitSteps + 1;
-     // of 50 or 100. this needs to be reflected in the progress
-     // bar
-     current++;
-     double frac = current * 1.0 / todo;
-     info.setCaption("Registering Project and Experiments");
-     UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-     if (!openbis.projectExists(space, project))
-     registerProject(space, project, desc, user);
-     boolean success = registerExperiments(space, project, exps, user);
-     if (!success) {
-     // experiments were not registered, break registration
-     errors = "Experiments could not be registered.";
-     bar.setVisible(false);
-     info.setCaption("An error occured.");
-     UI.getCurrent().setPollInterval(-1);
-     UI.getCurrent().access(ready);
-     return;
-     }
-    
-     try {
-     Thread.sleep(500);
-     } catch (InterruptedException e) {
-     logger.error("thread sleep waiting for experiment creation interruped.");
-     e.printStackTrace();
-     }
-     // for (RegisterableExperiment exp : exps) { old version!
-     int i = 0;
-     for (List<ISampleBean> level : tsvSampleHierarchy) {
-     i++;
-     logger.info("registration of level " + i);
-     // List<ISampleBean> level = exp.getSamples(); old version!
-     info.setCaption("Registering samples");
-     current++;
-     frac = current * 1.0 / todo;
-     UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-     boolean batchSuccess;
-     if (level.size() > SPLIT_AT_ENTITY_SIZE) {
-     for (List<ISampleBean> batch : splitSamplesIntoBatches(level, SPLIT_AT_ENTITY_SIZE)) {
-     batchSuccess = registerSampleBatchInETL(batch, user);
-     if (!batchSuccess) {
-     bar.setVisible(false);
-     info.setCaption("An error occured.");
-     UI.getCurrent().setPollInterval(-1);
-     UI.getCurrent().access(ready);
-     return;
-     }
-     ISampleBean last = batch.get(batch.size() - 1);
-     logger.info("waiting for last batch sample to reach openbis");
-     int step = 50;
-     int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
-     while (!openbis.sampleExists(last.getCode()) && max > 0) {
-     try {
-     Thread.sleep(step);
-     max -= step;
-     } catch (InterruptedException e) {
-     e.printStackTrace();
-     }
-     }
-     current++;
-     frac = current * 1.0 / todo;
-     UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-     }
-     } else {
-     batchSuccess = registerSampleBatchInETL(level, user);
-     if (!batchSuccess) {
-     bar.setVisible(false);
-     info.setCaption("An error occured.");
-     UI.getCurrent().setPollInterval(-1);
-     UI.getCurrent().access(ready);
-     return;
-     }
-     }
-     if (level.size() > 0) {
-     ISampleBean last = level.get(level.size() - 1);
-     logger.info("waiting for last sample to reach openbis");
-     int step = 50;
-     int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
-     while (!openbis.sampleExists(last.getCode()) && max > 0) {
-     try {
-     Thread.sleep(step);
-     max -= step;
-     } catch (InterruptedException e) {
-     e.printStackTrace();
-     }
-     }
-     }
-     }
-     current++;
-     frac = current * 1.0 / todo;
-     UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-    
-     UI.getCurrent().setPollInterval(-1);
-     UI.getCurrent().access(ready);
-     }
-     });
-     t.start();
-     UI.getCurrent().setPollInterval(100);
+
+    logger.debug("User sending samples: " + user);
+    Thread t = new Thread(new Runnable() {
+      volatile int current = -1;
+
+      @Override
+      public void run() {
+        info.setCaption("Collecting information");
+        UI.getCurrent().access(new UpdateProgressBar(bar, info, 0.01));
+        List<RegisterableExperiment> exps = p.getExperiments();
+        String space = p.getSpace().toUpperCase();
+        String project = p.getProjectCode();
+        String desc = p.getDescription();
+
+        int splitSteps = 0;
+        // find out which experiments have so many samples they should be sent in multiple packages
+        for (RegisterableExperiment exp : exps) {
+          splitSteps += exp.getSamples().size() / (SPLIT_AT_ENTITY_SIZE + 1);
+        }
+
+        // final int todo = exps.size() + splitSteps + 1;// TODO huge number of samples should be
+        // split
+        // into groups
+        final int todo = tsvSampleHierarchy.size() + splitSteps + 1;
+        // of 50 or 100. this needs to be reflected in the progress
+        // bar
+        current++;
+        double frac = current * 1.0 / todo;
+        info.setCaption("Registering Project and Experiments");
+        UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+        if (!openbis.projectExists(space, project))
+          registerProject(space, project, desc, user);
+        boolean success = registerExperiments(space, project, exps, user);
+        if (!success) {
+          // experiments were not registered, break registration
+          errors = "Experiments could not be registered.";
+          bar.setVisible(false);
+          info.setCaption("An error occured.");
+          UI.getCurrent().setPollInterval(-1);
+          UI.getCurrent().access(ready);
+          return;
+        }
+
+        try {
+          Thread.sleep(500);
+        } catch (InterruptedException e) {
+          logger.error("thread sleep waiting for experiment creation interruped.");
+          e.printStackTrace();
+        }
+        // for (RegisterableExperiment exp : exps) { old version!
+        int i = 0;
+        for (List<ISampleBean> level : tsvSampleHierarchy) {
+          i++;
+          logger.info("registration of level " + i);
+          // List<ISampleBean> level = exp.getSamples(); old version!
+          info.setCaption("Registering samples");
+          current++;
+          frac = current * 1.0 / todo;
+          UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+          boolean batchSuccess;
+          if (level.size() > SPLIT_AT_ENTITY_SIZE) {
+            for (List<ISampleBean> batch : splitSamplesIntoBatches(level, SPLIT_AT_ENTITY_SIZE)) {
+              batchSuccess = registerSampleBatchInETL(batch, user);
+              if (!batchSuccess) {
+                bar.setVisible(false);
+                info.setCaption("An error occured.");
+                UI.getCurrent().setPollInterval(-1);
+                UI.getCurrent().access(ready);
+                return;
+              }
+              ISampleBean last = batch.get(batch.size() - 1);
+              logger.info("waiting for last batch sample to reach openbis");
+              int step = 100;
+              int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
+              while (!openbis.sampleExists(last.getCode()) && max > 0) {
+                try {
+                  Thread.sleep(step);
+                  max -= step;
+                } catch (InterruptedException e) {
+                  e.printStackTrace();
+                }
+              }
+              current++;
+              frac = current * 1.0 / todo;
+              UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+            }
+          } else {
+            batchSuccess = registerSampleBatchInETL(level, user);
+            if (!batchSuccess) {
+              bar.setVisible(false);
+              info.setCaption("An error occured.");
+              UI.getCurrent().setPollInterval(-1);
+              UI.getCurrent().access(ready);
+              return;
+            }
+          }
+          if (level.size() > 0) {
+            ISampleBean last = level.get(level.size() - 1);
+            logger.info("waiting for last sample to reach openbis");
+            int step = 50;
+            int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
+            while (!openbis.sampleExists(last.getCode()) && max > 0) {
+              try {
+                Thread.sleep(step);
+                max -= step;
+              } catch (InterruptedException e) {
+                e.printStackTrace();
+              }
+            }
+          }
+        }
+        current++;
+        frac = current * 1.0 / todo;
+        UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+
+        UI.getCurrent().setPollInterval(-1);
+        UI.getCurrent().access(ready);
+      }
+    });
+    t.start();
+    UI.getCurrent().setPollInterval(100);
   }
 
   public boolean registerSampleBatchInETL(List<ISampleBean> samples, String user) {

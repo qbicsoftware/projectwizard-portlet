@@ -28,9 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.teemu.wizards.WizardStep;
@@ -63,8 +66,9 @@ import life.qbic.projectwizard.steps.EntityStep;
 import life.qbic.projectwizard.steps.ExtractionStep;
 import life.qbic.projectwizard.steps.ProjectContextStep;
 import life.qbic.projectwizard.steps.TestStep;
-import life.qbic.xml.manager.XMLParser;
+import life.qbic.xml.manager.StudyXMLParser;
 import life.qbic.xml.properties.Property;
+import life.qbic.xml.study.Qexperiment;
 import life.qbic.xml.study.TechnologyType;
 
 /**
@@ -85,7 +89,7 @@ public class WizardDataAggregator {
   private String tsvContent;
 
   private IOpenBisClient openbis;
-  private XMLParser xmlParser = new XMLParser();
+  // private XMLParser xmlParser = new XMLParser();
   private Map<String, String> taxMap;
   private Map<String, String> tissueMap;
   private Map<String, Property> factorMap;
@@ -134,6 +138,11 @@ public class WizardDataAggregator {
   private List<ExperimentType> informativeExpTypes = new ArrayList<ExperimentType>(
       Arrays.asList(ExperimentType.Q_MHC_LIGAND_EXTRACTION, ExperimentType.Q_MS_MEASUREMENT));
   private Experiment expDesignExperiment;
+//  private String designExperimentID;
+  final private StudyXMLParser parser = new StudyXMLParser();
+  private JAXBElement<Qexperiment> oldExpDesign;
+  private Set<String> oldFactors;
+  private Map<Pair<String, String>, Property> oldFactorsForSamples;
 
   /**
    * Creates a new WizardDataAggregator
@@ -460,7 +469,7 @@ public class WizardDataAggregator {
               }
               incrementOrCreateBarcode();
               mhcExtracts.add(new OpenbisMHCExtractSample(nextBarcode, spaceCode,
-                  experiments.get(expNum).getOpenbisName(), secondaryName, "", s.getFactors(),
+                  experiments.get(expNum).getExperimentCode(), secondaryName, "", s.getFactors(),
                   antibody, mhcClass, s.getCode(), s.getQ_EXTERNALDB_ID()));
             }
           }
@@ -599,7 +608,7 @@ public class WizardDataAggregator {
         }
         String taxID = taxMap.get(species);
         entities.add(new OpenbisBiologicalEntity(projectCode + "ENTITY-" + entityNum, spaceCode,
-            experiments.get(0).getOpenbisName(), secondaryName, "", factors, taxID, speciesInfo,
+            experiments.get(0).getExperimentCode(), secondaryName, "", factors, taxID, speciesInfo,
             ""));
         entityNum++;
       }
@@ -674,8 +683,8 @@ public class WizardDataAggregator {
           List<Property> curFactors = new ArrayList<Property>(factors);
           incrementOrCreateBarcode();
           extracts.add(new OpenbisBiologicalSample(nextBarcode, spaceCode,
-              experiments.get(expNum).getOpenbisName(), secondaryName, "", curFactors, tissueCode,
-              specialTissue, e.getCode(), e.getQ_EXTERNALDB_ID())); // TODO
+              experiments.get(expNum).getExperimentCode(), secondaryName, "", curFactors,
+              tissueCode, specialTissue, e.getCode(), e.getQ_EXTERNALDB_ID())); // TODO
           // ext
           // db
           // id
@@ -765,7 +774,7 @@ public class WizardDataAggregator {
           }
           incrementOrCreateBarcode();
           techTests.add(new OpenbisTestSample(nextBarcode, spaceCode,
-              experiments.get(expNum).getOpenbisName(), secondaryName, "", s.getFactors(),
+              experiments.get(expNum).getExperimentCode(), secondaryName, "", s.getFactors(),
               sampleType, s.getCode(), s.getQ_EXTERNALDB_ID()));// TODO
           // ext
           // db
@@ -829,12 +838,26 @@ public class WizardDataAggregator {
         entityNum++;
       }
       Map<String, String> p = s.getProperties();
-      List<Property> factors =
-          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
-      for (Property f : factors) {
-        String name = f.getValue() + f.getUnit();
-        factorMap.put(name, f);
+      List<Property> factors = new ArrayList<>();
+      
+      for(String label : oldFactors) {
+        Property f = oldFactorsForSamples.get(new ImmutablePair<>(label, code));
+        if(f!=null) {
+          factors.add(f);
+          String name = f.getValue();
+          if(f.hasUnit()) {
+            name+=f.getUnit();
+          }
+          factorMap.put(name, f);
+        }
       }
+      
+//      List<Property> factors =
+//          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
+//      for (Property f : factors) {
+//        String name = f.getValue() + f.getUnit();
+//        factorMap.put(name, f);
+//      }
       res.add(new OpenbisBiologicalEntity(code, spaceCode, exp, p.get("Q_SECONDARY_NAME"),
           p.get("Q_ADDITIONAL_INFO"), factors, p.get("Q_NCBI_ORGANISM"),
           p.get("Q_ORGANISM_DETAILED"), p.get("Q_EXTERNALDB_ID")));
@@ -859,12 +882,26 @@ public class WizardDataAggregator {
     for (Sample s : extracts) {
       String code = s.getCode();
       Map<String, String> p = s.getProperties();
-      List<Property> factors =
-          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
-      for (Property f : factors) {
-        String name = f.getValue() + f.getUnit();
-        factorMap.put(name, f);
+      
+      List<Property> factors = new ArrayList<>();
+      
+      for(String label : oldFactors) {
+        Property f = oldFactorsForSamples.get(new ImmutablePair<>(label, code));
+        if(f!=null) {
+          factors.add(f);
+          String name = f.getValue();
+          if(f.hasUnit()) {
+            name+=f.getUnit();
+          }
+          factorMap.put(name, f);
+        }
       }
+//      List<Property> factors =
+//          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
+//      for (Property f : factors) {
+//        String name = f.getValue() + f.getUnit();
+//        factorMap.put(name, f);
+//      }
       res.add(new OpenbisBiologicalSample(code, spaceCode, exp, p.get("Q_SECONDARY_NAME"),
           p.get("Q_ADDITIONAL_INFO"), factors, p.get("Q_PRIMARY_TISSUE"),
           p.get("Q_TISSUE_DETAILED"), parseParents(s, childParentsMap), p.get("Q_EXTERNALDB_ID")));
@@ -887,12 +924,25 @@ public class WizardDataAggregator {
       String code = s.getCode();
       String[] eSplit = s.getExperimentIdentifierOrNull().split("/");
       Map<String, String> p = s.getProperties();
-      List<Property> factors =
-          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
-      for (Property f : factors) {
-        String name = f.getValue() + f.getUnit();
-        factorMap.put(name, f);
+      List<Property> factors = new ArrayList<>();
+      
+      for(String label : oldFactors) {
+        Property f = oldFactorsForSamples.get(new ImmutablePair<>(label, code));
+        if(f!=null) {
+          factors.add(f);
+          String name = f.getValue();
+          if(f.hasUnit()) {
+            name+=f.getUnit();
+          }
+          factorMap.put(name, f);
+        }
       }
+//      List<Property> factors =
+//          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
+//      for (Property f : factors) {
+//        String name = f.getValue() + f.getUnit();
+//        factorMap.put(name, f);
+//      }
       res.add(new OpenbisTestSample(code, spaceCode, eSplit[eSplit.length - 1],
           p.get("Q_SECONDARY_NAME"), p.get("Q_ADDITIONAL_INFO"), factors, p.get("Q_SAMPLE_TYPE"),
           parseParents(s, childToParentsMap), p.get("Q_EXTERNALDB_ID")));
@@ -1126,12 +1176,9 @@ public class WizardDataAggregator {
   }
 
   // TODO should be parsed from the tsv?
-  public List<OpenbisExperiment> getExperimentsWithMetadata(String designXML) {
+  public List<OpenbisExperiment> getExperimentsWithMetadata() {
     List<OpenbisExperiment> res = new ArrayList<OpenbisExperiment>();
     for (OpenbisExperiment e : experiments) {
-      if(designXML!=null && e.getType().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {
-        e.getMetadata().put("Q_EXPERIMENTAL_SETUP", designXML);
-      }
       if (informativeExpTypes.contains(e.getType()) || e.containsProperties()) {
         res.add(e);
       }
@@ -1386,6 +1433,20 @@ public class WizardDataAggregator {
 
   public void setExistingExpDesignExperiment(Experiment e) {
     expDesignExperiment = e;
+    if(e==null) {
+      oldExpDesign = null;
+      oldFactors = null;
+      oldFactorsForSamples = null;
+    } else {
+      try {
+        oldExpDesign = parser.parseXMLString(e.getProperties().get("Q_EXPERIMENTAL_SETUP"));
+        oldFactors = parser.getFactorLabels(oldExpDesign);
+        oldFactorsForSamples = parser.getFactorsForLabelsAndSamples(oldExpDesign);
+      } catch (JAXBException e1) {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      }
+    }
   }
 
   public Map<String, Map<String, Object>> getEntitiesToUpdate(
@@ -1397,4 +1458,11 @@ public class WizardDataAggregator {
     }
     return res;
   }
+
+//  /**
+//   * returns the identifier of the experiment containing the design xml.
+//   */
+//  public String getNewDesignExperimentID() {
+//    return designExperimentID;
+//  }
 }
