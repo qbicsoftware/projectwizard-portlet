@@ -18,9 +18,15 @@ package life.qbic.projectwizard.steps;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.teemu.wizards.Wizard;
@@ -40,6 +46,7 @@ import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 
 import com.vaadin.ui.Button.ClickEvent;
@@ -52,6 +59,9 @@ import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.processes.TSVReadyRunnable;
 import life.qbic.projectwizard.registration.UpdateProgressBar;
 import life.qbic.projectwizard.uicomponents.UploadsPanel;
+import life.qbic.xml.manager.StudyXMLParser;
+import life.qbic.xml.properties.Property;
+import life.qbic.xml.study.Qexperiment;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.utils.PortalUtils;
@@ -150,7 +160,7 @@ public class FinishStep implements WizardStep {
     w.getFinishButton().setVisible(true);
   }
 
-  public void setExperimentInfos(String space, String proj, String desc,
+  public void setExperimentInfos(String space, String proj, String designExpID, String desc,
       Map<String, List<Sample>> samplesByExperiment, IOpenBisClient openbis) {
     boolean empty = samplesByExperiment.isEmpty();
     for (Object listener : browserLink.getListeners(ClickEvent.class))
@@ -204,7 +214,7 @@ public class FinishStep implements WizardStep {
       prepareSpreadsheets(
           new ArrayList<String>(
               Arrays.asList("Q_BIOLOGICAL_ENTITY", "Q_BIOLOGICAL_SAMPLE", "Q_TEST_SAMPLE")),
-          ids.size(), space, proj, openbis);
+          ids.size(), space, proj, designExpID, openbis);
     } else {
       bar.setVisible(false);
       info.setVisible(false);
@@ -213,7 +223,7 @@ public class FinishStep implements WizardStep {
   }
 
   private void prepareSpreadsheets(List<String> sampleTypes, int numSamples, String space,
-      final String project, IOpenBisClient openbis) {
+      final String project, String designExpID, IOpenBisClient openbis) {
 
     FinishStep layout = this;
     bar.setVisible(true);
@@ -235,6 +245,24 @@ public class FinishStep implements WizardStep {
             e.printStackTrace();
           }
         }
+        logger.debug("designexpID " + designExpID);
+        List<Experiment> exps = openbis.getExperimentById2(designExpID);
+        StudyXMLParser parser = new StudyXMLParser();
+        Set<String> factors = new HashSet<>();
+        Map<Pair<String, String>, Property> factorsForLabelsAndSamples = new HashMap<>();
+
+        if (!exps.isEmpty()) {
+          String xml = exps.get(0).getProperties().get("Q_EXPERIMENTAL_SETUP");
+          try {
+            JAXBElement<Qexperiment> expDesign = parser.parseXMLString(xml);
+            factors.addAll(parser.getFactorLabels(expDesign));
+            factorsForLabelsAndSamples = parser.getFactorsForLabelsAndSamples(expDesign);
+          } catch (JAXBException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
+
         Map<String, List<String>> tables = new HashMap<String, List<String>>();
         for (String type : sampleTypes) {
           tables.put(type, openbis.getProjectTSV(project, type));
@@ -243,7 +271,8 @@ public class FinishStep implements WizardStep {
         }
 
         UI.getCurrent().setPollInterval(-1);
-        UI.getCurrent().access(new TSVReadyRunnable(layout, tables, project));
+        UI.getCurrent().access(
+            new TSVReadyRunnable(layout, tables, project, factors, factorsForLabelsAndSamples));
       }
     });
     t.start();
