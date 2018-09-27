@@ -29,7 +29,7 @@ public class RegisterableProject {
     this.experiments = new ArrayList<RegisterableExperiment>();
     Map<String, OpenbisExperiment> knownExperiments = new HashMap<String, OpenbisExperiment>();
     for (OpenbisExperiment e : informativeExperiments) {
-      knownExperiments.put(e.getOpenbisName(), e);
+      knownExperiments.put(e.getExperimentCode(), e);
     }
     for (List<ISampleBean> inner : tsvSampleHierarchy) {
       // needed since we collect some samples that don't have the same experiment now - TODO not the
