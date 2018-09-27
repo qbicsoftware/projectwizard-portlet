@@ -43,6 +43,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
 import life.qbic.datamodel.experiments.ExperimentType;
+import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBVocabularies;
@@ -234,54 +235,6 @@ public class MetadataUploadView extends VerticalLayout {
     });
   }
 
-  protected void ingestTableNew(final Runnable ready, final ProgressBar bar, final Label info) {
-    showProgress(true);
-    Thread t = new Thread(new Runnable() {
-      volatile int current = 0;
-
-      @Override
-      public void run() {
-        UI.getCurrent().access(new UpdateProgressBar(bar, info, 0.01));
-        Table sampleTable = getActiveTable();
-        List<Integer> ids = new ArrayList<Integer>();
-        for (Object row : sampleTable.getItemIds()) {
-          int id = (int) row;
-          if (id > -1)
-            ids.add(id);
-        }
-
-        int last = ids.size() - 1;
-        int steps = Math.max(1, (last / BATCH_SIZE) + 1);
-        int start = 0;
-        int end = -1;
-        while (end < last) {
-          current++;
-          end += Math.min(BATCH_SIZE, last - end);
-          List<Integer> batch = ids.subList(start, end + 1);
-
-          logger.debug("sending metadata of samples " + start + "-" + end + " to openBIS.");
-          start = end + 1;
-
-          double frac = current * 1.0 / steps;
-          UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-          try {
-            ingestRows(batch);
-          } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          } catch (JAXBException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-        }
-        UI.getCurrent().setPollInterval(-1);
-        UI.getCurrent().access(ready);
-      }
-    });
-    t.start();
-    UI.getCurrent().setPollInterval(500);
-  }
-
   protected void ingestTable(final Runnable ready, final ProgressBar bar, final Label info) {
     showProgress(true);
     Thread t = new Thread(new Runnable() {
@@ -300,6 +253,21 @@ public class MetadataUploadView extends VerticalLayout {
 
         int last = ids.size() - 1;
         int steps = Math.max(1, (last / BATCH_SIZE) + 1);
+        String xmlToUpdate = null;
+        try {
+          xmlToUpdate = collectPropsForExperimentXML(ids);
+        } catch (JAXBException e1) {
+          // TODO Auto-generated catch block
+          e1.printStackTrace();
+        }
+        if (xmlToUpdate != null) {
+          steps++;
+          current++;
+          double frac = current * 1.0 / steps;
+          UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+
+          updateExperimentalDesignXML(xmlToUpdate);
+        }
         int start = 0;
         int end = -1;
         while (end < last) {
@@ -330,12 +298,23 @@ public class MetadataUploadView extends VerticalLayout {
     UI.getCurrent().setPollInterval(500);
   }
 
+  protected void updateExperimentalDesignXML(String xmlToUpdate) {
+    HashMap<String, Object> parameters = new HashMap<String, Object>();
+    HashMap<String, Object> props = new HashMap<String, Object>();
+    props.put("Q_EXPERIMENTAL_SETUP", xmlToUpdate);
+    parameters.put("identifier", designExperiment.getIdentifier());
+    parameters.put("properties", props);
+    logger.info("updating experimental design xml");
+    openbis.triggerIngestionService("update-experiment-metadata", parameters);
+  }
+
   public Table getActiveTable() {
     return (Table) sheet.getSelectedTab();
   }
 
   protected String collectPropsForExperimentXML(List<Integer> rows) throws JAXBException {
     Table sampleTable = getActiveTable();
+    boolean updateNecessary = false;
 
     Map<String, Map<Pair<String, String>, List<String>>> newDesign = new HashMap<>();
     Map<String, List<Qproperty>> newProperties = new HashMap<>();
@@ -351,6 +330,7 @@ public class MetadataUploadView extends VerticalLayout {
         if (label.startsWith("Property: "))
           propType = life.qbic.xml.properties.PropertyType.Property;
         if (propType != null) {
+          updateNecessary = true;
           label = label.replace("Condition: ", "").replace("Property: ", "");
           Property prop = null;
           if (label.contains("[") && label.contains("]")) {
@@ -360,7 +340,7 @@ public class MetadataUploadView extends VerticalLayout {
           } else {
             prop = new Property(label, "", propType);
           }
-          label = prop.toString();
+//          label = prop.toString();
 
           // property/factor found, collect samples for it
           for (int id : rows) {
@@ -371,7 +351,12 @@ public class MetadataUploadView extends VerticalLayout {
 
               // properties
               if (propType.equals(life.qbic.xml.properties.PropertyType.Property)) {
-                Qproperty newProp = new Qproperty(code, label, val, prop.getUnit());
+                Qproperty newProp = null;
+                if (prop.hasUnit()) {
+                  newProp = new Qproperty(code, label, val, prop.getUnit());
+                } else {
+                  newProp = new Qproperty(code, label, val);
+                }
                 if (newProperties.containsKey(code)) {
                   newProperties.get(code).add(newProp);
                 } else {
@@ -396,39 +381,31 @@ public class MetadataUploadView extends VerticalLayout {
       }
     }
     // technologies used can't be changed, so we add an empty list
-    JAXBElement<Qexperiment> updatedDesign =
-        studyXMLParser.mergeDesigns(expDesign, new ArrayList<>(), newDesign, newProperties);
-    return studyXMLParser.toString(updatedDesign);
+    if (updateNecessary) {
+      JAXBElement<Qexperiment> updatedDesign =
+          studyXMLParser.mergeDesigns(expDesign, new ArrayList<>(), newDesign, newProperties);
+      return studyXMLParser.toString(updatedDesign);
+    } else {
+      return null;
+    }
   }
 
 
   private void findAndSetDesignExperiment(String space, String project) throws JAXBException {
-
-    long MAX_RUN_TIME = 60000;
-    long startTime = System.currentTimeMillis();
-
     designExperiment = null;
-    int i = 0;
-    long runTimeLeft = 10;
-    while (designExperiment == null || runTimeLeft < 0) {
-      runTimeLeft = MAX_RUN_TIME - (System.currentTimeMillis() - startTime);
-      i++;
-      String id = "/" + space + "/" + project + "/" + project + "E" + Integer.toString(i);
-      List<Experiment> exps = openbis.getExperimentById2(id);
-      if (exps.isEmpty()) {
-        designExperiment = null;
-      } else {
-        Experiment e = exps.get(0);
-        if (e.getExperimentTypeCode().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {
-          designExperiment = e;
-          expDesign = studyXMLParser
-              .parseXMLString(designExperiment.getProperties().get("Q_EXPERIMENTAL_DESIGN_TEST"));
-        }
+    String id = ExperimentCodeFunctions.getInfoExperimentID(space, project);
+    List<Experiment> exps = openbis.getExperimentById2(id);
+    if (exps.isEmpty()) {
+      designExperiment = null;
+      logger.error("could not find info experiment for project" + project);
+    } else {
+      Experiment e = exps.get(0);
+      if (e.getExperimentTypeCode().equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
+        designExperiment = e;
+        expDesign = studyXMLParser
+            .parseXMLString(designExperiment.getProperties().get("Q_EXPERIMENTAL_SETUP"));
+        logger.debug("setting exp design: " + expDesign);
       }
-    }
-    if (runTimeLeft < 0) {
-      logger.error(
-          "unsuccessfully tried to find Q_EXPERIMENTAL_DESIGN experiment for project" + project);
     }
   }
 
@@ -436,12 +413,12 @@ public class MetadataUploadView extends VerticalLayout {
     Table sampleTable = getActiveTable();
     metadata = new HashMap<String, Object>();
     List<String> types = new ArrayList<String>();
-//    List<Property> conditions = new ArrayList<Property>();
+    // List<Property> conditions = new ArrayList<Property>();
     List<String> codes = new ArrayList<String>();
     for (Object col : sampleTable.getContainerPropertyIds()) {
       String attribute = getSelectedProperty(col);
       if (!attribute.equals("Properties -->")) {
-//        String unit = null;
+        // String unit = null;
         life.qbic.xml.properties.PropertyType propType = null;
         if (attribute.startsWith("Condition: "))
           propType = life.qbic.xml.properties.PropertyType.Factor;
@@ -486,36 +463,36 @@ public class MetadataUploadView extends VerticalLayout {
         }
       }
     }
-//    Map<String, String> xmlPropertyMap = new HashMap<String, String>();
-//    for (String code : codes) {
-//      List<Property> newFactors = new ArrayList<Property>();
-//      String existingXML = codesToSamples.get(code).getProperties().get("Q_PROPERTIES");
-//      List<Property> oldFactors = xmlParser.getExpFactorsFromXML(existingXML);
-//      for (Property condition : conditions) {
-//        for (Property f : oldFactors) {
-//          Property test = null;
-//          if (f.hasUnit())
-//            test = new Property(f.getLabel(), "", f.getUnit(), f.getType());
-//          else
-//            test = new Property(f.getLabel(), "", f.getType());
-//          if (!conditions.contains(test)) {
-//            newFactors.add(f);
-//          }
-//        }
-//        Map<String, String> condMap = (HashMap<String, String>) metadata.get(condition.toString());
-//        Property prop = parseProperty(condition, condMap.get(code));
-//        newFactors.add(prop);
-//      }
-//      if (!newFactors.isEmpty())
-//        xmlPropertyMap.put(code, xmlParser.toString(xmlParser.createXMLFromProperties(newFactors)));
-//    }
-//    for (Property condition : conditions) {
-//      metadata.remove(condition.getLabel());
-//    }
-//    if (!xmlPropertyMap.isEmpty()) {
-//      types.add("Q_PROPERTIES");
-//      metadata.put("Q_PROPERTIES", xmlPropertyMap);
-//    }
+    // Map<String, String> xmlPropertyMap = new HashMap<String, String>();
+    // for (String code : codes) {
+    // List<Property> newFactors = new ArrayList<Property>();
+    // String existingXML = codesToSamples.get(code).getProperties().get("Q_PROPERTIES");
+    // List<Property> oldFactors = xmlParser.getExpFactorsFromXML(existingXML);
+    // for (Property condition : conditions) {
+    // for (Property f : oldFactors) {
+    // Property test = null;
+    // if (f.hasUnit())
+    // test = new Property(f.getLabel(), "", f.getUnit(), f.getType());
+    // else
+    // test = new Property(f.getLabel(), "", f.getType());
+    // if (!conditions.contains(test)) {
+    // newFactors.add(f);
+    // }
+    // }
+    // Map<String, String> condMap = (HashMap<String, String>) metadata.get(condition.toString());
+    // Property prop = parseProperty(condition, condMap.get(code));
+    // newFactors.add(prop);
+    // }
+    // if (!newFactors.isEmpty())
+    // xmlPropertyMap.put(code, xmlParser.toString(xmlParser.createXMLFromProperties(newFactors)));
+    // }
+    // for (Property condition : conditions) {
+    // metadata.remove(condition.getLabel());
+    // }
+    // if (!xmlPropertyMap.isEmpty()) {
+    // types.add("Q_PROPERTIES");
+    // metadata.put("Q_PROPERTIES", xmlPropertyMap);
+    // }
     metadata.put("identifiers", codes);
     metadata.put("types", types);
     logger.info("Ingesting metadata");
@@ -1279,11 +1256,13 @@ public class MetadataUploadView extends VerticalLayout {
     }
     if (type.equals(life.qbic.xml.properties.PropertyType.Property)) {
       Map<String, List<Property>> properties = studyXMLParser.getPropertiesForSampleCode(expDesign);
-      for (Property p : properties.get(code)) {
-        if (p.getLabel().equals(label)) {
-          res = p.getValue();
-          if (p.hasUnit())
-            res += " " + p.getUnit();
+      if (properties.containsKey(code)) {
+        for (Property p : properties.get(code)) {
+          if (p.getLabel().equals(label)) {
+            res = p.getValue();
+            if (p.hasUnit())
+              res += " " + p.getUnit();
+          }
         }
       }
     }
