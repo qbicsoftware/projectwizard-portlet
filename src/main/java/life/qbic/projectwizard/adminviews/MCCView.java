@@ -66,7 +66,7 @@ import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.components.StandardTextField;
 import life.qbic.xml.manager.StudyXMLParser;
-import life.qbic.xml.manager.XMLParser;
+// import life.qbic.xml.manager.XMLParser;
 import life.qbic.xml.properties.Property;
 import life.qbic.xml.study.Qexperiment;
 import life.qbic.xml.study.Qproperty;
@@ -82,7 +82,10 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
 
   private IOpenBisClient openbis;
   private OpenbisCreationController creator;
-  private XMLParser p = new XMLParser();
+  // private XMLParser p = new XMLParser();
+  final private StudyXMLParser xmlParser = new StudyXMLParser();
+  private Experiment designExperiment;
+  private JAXBElement<Qexperiment> expDesign;
   private String user;
   // view
   private final String mccSpace = "MULTISCALEHCC";
@@ -208,16 +211,22 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
     return this;
   }
 
-  private List<Property> parseXMLFactors(Sample s) {
-    try {
-      return p.getExpFactorsFromXML(s.getProperties().get("Q_PROPERTIES"));
-    } catch (IllegalArgumentException e) {
-      e.printStackTrace();
-    } catch (JAXBException e) {
-      e.printStackTrace();
+  private void findAndSetDesignExperiment(String space, String project) throws JAXBException {
+    designExperiment = null;
+    String id = ExperimentCodeFunctions.getInfoExperimentID(space, project);
+    List<Experiment> exps = openbis.getExperimentById2(id);
+    if (exps.isEmpty()) {
+      designExperiment = null;
+      logger.error("could not find info experiment for project" + project);
+    } else {
+      Experiment e = exps.get(0);
+      if (e.getExperimentTypeCode().equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
+        designExperiment = e;
+        expDesign =
+            xmlParser.parseXMLString(designExperiment.getProperties().get("Q_EXPERIMENTAL_SETUP"));
+        logger.debug("setting exp design: " + expDesign);
+      }
     }
-    logger.error("Error while parsing Q_PROPERTIES XML");
-    return null;
   }
 
   private void initMCCListeners() {
@@ -287,21 +296,32 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
         Map<String, Map<String, Object>> entitiesToUpdate =
             new HashMap<String, Map<String, Object>>();
 
-        String expID = ExperimentCodeFunctions.getInfoExperimentID(mccSpace, project);
-
-        List<Experiment> exps = openbis.getExperimentById2(expID);
         List<OpenbisExperiment> infoExperiments = new ArrayList<>();
-        if (!exps.isEmpty()) {
-          entitiesToUpdate.put(exps.get(0).getCode(), ParserHelpers
-              .getExperimentalDesignMap(exps.get(0).getProperties(), design, techTypes));
+        if (designExperiment != null) {
+          entitiesToUpdate.put(designExperiment.getCode(), ParserHelpers
+              .getExperimentalDesignMap(designExperiment.getProperties(), design, techTypes));
         } else {
           Map<String, Object> props = new HashMap<>();
-//          props.put(key, value);
-          //TODO create new xml from samples
-          infoExperiments.add(
-              new OpenbisExperiment(project + "_INFO", ExperimentType.Q_PROJECT_DETAILS, props));
+          String newDesignXML = "";
+          try {
+            JAXBElement<Qexperiment> newDesign = xmlParser.createNewDesign(techTypes,
+                design.getExperimentalDesign(), design.getProperties());
+            newDesignXML = xmlParser.toString(newDesign);
+          } catch (JAXBException e) {
+            logger.error("could not create new design xml");
+            e.printStackTrace();
+          }
+          String exp = project + "_INFO";
+          props.put("Q_EXPERIMENTAL_SETUP", newDesignXML);
+          infoExperiments.add(new OpenbisExperiment(exp, ExperimentType.Q_PROJECT_DETAILS, props));
+          String code = project + "000";
+          String sampleType = "Q_ATTACHMENT_SAMPLE";
+          ISampleBean infoSample = new TSVSampleBean(code, exp, project, mccSpace, sampleType, "",
+              new ArrayList<String>(), new HashMap<String, Object>());
+          samps.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
         }
-        // TODO test for new projects
+        logger.debug("exps " + infoExperiments);
+        logger.debug("update " + entitiesToUpdate);
         creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
             registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
             entitiesToUpdate, false);
@@ -311,12 +331,20 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
 
   protected void projectBoxChanged() {
     addSamples.setEnabled(true);
+    expDesign = null;
+    designExperiment = null;
     if (mccProjects.getValue() == null) {
       newProject.setEnabled(true);
       treatment.setEnabled(true);
       addSamples.setEnabled(false);
     } else {
       newProject.setEnabled(false);
+      try {
+        findAndSetDesignExperiment(mccSpace, mccProjects.getValue().toString());
+      } catch (JAXBException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
     entities = new ArrayList<Sample>();
     cases = new HashSet<String>();
@@ -335,7 +363,9 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
         patients.add(id);
       } else {
         if (treatment.isEmpty()) {
-          for (Property f : parseXMLFactors(s)) {
+          List<Property> properties =
+              xmlParser.getFactorsAndPropertiesForSampleCode(expDesign, s.getCode());
+          for (Property f : properties) {
             if (f.getLabel().equals("treatment")) {
               treatment = f.getValue();
               getView().treatment.setValue(treatment);
