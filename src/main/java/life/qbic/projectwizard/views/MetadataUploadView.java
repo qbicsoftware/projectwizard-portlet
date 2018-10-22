@@ -109,6 +109,9 @@ public class MetadataUploadView extends VerticalLayout {
 
   // private XMLParser xmlParser = new XMLParser();
   private StudyXMLParser studyXMLParser = new StudyXMLParser();
+  private Experiment designExperiment;
+  private JAXBElement<Qexperiment> expDesign;
+  
   private IOpenBisClient openbis;
   private Map<String, Object> metadata;
   private List<String> customProperties = new ArrayList<String>(
@@ -130,10 +133,6 @@ public class MetadataUploadView extends VerticalLayout {
 
   private boolean overWriteAllowed = false;
   private final int BATCH_SIZE = 50;
-
-  private Experiment designExperiment;
-
-  private JAXBElement<Qexperiment> expDesign;
 
   public MetadataUploadView(IOpenBisClient openbis, DBVocabularies vocabularies,
       boolean overWriteAllowed) {
