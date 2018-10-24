@@ -22,6 +22,7 @@ package life.qbic.projectwizard.model;
  * @author Andreas Friedrich
  *
  */
+@Deprecated //try to replace this
 public class NewSampleModelBean {
 
   private String Code;
