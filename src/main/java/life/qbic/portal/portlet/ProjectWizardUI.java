@@ -45,7 +45,7 @@ import life.qbic.projectwizard.io.ConfigurationManager;
 import life.qbic.projectwizard.io.ConfigurationManagerFactory;
 import life.qbic.projectwizard.io.DBConfig;
 import life.qbic.projectwizard.io.DBManager;
-import life.qbic.projectwizard.io.DBVocabularies;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
@@ -152,7 +152,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
           config.getMysqlDB(), config.getMysqlUser(), config.getMysqlPass());
       DBManager dbm = new DBManager(mysqlConfig);
       Map<String, Integer> peopleMap = dbm.fetchPeople();
-      DBVocabularies vocabs = new DBVocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes,
+      Vocabularies vocabs = new Vocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes,
           spaces, peopleMap, expTypes, enzymeMap, antibodiesWithLabels, deviceMap, msProtocols,
           lcmsMethods, chromTypes, fractionationTypes, enrichmentTypes, purificationMethods);
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
@@ -208,7 +208,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     return layout;
   }
 
-  private void initView(final DBManager dbm, final DBVocabularies vocabularies, final String user) {
+  private void initView(final DBManager dbm, final Vocabularies vocabularies, final String user) {
     tabs.removeAllComponents();
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),

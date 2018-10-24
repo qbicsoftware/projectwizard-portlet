@@ -79,8 +79,8 @@ import life.qbic.isatab.ISAReader;
 import life.qbic.isatab.ISAToQBIC;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBManager;
-import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.model.MHCTyping;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.ISAParseReady;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
@@ -116,7 +116,7 @@ public class ExperimentImportController implements IRegistrationController {
   private MissingInfoComponent questionaire;
   private IOpenBisClient openbis;
   private DBManager dbm;
-  private DBVocabularies vocabs;
+  private Vocabularies vocabs;
   private Experiment currentDesignExperiment;
   private int firstFreeExperimentID;
   private int firstFreeEntityID;
@@ -129,7 +129,7 @@ public class ExperimentImportController implements IRegistrationController {
   private Map<String, Map<String, Object>> entitiesToUpdate;
   private ArrayList<Sample> currentProjectSamples;
 
-  public ExperimentImportController(OpenbisCreationController creator, DBVocabularies vocabularies,
+  public ExperimentImportController(OpenbisCreationController creator, Vocabularies vocabularies,
       IOpenBisClient openbis, DBManager dbm) {
     view = new ExperimentImportView();
     this.dbm = dbm;
