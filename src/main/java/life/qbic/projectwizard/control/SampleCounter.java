@@ -35,7 +35,7 @@ public class SampleCounter {
   private String barcode;
   private String project;
   Logger logger = LogManager.getLogger(SampleCounter.class);
-  private Set<String> knownAtypical = new HashSet<String>();
+  private Set<String> knownAtypical = new HashSet<>();
 
   public SampleCounter(List<Sample> samples) {
     this(samples.get(0).getCode().substring(0, 5));
@@ -49,6 +49,7 @@ public class SampleCounter {
     barcode = "";
     // barcodeID = 1;
     this.project = project;
+    knownAtypical.add(project+"_INFO");
   }
 
   // TODO later updates (after initialization)
