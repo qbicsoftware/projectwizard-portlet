@@ -40,7 +40,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.VerticalLayout;
 
 import life.qbic.portal.portlet.ProjectWizardUI;
-import life.qbic.projectwizard.model.AttachmentInformation;
+import life.qbic.projectwizard.io.AttachmentInformation;
 import life.qbic.portal.Styles;
 import life.qbic.portal.components.StandardTextField;
 public class WizardUploadsPanel extends VerticalLayout {
