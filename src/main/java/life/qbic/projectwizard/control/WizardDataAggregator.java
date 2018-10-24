@@ -65,7 +65,7 @@ import life.qbic.projectwizard.steps.ConditionInstanceStep;
 import life.qbic.projectwizard.steps.EntityStep;
 import life.qbic.projectwizard.steps.ExtractionStep;
 import life.qbic.projectwizard.steps.ProjectContextStep;
-import life.qbic.projectwizard.steps.TestStep;
+import life.qbic.projectwizard.steps.AnalyteStep;
 import life.qbic.xml.manager.StudyXMLParser;
 import life.qbic.xml.properties.Property;
 import life.qbic.xml.study.Qexperiment;
@@ -84,7 +84,7 @@ public class WizardDataAggregator {
   private ConditionInstanceStep s3;
   private ExtractionStep s5;
   private ConditionInstanceStep s6;
-  private TestStep s8;
+  private AnalyteStep s8;
 
   private String tsvContent;
 
@@ -159,7 +159,7 @@ public class WizardDataAggregator {
     s3 = (ConditionInstanceStep) steps.get(Steps.Entity_Conditions);
     s5 = (ExtractionStep) steps.get(Steps.Extraction);
     s6 = (ConditionInstanceStep) steps.get(Steps.Extract_Conditions);
-    s8 = (TestStep) steps.get(Steps.Test_Samples);
+    s8 = (AnalyteStep) steps.get(Steps.Test_Samples);
 
     this.openbis = openbis;
     this.taxMap = taxMap;

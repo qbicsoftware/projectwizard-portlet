@@ -77,10 +77,10 @@ import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
 import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBManager;
-import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.model.MSExperimentModel;
 import life.qbic.projectwizard.model.NewSampleModelBean;
 import life.qbic.projectwizard.model.TestSampleInformation;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
 import life.qbic.projectwizard.processes.RegistrationMode;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
@@ -110,7 +110,7 @@ public class WizardController implements IRegistrationController {
   private boolean extractPoolsSet = false;
   private boolean testPoolsSet = false;
   private boolean copyMode = false;
-  private DBVocabularies vocabularies;
+  private Vocabularies vocabularies;
   private DBManager dbm;
   private FileDownloader tsvDL;
   private List<Note> notes;
@@ -134,7 +134,7 @@ public class WizardController implements IRegistrationController {
    * @param dataMoverFolder for attachment upload
    * @param uploadSize
    */
-  public WizardController(IOpenBisClient openbis, DBManager dbm, DBVocabularies vocabularies,
+  public WizardController(IOpenBisClient openbis, DBManager dbm, Vocabularies vocabularies,
       AttachmentConfig attachmentConfig) {
     this.openbis = openbis;
     this.dbm = dbm;
@@ -300,7 +300,7 @@ public class WizardController implements IRegistrationController {
     final ConditionInstanceStep extrCondInstStep = new ConditionInstanceStep(
         vocabularies.getTissueMap().keySet(), "Tissues", "Extr. Variables");
     final TailoringStep tailoringStep2 = new TailoringStep("Sample Extracts", true);
-    final TestStep techStep = new TestStep(w, vocabularies);
+    final AnalyteStep techStep = new AnalyteStep(w, vocabularies);
     final SummaryRegisterStep regStep = new SummaryRegisterStep();
     final PoolingStep poolStep1 = new PoolingStep(Steps.Extract_Pooling);
     final PoolingStep poolStep2 = new PoolingStep(Steps.Test_Sample_Pooling);

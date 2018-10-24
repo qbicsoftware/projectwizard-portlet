@@ -13,14 +13,14 @@
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package life.qbic.projectwizard.io;
+package life.qbic.projectwizard.model;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 
-public class DBVocabularies {
+public class Vocabularies {
 
   private Map<String, String> taxMap;
   private Map<String, String> tissueMap;
@@ -39,7 +39,7 @@ public class DBVocabularies {
   private List<String> fractionationTypes;
   private List<String> enrichmentTypes;
 
-  public DBVocabularies(Map<String, String> taxMap, Map<String, String> tissueMap,
+  public Vocabularies(Map<String, String> taxMap, Map<String, String> tissueMap,
       Map<String, String> cellLinesMap, List<String> measureTypes, List<String> spaces,
       Map<String, Integer> piMap, List<String> experimentTypes, Map<String, String> enzymeMap,
       Map<String, String> antibodiesWithDescriptions, Map<String, String> deviceMap,
