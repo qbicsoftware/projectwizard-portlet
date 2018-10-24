@@ -46,7 +46,7 @@ import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
-import life.qbic.projectwizard.io.DBVocabularies;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.MetadataUpdateReadyRunnable;
 import life.qbic.projectwizard.registration.UpdateProgressBar;
 import life.qbic.projectwizard.uicomponents.UploadComponent;
@@ -134,7 +134,7 @@ public class MetadataUploadView extends VerticalLayout {
   private boolean overWriteAllowed = false;
   private final int BATCH_SIZE = 50;
 
-  public MetadataUploadView(IOpenBisClient openbis, DBVocabularies vocabularies,
+  public MetadataUploadView(IOpenBisClient openbis, Vocabularies vocabularies,
       boolean overWriteAllowed) {
     allowedSpaces = new HashSet<String>(vocabularies.getSpaces());
     this.overWriteAllowed = overWriteAllowed;
@@ -143,10 +143,16 @@ public class MetadataUploadView extends VerticalLayout {
 
     Map<String, String> taxMap = vocabularies.getTaxMap();
     Map<String, String> tissueMap = vocabularies.getTissueMap();
-
+    Map<String, String> analytesMap = new HashMap<>();
+    //TODO fix this by getting the real map
+    for(String e : vocabularies.getAnalyteTypes()) {
+      analytesMap.put(e, e);
+    }
+    
     propToVocabulary = new HashMap<String, Map<String, String>>();
     propToVocabulary.put("Q_NCBI_ORGANISM", taxMap);
     propToVocabulary.put("Q_PRIMARY_TISSUE", tissueMap);
+    propToVocabulary.put("Q_SAMPLE_TYPE", analytesMap);
 
     Map<String, String> reverseTaxMap = new HashMap<String, String>();
     for (Map.Entry<String, String> entry : taxMap.entrySet()) {
@@ -159,6 +165,7 @@ public class MetadataUploadView extends VerticalLayout {
     propToReverseVocabulary = new HashMap<String, Map<String, String>>();
     propToReverseVocabulary.put("Q_NCBI_ORGANISM", reverseTaxMap);
     propToReverseVocabulary.put("Q_PRIMARY_TISSUE", reverseTissueMap);
+    propToReverseVocabulary.put("Q_SAMPLE_TYPE", analytesMap);
 
     this.openbis = openbis;
     setSpacing(true);
@@ -498,13 +505,13 @@ public class MetadataUploadView extends VerticalLayout {
     openbis.ingest("DSS1", "update-sample-metadata", metadata);
   }
 
-  private Property parseProperty(Property propWithOutVal, String value) {
-    if (propWithOutVal.hasUnit())
-      return new Property(propWithOutVal.getLabel(), value, propWithOutVal.getUnit(),
-          propWithOutVal.getType());
-    else
-      return new Property(propWithOutVal.getLabel(), value, propWithOutVal.getType());
-  }
+//  private Property parseProperty(Property propWithOutVal, String value) {
+//    if (propWithOutVal.hasUnit())
+//      return new Property(propWithOutVal.getLabel(), value, propWithOutVal.getUnit(),
+//          propWithOutVal.getType());
+//    else
+//      return new Property(propWithOutVal.getLabel(), value, propWithOutVal.getType());
+//  }
 
   protected boolean parseTSV(File file) throws IOException, JAXBException {
     for (Table t : sampleTables) {
