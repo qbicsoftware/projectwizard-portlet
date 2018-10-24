@@ -1,4 +1,4 @@
-package life.qbic.projectwizard.processes;
+package life.qbic.projectwizard.io;
 
 
 import java.io.File;
@@ -16,7 +16,7 @@ import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 
 import life.qbic.datamodel.attachments.AttachmentConfig;
-import life.qbic.projectwizard.model.AttachmentInformation;
+import life.qbic.projectwizard.processes.MoveUploadsReadyRunnable;
 import life.qbic.projectwizard.registration.UpdateProgressBar;
 
 /**

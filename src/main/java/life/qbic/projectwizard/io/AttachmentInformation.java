@@ -1,4 +1,4 @@
-package life.qbic.projectwizard.model;
+package life.qbic.projectwizard.io;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
