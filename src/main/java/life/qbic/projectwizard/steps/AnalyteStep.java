@@ -32,10 +32,10 @@ import com.vaadin.ui.Button.ClickListener;
 import life.qbic.datamodel.samples.AOpenbisSample;
 import life.qbic.portal.Styles;
 import life.qbic.projectwizard.control.WizardController.Steps;
-import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.model.MHCLigandExtractionProtocol;
 import life.qbic.projectwizard.model.RegisteredAnalyteInformation;
 import life.qbic.projectwizard.model.TestSampleInformation;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.uicomponents.LigandExtractPanel;
 import life.qbic.projectwizard.uicomponents.MSOptionComponent;
 import life.qbic.projectwizard.uicomponents.TechnologiesPanel;
@@ -54,14 +54,14 @@ import com.vaadin.ui.VerticalLayout;
  * @author Andreas Friedrich
  * 
  */
-public class TestStep implements WizardStep {
+public class AnalyteStep implements WizardStep {
 
   private VerticalLayout main;
   private TechnologiesPanel techPanel;
   private MSOptionComponent msPanel;
   private LigandExtractPanel mhcLigandPanel;
   private CheckBox noMeasure;
-  private DBVocabularies vocabs;
+  private Vocabularies vocabs;
   private boolean containsProteins = false;
   private boolean containsMHCLigands = false;
 
@@ -72,7 +72,7 @@ public class TestStep implements WizardStep {
    * 
    * @param sampleTypes Available list of sample types, e.g. Proteins, RNA etc.
    */
-  public TestStep(Wizard wizard, DBVocabularies vocabs) {
+  public AnalyteStep(Wizard wizard, Vocabularies vocabs) {
     this.wizard = wizard;
     this.vocabs = vocabs;
     main = new VerticalLayout();
