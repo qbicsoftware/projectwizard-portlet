@@ -19,8 +19,8 @@ import life.qbic.datamodel.experiments.ExperimentModel;
 import life.qbic.datamodel.samples.AOpenbisSample;
 import life.qbic.datamodel.samples.OpenbisMSSample;
 import life.qbic.datamodel.samples.OpenbisTestSample;
-import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.model.MSExperimentModel;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.steps.MSAnalyteStep.AnalyteMultiplicationType;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
@@ -80,7 +80,7 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
   private GeneralMSInfoPanel generalFractionMSInfo;
 
 
-  public MSSampleMultiplicationTable(AnalyteMultiplicationType type, DBVocabularies vocabs,
+  public MSSampleMultiplicationTable(AnalyteMultiplicationType type, Vocabularies vocabs,
       boolean peptides) {
     setSpacing(true);
 
