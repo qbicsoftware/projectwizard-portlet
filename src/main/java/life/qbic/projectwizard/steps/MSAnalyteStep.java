@@ -46,8 +46,8 @@ import life.qbic.datamodel.samples.AOpenbisSample;
 import life.qbic.datamodel.samples.OpenbisMSSample;
 import life.qbic.datamodel.samples.OpenbisTestSample;
 import life.qbic.portal.portlet.ProjectWizardUI;
-import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.model.MSExperimentModel;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.uicomponents.EnzymePanel;
 import life.qbic.projectwizard.uicomponents.MSSampleMultiplicationTable;
 import life.qbic.projectwizard.uicomponents.SampleSelectComponent;
@@ -76,7 +76,7 @@ public class MSAnalyteStep implements WizardStep {
 
   private MSExperimentModel msExperimentModel;
   private String analyte;
-  private DBVocabularies vocabs;
+  private Vocabularies vocabs;
   private ComboBox fractionationSelection;
   private ComboBox enrichmentSelection;
   private boolean needsDigestion = false;
@@ -89,7 +89,7 @@ public class MSAnalyteStep implements WizardStep {
     Fraction, Cycle;
   }
 
-  public MSAnalyteStep(DBVocabularies vocabs, String analyte) {
+  public MSAnalyteStep(Vocabularies vocabs, String analyte) {
     this.analyte = analyte;
     main = new VerticalLayout();
     main.setSpacing(true);
