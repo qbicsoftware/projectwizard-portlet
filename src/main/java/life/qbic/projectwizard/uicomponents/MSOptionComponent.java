@@ -31,7 +31,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.VerticalLayout;
 
 import life.qbic.projectwizard.control.WizardController.Steps;
-import life.qbic.projectwizard.io.DBVocabularies;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.steps.MSAnalyteStep;
 import life.qbic.portal.Styles;
 
@@ -50,7 +50,7 @@ public class MSOptionComponent extends VerticalLayout {
 
   private static final Logger logger = LogManager.getLogger(MSOptionComponent.class);
 
-  public MSOptionComponent(DBVocabularies vocabs) {
+  public MSOptionComponent(Vocabularies vocabs) {
     this.setCaption("MS Experiment Options");
     setSpacing(true);
     proteinPooling = new CheckBox("Pool Before Protein Fractionation/Enrichment");

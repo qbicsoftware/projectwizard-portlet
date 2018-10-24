@@ -23,8 +23,6 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import life.qbic.projectwizard.uicomponents.LigandExtractPanel;
-
 public class MHCLigandExtractionProtocol {
 
   private Map<String, String[]> antibodyToMHCClass = new HashMap<String, String[]>() {

@@ -37,8 +37,8 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
 import life.qbic.datamodel.samples.AOpenbisSample;
-import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.projectwizard.model.MHCLigandExtractionProtocol;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.portal.Styles;
 import life.qbic.portal.components.StandardTextField;
 
@@ -57,7 +57,7 @@ public class LigandExtractPanel extends VerticalLayout {
 
   private static final Logger logger = LogManager.getLogger(LigandExtractPanel.class);
 
-  public LigandExtractPanel(DBVocabularies vocabs) {
+  public LigandExtractPanel(Vocabularies vocabs) {
     this.setCaption("MHC Ligand Extraction");
     this.antiBodies = vocabs.getAntibodiesMap();
     setSpacing(true);

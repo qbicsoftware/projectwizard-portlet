@@ -30,8 +30,8 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 
-import life.qbic.projectwizard.io.DBVocabularies;
 import life.qbic.portal.Styles;
+import life.qbic.projectwizard.model.Vocabularies;
 
 public class GeneralMSInfoPanel extends VerticalLayout {
 
@@ -44,11 +44,11 @@ public class GeneralMSInfoPanel extends VerticalLayout {
   private TextArea lcmsSpecial;
   private ComboBox chromType;
   private ComboBox deviceBox;
-  private DBVocabularies vocabs;
+  private Vocabularies vocabs;
 
   OptionGroup conditionsSet;
 
-  public GeneralMSInfoPanel(DBVocabularies vocabs, String name) {
+  public GeneralMSInfoPanel(Vocabularies vocabs, String name) {
     this.setCaption(name);
     this.vocabs = vocabs;
 
