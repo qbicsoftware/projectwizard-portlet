@@ -37,7 +37,7 @@ import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
 import life.qbic.expdesign.ParserHelpers;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.adminviews.MCCView;
-import life.qbic.projectwizard.io.DBVocabularies;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.xml.manager.StudyXMLParser;
 import life.qbic.xml.manager.XMLParser;
@@ -89,7 +89,7 @@ public class AdminView extends VerticalLayout {
   // logger
   private Logger logger = LogManager.getLogger(AdminView.class);
   
-  public AdminView(IOpenBisClient openbis, DBVocabularies vocabularies,
+  public AdminView(IOpenBisClient openbis, Vocabularies vocabularies,
       OpenbisCreationController creationController, String user) {
     this.user = user;
     this.registrator = creationController;
