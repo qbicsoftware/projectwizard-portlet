@@ -33,15 +33,6 @@ public class MissingInfoComponent extends HorizontalLayout {
     return null;
   }
 
-//  public Map<String, String> getFilledTypeMap() {
-//    Map<String, String> res = new HashMap<String, String>();
-//    for (String cat : catToBoxes.keySet()) {
-//      for (ComboBox b : catToBoxes.get(cat))
-//        res.put(b.getCaption(), b.getValue().toString());
-//    }
-//    return res;
-//  }
-
   public ComboBox getSpaceBox() {
     return projectInfoComponent.getSpaceBox();
   }

@@ -55,7 +55,6 @@ import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.xml.manager.StudyXMLParser;
 import life.qbic.xml.properties.Property;
-import life.qbic.xml.properties.Unit;
 import life.qbic.xml.study.Qexperiment;
 import life.qbic.xml.study.Qproperty;
 
@@ -317,6 +316,13 @@ public class MetadataUploadView extends VerticalLayout {
   public Table getActiveTable() {
     return (Table) sheet.getSelectedTab();
   }
+  
+  public static void main(String[] args) {
+    life.qbic.xml.properties.Unit x = life.qbic.xml.properties.Unit.fromString("h");
+    life.qbic.xml.properties.Unit y = life.qbic.xml.properties.Unit.valueOf("Hour");
+    System.out.println(x);
+    System.out.println(y);
+  }
 
   protected String collectPropsForExperimentXML(List<Integer> rows) throws JAXBException {
     Table sampleTable = getActiveTable();
@@ -469,49 +475,11 @@ public class MetadataUploadView extends VerticalLayout {
         }
       }
     }
-    // Map<String, String> xmlPropertyMap = new HashMap<String, String>();
-    // for (String code : codes) {
-    // List<Property> newFactors = new ArrayList<Property>();
-    // String existingXML = codesToSamples.get(code).getProperties().get("Q_PROPERTIES");
-    // List<Property> oldFactors = xmlParser.getExpFactorsFromXML(existingXML);
-    // for (Property condition : conditions) {
-    // for (Property f : oldFactors) {
-    // Property test = null;
-    // if (f.hasUnit())
-    // test = new Property(f.getLabel(), "", f.getUnit(), f.getType());
-    // else
-    // test = new Property(f.getLabel(), "", f.getType());
-    // if (!conditions.contains(test)) {
-    // newFactors.add(f);
-    // }
-    // }
-    // Map<String, String> condMap = (HashMap<String, String>) metadata.get(condition.toString());
-    // Property prop = parseProperty(condition, condMap.get(code));
-    // newFactors.add(prop);
-    // }
-    // if (!newFactors.isEmpty())
-    // xmlPropertyMap.put(code, xmlParser.toString(xmlParser.createXMLFromProperties(newFactors)));
-    // }
-    // for (Property condition : conditions) {
-    // metadata.remove(condition.getLabel());
-    // }
-    // if (!xmlPropertyMap.isEmpty()) {
-    // types.add("Q_PROPERTIES");
-    // metadata.put("Q_PROPERTIES", xmlPropertyMap);
-    // }
     metadata.put("identifiers", codes);
     metadata.put("types", types);
     logger.info("Ingesting metadata");
     openbis.ingest("DSS1", "update-sample-metadata", metadata);
   }
-
-//  private Property parseProperty(Property propWithOutVal, String value) {
-//    if (propWithOutVal.hasUnit())
-//      return new Property(propWithOutVal.getLabel(), value, propWithOutVal.getUnit(),
-//          propWithOutVal.getType());
-//    else
-//      return new Property(propWithOutVal.getLabel(), value, propWithOutVal.getType());
-//  }
 
   protected boolean parseTSV(File file) throws IOException, JAXBException {
     for (Table t : sampleTables) {
