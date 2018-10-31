@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.isatools.isacreator.model.Study;
@@ -87,7 +86,6 @@ import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.projectwizard.views.ExperimentImportView;
-import life.qbic.xml.study.Qproperty;
 import life.qbic.xml.study.TechnologyType;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
@@ -713,7 +711,7 @@ public class ExperimentImportController implements IRegistrationController {
                     exp = specialExpToExpCode.get(t.getExperiment());
                     // get parent sample for code
                     String parentExtID = t.getParentIDs().get(0);
-                    String parentCode = extCodeToBarcode.get(parentExtID);// .getCode();
+                    String parentCode = extCodeToBarcode.get(parentExtID);
                     int msRun = 1;
                     code = "";
                     while (code.isEmpty() || msCodes.contains(code)) {
@@ -725,7 +723,7 @@ public class ExperimentImportController implements IRegistrationController {
                 }
                 t.setExperiment(exp);
                 t.setCode(code);
-                extCodeToBarcode.put((String) props.get("Q_EXTERNALDB_ID"), code);// t);
+                extCodeToBarcode.put((String) props.get("Q_EXTERNALDB_ID"), code);
                 List<String> parents = t.getParentIDs();
                 t.setParents(new ArrayList<ISampleBean>());
                 List<String> newParents = new ArrayList<String>();
@@ -737,8 +735,9 @@ public class ExperimentImportController implements IRegistrationController {
                         "Parent could not be translated, because no ext id to code mapping was found for ext id "
                             + parentExtID);
                 }
-                for (String p : newParents)
+                for (String p : newParents) {
                   t.addParentID(p);
+                }
               }
             }
             // techTypes.addAll(techTypes);
@@ -897,24 +896,17 @@ public class ExperimentImportController implements IRegistrationController {
           .getSamplesWithParentsAndChildrenOfProjectBySearchService("/" + space + "/" + project));
     }
     List<Experiment> experiments = openbis.getExperimentsOfProjectByCode(project);
-    // find first experiment of type "Q_EXPERIMENTAL_DESIGN" - it will have all the experimental
-    // information
-    int firstDesignExperiment = Integer.MAX_VALUE;
     for (Experiment e : experiments) {
-      String expType = e.getExperimentTypeCode();
       String code = e.getCode();
+      if (code.equals(project + "_INFO")) {
+        currentDesignExperiment = e;
+      }
       String[] split = code.split(project + "E");
       if (code.startsWith(project + "E") && split.length > 1) {
         int num = Integer.MAX_VALUE;
         try {
           num = Integer.parseInt(split[1]);
         } catch (Exception e2) {
-        }
-        if (expType.equals("Q_EXPERIMENTAL_DESIGN")) {
-          if (num < firstDesignExperiment) {
-            firstDesignExperiment = num;
-            currentDesignExperiment = e;
-          }
         }
         if (firstFreeExperimentID <= num) {
           firstFreeExperimentID = num + 1;
