@@ -1324,7 +1324,17 @@ public class WizardController implements IRegistrationController {
     ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
     String space = context.getSpaceCode();
     String code = context.getProjectCode();
-    boolean success = openbisCreator.registerProject(space, code, desc, user);
+    boolean success = false;
+    try {
+      success = openbisCreator.setupEmptyProject(space, code, desc, user);
+    } catch (JAXBException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+    if(!success) {
+      Styles.notification("An error occured when trying to register the new project.", openbisCreator.getErrors(), NotificationType.ERROR);
+      return;
+    }
     // will register people to the db and send a success message
     boolean sqlDown = false;
     try {

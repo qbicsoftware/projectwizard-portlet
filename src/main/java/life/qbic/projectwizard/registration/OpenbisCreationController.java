@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,11 +16,18 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 
+import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
 import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
+import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
+import life.qbic.portal.Styles;
+import life.qbic.portal.Styles.NotificationType;
+import life.qbic.xml.manager.StudyXMLParser;
+import life.qbic.xml.study.Qexperiment;
 
 
 /**
@@ -104,12 +114,12 @@ public class OpenbisCreationController {
    * 
    * @param space Existing space in openBis
    * @param project Existing project in the space that this experiment will belong to
-   * @param experimentType openBIS experiment type
+   * @param expType openBIS experiment type
    * @param name Experiment name
    * @param map Additional properties of the experiment
    * @return false, if the specified project doesn't exist, resulting in failure, true otherwise
    */
-  public boolean registerExperiment(String space, String project, String experimentType,
+  public boolean registerExperiment(String space, String project, ExperimentType expType,
       String name, Map<String, Object> map, String user) {
     logger.info("Creating experiment " + name);
     errors = "";
@@ -120,7 +130,7 @@ public class OpenbisCreationController {
     }
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("code", name);
-    params.put("type", experimentType);
+    params.put("type", expType.toString());
     params.put("project", project);
     params.put("space", space);
     params.put("properties", map);
@@ -479,6 +489,41 @@ public class OpenbisCreationController {
 
   public String getErrors() {
     return errors;
+  }
+
+  public boolean setupEmptyProject(String space, String project, String description, String user)
+      throws JAXBException {
+    registerProject(space, project, description, user);
+    StudyXMLParser p = new StudyXMLParser();
+    JAXBElement<Qexperiment> res =
+        p.createNewDesign(new ArrayList<>(), new HashMap<>(), new HashMap<>());
+    String emptyStudy = p.toString(res);
+
+    String exp = project + "_INFO";
+    String code = project + "000";
+
+    Map<String, Object> props = new HashMap<>();
+    props.put("Q_EXPERIMENTAL_SETUP", emptyStudy);
+
+    boolean success =
+        registerExperiment(space, project, ExperimentType.Q_PROJECT_DETAILS, exp, props, user);
+    if (!success) {
+      // experiments were not registered, break registration
+      errors = "Info experiment could not be registered.";
+      logger.error(errors);
+      return false;
+    }
+    ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, "Q_ATTACHMENT_SAMPLE", "",
+        new ArrayList<String>(), new HashMap<String, Object>());
+    success = registerSampleBatchInETL(new ArrayList<ISampleBean>(Arrays.asList(infoSample)), user);
+    if (!success) {
+      // experiments were not registered, break registration
+      errors = "Info sample could not be registered.";
+      logger.error(errors);
+      return false;
+    } else {
+      return true;
+    }
   }
 
 }
