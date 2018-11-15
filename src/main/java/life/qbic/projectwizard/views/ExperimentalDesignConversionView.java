@@ -73,7 +73,19 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     projectTable.setColumnWidth("Converted projects", 140);
     projectTable.setSelectable(true);
     projectTable.setMultiSelect(true);
+    
+    Button loadProjects = new Button("Load Existing Projects");
+    addComponent(loadProjects);
+    loadProjects.addClickListener(new ClickListener() {
+      
+      @Override
+      public void buttonClick(ClickEvent event) {
+        initTable();
+      }
+    });
+  }
 
+  protected void initTable() {
     List<Experiment> infoExps =
         openbis.getExperimentsOfType(ExperimentType.Q_PROJECT_DETAILS.name());
     List<Project> projects = openbis.listProjects();
@@ -301,7 +313,7 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     props.put("Q_EXPERIMENTAL_SETUP", xml);
     if (!exists) {
       logger.info("creating new experiment");
-      creator.registerExperiment(space, project, ExperimentType.Q_PROJECT_DETAILS.toString(),
+      creator.registerExperiment(space, project, ExperimentType.Q_PROJECT_DETAILS,
           project + "_INFO", props, "iisfr01");
     } else {
       logger.info("updating existing experiment");
