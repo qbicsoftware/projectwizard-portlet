@@ -29,6 +29,7 @@ import com.vaadin.ui.Upload.FinishedListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 import life.qbic.datamodel.attachments.AttachmentConfig;
+import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.openbis.openbisclient.OpenBisClient;
@@ -263,7 +264,7 @@ public class UploadsPanel extends VerticalLayout {
     String experiment = project + "_INFO";
     if (!openbis.sampleExists(sample)) {
       if (!openbis.expExists(space, project, experiment)) {
-        openbisCreator.registerExperiment(space, project, "Q_PROJECT_DETAILS", experiment,
+        openbisCreator.registerExperiment(space, project, ExperimentType.Q_PROJECT_DETAILS, experiment,
             new HashMap<String, Object>(), userID);
         while (!openbis.expExists(space, project, experiment))
           try {
