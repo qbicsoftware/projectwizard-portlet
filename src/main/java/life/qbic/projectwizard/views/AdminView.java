@@ -18,34 +18,14 @@ package life.qbic.projectwizard.views;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import life.qbic.datamodel.experiments.ExperimentType;
-import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
-import life.qbic.expdesign.ParserHelpers;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.adminviews.MCCView;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
-import life.qbic.xml.manager.StudyXMLParser;
-import life.qbic.xml.manager.XMLParser;
-import life.qbic.xml.properties.Property;
-import life.qbic.xml.properties.PropertyType;
-import life.qbic.xml.study.Qexperiment;
-import life.qbic.xml.study.Qproperty;
-import life.qbic.xml.study.TechnologyType;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 
@@ -57,9 +37,6 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
-
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 
 public class AdminView extends VerticalLayout {
 
