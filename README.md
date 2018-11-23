@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/qbicsoftware/projectwizard-portlet.svg?branch=master)](https://travis-ci.org/qbicsoftware/projectwizard-portlet)[![Code Coverage]( https://codecov.io/gh/qbicsoftware/projectwizard-portlet/branch/master/graph/badge.svg)](https://codecov.io/gh/qbicsoftware/projectwizard-portlet)
 
-ProjectWizard Portlet, version 1.3.5 - Create hierarchical experiments using factorial design.
+ProjectWizard Portlet, version 1.5.2 - Create hierarchical experiments using factorial design.
 
 ## Author
 
