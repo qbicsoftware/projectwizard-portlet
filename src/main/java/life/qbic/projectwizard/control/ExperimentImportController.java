@@ -376,7 +376,7 @@ public class ExperimentImportController implements IRegistrationController {
               collectComplexExperiments(mhcProperties, ExperimentType.Q_MHC_LIGAND_EXTRACTION));
 
           if (experimentalDesignXML != null) {
-            logger.debug("set new xml: " + experimentalDesignXML);
+            logger.debug("set new xml: >" + experimentalDesignXML + "<");
 
             Map<String, Object> props = new HashMap<>();
             props.put("Q_EXPERIMENTAL_SETUP", experimentalDesignXML);
@@ -468,7 +468,7 @@ public class ExperimentImportController implements IRegistrationController {
 
   private void prepDesignXML(List<TechnologyType> techTypes) {
     // create Experimental Design XML, first reset both values
-    experimentalDesignXML = "";
+    experimentalDesignXML = null;
     entitiesToUpdate = new HashMap<String, Map<String, Object>>();
 
     ExperimentalDesignPropertyWrapper importedDesignProperties =
@@ -478,11 +478,20 @@ public class ExperimentImportController implements IRegistrationController {
           importedDesignProperties);
     }
     if (currentDesignExperiment != null) {
-      entitiesToUpdate.put(currentDesignExperiment.getCode(),
-          ParserHelpers.getExperimentalDesignMap(currentDesignExperiment.getProperties(),
-              importedDesignProperties, techTypes));
+      Map<String, String> currentProps = currentDesignExperiment.getProperties();
+      Map<String, Object> map =
+          ParserHelpers.getExperimentalDesignMap(currentProps, importedDesignProperties, techTypes);
+      final String SETUP_PROPERTY_CODE = "Q_EXPERIMENTAL_SETUP";
+      String oldXML = currentProps.get(SETUP_PROPERTY_CODE);
+      if (!map.get(SETUP_PROPERTY_CODE).equals(oldXML)) {
+        logger.info("update of experimental design needed");
+        entitiesToUpdate.put(currentDesignExperiment.getCode(), map);
+      } else {
+        logger.info("no update of existing experimental design needed");
+      }
     } else {
       try {
+        logger.info("creating new experimental design");
         experimentalDesignXML = ParserHelpers.createDesignXML(importedDesignProperties, techTypes);
       } catch (JAXBException e) {
         // TODO Auto-generated catch block
