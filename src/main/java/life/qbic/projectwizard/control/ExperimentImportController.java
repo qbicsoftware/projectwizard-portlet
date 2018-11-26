@@ -57,6 +57,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
+import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.datamodel.identifiers.TooManySamplesException;
 import life.qbic.datamodel.persons.PersonType;
@@ -441,7 +442,8 @@ public class ExperimentImportController implements IRegistrationController {
         view.setProcessed(prep.getProcessed());
         view.setRegEnabled(true);
         projectInfo = prep.getProjectInfo();
-        findFirstExistingDesignExperimentCodeOrNull(projectInfo.getProjectCode());
+        findFirstExistingDesignExperimentCodeOrNull(projectInfo.getSpace(),
+            projectInfo.getProjectCode());
         prepDesignXML(prep.getTechnologyTypes());
         break;
       // Standard non-hierarchic design without QBiC specific keywords
@@ -500,16 +502,13 @@ public class ExperimentImportController implements IRegistrationController {
     }
   }
 
-  private void findFirstExistingDesignExperimentCodeOrNull(String project) {
-    List<Experiment> experiments = openbis.getExperimentsOfProjectByCode(project);
+  private void findFirstExistingDesignExperimentCodeOrNull(String space, String project) {
+    String expID = ExperimentCodeFunctions.getInfoExperimentID(space, project);
+    List<Experiment> experiments = openbis.getExperimentById2(expID);
     // reset
     currentDesignExperiment = null;
     for (Experiment e : experiments) {
-      String expType = e.getExperimentTypeCode();
-      if (expType.equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
-        currentDesignExperiment = e;
-        return;
-      }
+      currentDesignExperiment = e;
     }
   }
 
