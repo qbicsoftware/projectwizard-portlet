@@ -1069,7 +1069,7 @@ public class WizardController implements IRegistrationController {
           while (!openbis.projectExists(space, proj) && timeout > 0) {
             logger.error(
                 "Project " + proj + " (" + space + ") " + "could not be found after registration.");
-            logger.debug("timeout in "+timeout);
+            logger.debug("timeout in " + timeout);
             timeout--;
             try {
               Thread.sleep(500);
@@ -1209,11 +1209,11 @@ public class WizardController implements IRegistrationController {
         logger.debug("set design null");
         dataAggregator.setExistingExpDesignExperiment(null);
         for (Experiment e : openbis.getExperimentsOfProjectByCode(existingProject)) {
+          String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, existingProject);
           String type = e.getExperimentTypeCode();
-          System.out.println(type);
-          System.out.println(e.getCode());
-          if (type.equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
-            System.out.println("setting design experiment");
+          String id = e.getIdentifier();
+          if (id.equals(designExpID)) {
+            logger.info("setting design experiment");
             dataAggregator.setExistingExpDesignExperiment(e);
           }
           if (designExperimentTypes.contains(type)) {
@@ -1331,8 +1331,9 @@ public class WizardController implements IRegistrationController {
       // TODO Auto-generated catch block
       e1.printStackTrace();
     }
-    if(!success) {
-      Styles.notification("An error occured when trying to register the new project.", openbisCreator.getErrors(), NotificationType.ERROR);
+    if (!success) {
+      Styles.notification("An error occured when trying to register the new project.",
+          openbisCreator.getErrors(), NotificationType.ERROR);
       return;
     }
     // will register people to the db and send a success message
