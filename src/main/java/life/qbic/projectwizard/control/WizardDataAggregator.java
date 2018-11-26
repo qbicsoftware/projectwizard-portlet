@@ -138,7 +138,7 @@ public class WizardDataAggregator {
   private List<ExperimentType> informativeExpTypes = new ArrayList<ExperimentType>(
       Arrays.asList(ExperimentType.Q_MHC_LIGAND_EXTRACTION, ExperimentType.Q_MS_MEASUREMENT));
   private Experiment expDesignExperiment;
-//  private String designExperimentID;
+  // private String designExperimentID;
   final private StudyXMLParser parser = new StudyXMLParser();
   private JAXBElement<Qexperiment> oldExpDesign;
   private Set<String> oldFactors;
@@ -839,25 +839,25 @@ public class WizardDataAggregator {
       }
       Map<String, String> p = s.getProperties();
       List<Property> factors = new ArrayList<>();
-      
-      for(String label : oldFactors) {
+
+      for (String label : oldFactors) {
         Property f = oldFactorsForSamples.get(new ImmutablePair<>(label, code));
-        if(f!=null) {
+        if (f != null) {
           factors.add(f);
           String name = f.getValue();
-          if(f.hasUnit()) {
-            name+=f.getUnit();
+          if (f.hasUnit()) {
+            name += f.getUnit();
           }
           factorMap.put(name, f);
         }
       }
-      
-//      List<Property> factors =
-//          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
-//      for (Property f : factors) {
-//        String name = f.getValue() + f.getUnit();
-//        factorMap.put(name, f);
-//      }
+
+      // List<Property> factors =
+      // xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
+      // for (Property f : factors) {
+      // String name = f.getValue() + f.getUnit();
+      // factorMap.put(name, f);
+      // }
       res.add(new OpenbisBiologicalEntity(code, spaceCode, exp, p.get("Q_SECONDARY_NAME"),
           p.get("Q_ADDITIONAL_INFO"), factors, p.get("Q_NCBI_ORGANISM"),
           p.get("Q_ORGANISM_DETAILED"), p.get("Q_EXTERNALDB_ID")));
@@ -882,26 +882,26 @@ public class WizardDataAggregator {
     for (Sample s : extracts) {
       String code = s.getCode();
       Map<String, String> p = s.getProperties();
-      
+
       List<Property> factors = new ArrayList<>();
-      
-      for(String label : oldFactors) {
+
+      for (String label : oldFactors) {
         Property f = oldFactorsForSamples.get(new ImmutablePair<>(label, code));
-        if(f!=null) {
+        if (f != null) {
           factors.add(f);
           String name = f.getValue();
-          if(f.hasUnit()) {
-            name+=f.getUnit();
+          if (f.hasUnit()) {
+            name += f.getUnit();
           }
           factorMap.put(name, f);
         }
       }
-//      List<Property> factors =
-//          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
-//      for (Property f : factors) {
-//        String name = f.getValue() + f.getUnit();
-//        factorMap.put(name, f);
-//      }
+      // List<Property> factors =
+      // xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
+      // for (Property f : factors) {
+      // String name = f.getValue() + f.getUnit();
+      // factorMap.put(name, f);
+      // }
       res.add(new OpenbisBiologicalSample(code, spaceCode, exp, p.get("Q_SECONDARY_NAME"),
           p.get("Q_ADDITIONAL_INFO"), factors, p.get("Q_PRIMARY_TISSUE"),
           p.get("Q_TISSUE_DETAILED"), parseParents(s, childParentsMap), p.get("Q_EXTERNALDB_ID")));
@@ -925,24 +925,24 @@ public class WizardDataAggregator {
       String[] eSplit = s.getExperimentIdentifierOrNull().split("/");
       Map<String, String> p = s.getProperties();
       List<Property> factors = new ArrayList<>();
-      
-      for(String label : oldFactors) {
+
+      for (String label : oldFactors) {
         Property f = oldFactorsForSamples.get(new ImmutablePair<>(label, code));
-        if(f!=null) {
+        if (f != null) {
           factors.add(f);
           String name = f.getValue();
-          if(f.hasUnit()) {
-            name+=f.getUnit();
+          if (f.hasUnit()) {
+            name += f.getUnit();
           }
           factorMap.put(name, f);
         }
       }
-//      List<Property> factors =
-//          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
-//      for (Property f : factors) {
-//        String name = f.getValue() + f.getUnit();
-//        factorMap.put(name, f);
-//      }
+      // List<Property> factors =
+      // xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
+      // for (Property f : factors) {
+      // String name = f.getValue() + f.getUnit();
+      // factorMap.put(name, f);
+      // }
       res.add(new OpenbisTestSample(code, spaceCode, eSplit[eSplit.length - 1],
           p.get("Q_SECONDARY_NAME"), p.get("Q_ADDITIONAL_INFO"), factors, p.get("Q_SAMPLE_TYPE"),
           parseParents(s, childToParentsMap), p.get("Q_EXTERNALDB_ID")));
@@ -1433,7 +1433,7 @@ public class WizardDataAggregator {
 
   public void setExistingExpDesignExperiment(Experiment e) {
     expDesignExperiment = e;
-    if(e==null) {
+    if (e == null) {
       oldExpDesign = null;
       oldFactors = null;
       oldFactorsForSamples = null;
@@ -1453,16 +1453,18 @@ public class WizardDataAggregator {
       ExperimentalDesignPropertyWrapper importedDesignProperties, List<TechnologyType> techTypes) {
     Map<String, Map<String, Object>> res = new HashMap<>();
     if (expDesignExperiment != null) {
-      res.put(expDesignExperiment.getCode(), ParserHelpers.getExperimentalDesignMap(
-          expDesignExperiment.getProperties(), importedDesignProperties, techTypes));
+      Map<String, String> currentProps = expDesignExperiment.getProperties();
+      Map<String, Object> map =
+          ParserHelpers.getExperimentalDesignMap(currentProps, importedDesignProperties, techTypes);
+      final String SETUP_PROPERTY_CODE = "Q_EXPERIMENTAL_SETUP";
+      String oldXML = currentProps.get(SETUP_PROPERTY_CODE);
+      if (!map.get(SETUP_PROPERTY_CODE).equals(oldXML)) {
+        logger.info("update of experimental design needed");
+        res.put(expDesignExperiment.getCode(), map);
+      } else {
+        logger.info("no update of existing experimental design needed");
+      }
     }
     return res;
   }
-
-//  /**
-//   * returns the identifier of the experiment containing the design xml.
-//   */
-//  public String getNewDesignExperimentID() {
-//    return designExperimentID;
-//  }
 }
