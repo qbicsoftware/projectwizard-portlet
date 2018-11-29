@@ -57,6 +57,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
+import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.datamodel.identifiers.TooManySamplesException;
 import life.qbic.datamodel.persons.PersonType;
@@ -376,7 +377,7 @@ public class ExperimentImportController implements IRegistrationController {
               collectComplexExperiments(mhcProperties, ExperimentType.Q_MHC_LIGAND_EXTRACTION));
 
           if (experimentalDesignXML != null) {
-            logger.debug("set new xml: " + experimentalDesignXML);
+            logger.debug("set new xml: >" + experimentalDesignXML + "<");
 
             Map<String, Object> props = new HashMap<>();
             props.put("Q_EXPERIMENTAL_SETUP", experimentalDesignXML);
@@ -441,7 +442,8 @@ public class ExperimentImportController implements IRegistrationController {
         view.setProcessed(prep.getProcessed());
         view.setRegEnabled(true);
         projectInfo = prep.getProjectInfo();
-        findFirstExistingDesignExperimentCodeOrNull(projectInfo.getProjectCode());
+        findFirstExistingDesignExperimentCodeOrNull(projectInfo.getSpace(),
+            projectInfo.getProjectCode());
         prepDesignXML(prep.getTechnologyTypes());
         break;
       // Standard non-hierarchic design without QBiC specific keywords
@@ -468,7 +470,7 @@ public class ExperimentImportController implements IRegistrationController {
 
   private void prepDesignXML(List<TechnologyType> techTypes) {
     // create Experimental Design XML, first reset both values
-    experimentalDesignXML = "";
+    experimentalDesignXML = null;
     entitiesToUpdate = new HashMap<String, Map<String, Object>>();
 
     ExperimentalDesignPropertyWrapper importedDesignProperties =
@@ -478,11 +480,20 @@ public class ExperimentImportController implements IRegistrationController {
           importedDesignProperties);
     }
     if (currentDesignExperiment != null) {
-      entitiesToUpdate.put(currentDesignExperiment.getCode(),
-          ParserHelpers.getExperimentalDesignMap(currentDesignExperiment.getProperties(),
-              importedDesignProperties, techTypes));
+      Map<String, String> currentProps = currentDesignExperiment.getProperties();
+      Map<String, Object> map =
+          ParserHelpers.getExperimentalDesignMap(currentProps, importedDesignProperties, techTypes);
+      final String SETUP_PROPERTY_CODE = "Q_EXPERIMENTAL_SETUP";
+      String oldXML = currentProps.get(SETUP_PROPERTY_CODE);
+      if (!map.get(SETUP_PROPERTY_CODE).equals(oldXML)) {
+        logger.info("update of experimental design needed");
+        entitiesToUpdate.put(currentDesignExperiment.getCode(), map);
+      } else {
+        logger.info("no update of existing experimental design needed");
+      }
     } else {
       try {
+        logger.info("creating new experimental design");
         experimentalDesignXML = ParserHelpers.createDesignXML(importedDesignProperties, techTypes);
       } catch (JAXBException e) {
         // TODO Auto-generated catch block
@@ -491,16 +502,13 @@ public class ExperimentImportController implements IRegistrationController {
     }
   }
 
-  private void findFirstExistingDesignExperimentCodeOrNull(String project) {
-    List<Experiment> experiments = openbis.getExperimentsOfProjectByCode(project);
+  private void findFirstExistingDesignExperimentCodeOrNull(String space, String project) {
+    String expID = ExperimentCodeFunctions.getInfoExperimentID(space, project);
+    List<Experiment> experiments = openbis.getExperimentById2(expID);
     // reset
     currentDesignExperiment = null;
     for (Experiment e : experiments) {
-      String expType = e.getExperimentTypeCode();
-      if (expType.equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
-        currentDesignExperiment = e;
-        return;
-      }
+      currentDesignExperiment = e;
     }
   }
 
