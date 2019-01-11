@@ -41,6 +41,7 @@ import org.apache.logging.log4j.Logger;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleType;
 import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
@@ -110,7 +111,7 @@ public class MetadataUploadView extends VerticalLayout {
   private StudyXMLParser studyXMLParser = new StudyXMLParser();
   private Experiment designExperiment;
   private JAXBElement<Qexperiment> expDesign;
-  
+
   private IOpenBisClient openbis;
   private Map<String, Object> metadata;
   private List<String> customProperties = new ArrayList<String>(
@@ -143,11 +144,11 @@ public class MetadataUploadView extends VerticalLayout {
     Map<String, String> taxMap = vocabularies.getTaxMap();
     Map<String, String> tissueMap = vocabularies.getTissueMap();
     Map<String, String> analytesMap = new HashMap<>();
-    //TODO fix this by getting the real map
-    for(String e : vocabularies.getAnalyteTypes()) {
+    // TODO fix this by getting the real map
+    for (String e : vocabularies.getAnalyteTypes()) {
       analytesMap.put(e, e);
     }
-    
+
     propToVocabulary = new HashMap<String, Map<String, String>>();
     propToVocabulary.put("Q_NCBI_ORGANISM", taxMap);
     propToVocabulary.put("Q_PRIMARY_TISSUE", tissueMap);
@@ -316,7 +317,7 @@ public class MetadataUploadView extends VerticalLayout {
   public Table getActiveTable() {
     return (Table) sheet.getSelectedTab();
   }
-  
+
   public static void main(String[] args) {
     life.qbic.xml.properties.Unit x = life.qbic.xml.properties.Unit.fromString("h");
     life.qbic.xml.properties.Unit y = life.qbic.xml.properties.Unit.valueOf("Hour");
@@ -352,7 +353,7 @@ public class MetadataUploadView extends VerticalLayout {
           } else {
             prop = new Property(label, "", propType);
           }
-//          label = prop.toString();
+          // label = prop.toString();
 
           // property/factor found, collect samples for it
           for (int id : rows) {
@@ -566,6 +567,7 @@ public class MetadataUploadView extends VerticalLayout {
 
     propNameToCode = new HashMap<String, String>();
     codesInTSV = new ArrayList<String>();
+
     for (int i = 0; i < data.size(); i++) {
       String bc = data.get(i)[barcodeCol];
       if (!codesToSamples.containsKey(bc)) {
@@ -700,7 +702,14 @@ public class MetadataUploadView extends VerticalLayout {
           sampleTable.addItem(row.toArray(), i);
         }
       }
-      sampleTable.setCaption(type + " Samples (" + sampleTable.size() + ")");
+      Map<String, String> translateType = new HashMap<>();
+      translateType.put("Q_BIOLOGICAL_ENTITY", "Sample sources");
+      translateType.put("Q_BIOLOGICAL_SAMPLE", "Sample extracts");
+      translateType.put("Q_TEST_SAMPLE", "Measured samples");
+      String tType = translateType.get(type);
+      if (tType == null)
+        tType = type;
+      sampleTable.setCaption(tType + " (" + sampleTable.size() + ")");
       sheet.addTab(sampleTable);
       sampleTables.add(sampleTable);
       sampleTable.setPageLength(Math.min(20, sampleTable.size()));

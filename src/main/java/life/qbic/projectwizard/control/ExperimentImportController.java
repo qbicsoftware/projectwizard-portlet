@@ -265,7 +265,7 @@ public class ExperimentImportController implements IRegistrationController {
                   new HashMap<String, Set<String>>();
               experimentTypeVocabularies.put("Q_ANTIBODY", vocabs.getAntibodiesMap().keySet());
               experimentTypeVocabularies.put("Q_CHROMATOGRAPHY_TYPE",
-                  vocabs.getChromTypesMap().keySet());
+                  new HashSet<String>(vocabs.getChromTypesMap().values()));
               experimentTypeVocabularies.put("Q_MS_DEVICE",
                   new HashSet<String>(vocabs.getDeviceMap().values()));
               experimentTypeVocabularies.put("Q_MS_LCMS_METHOD",
@@ -384,7 +384,6 @@ public class ExperimentImportController implements IRegistrationController {
             complexExperiments
                 .add(new OpenbisExperiment(infoExpCode, ExperimentType.Q_PROJECT_DETAILS, props));
           }
-
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
               projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
               view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control), user,
