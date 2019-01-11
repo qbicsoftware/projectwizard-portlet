@@ -181,6 +181,10 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
     isaStudyBox.setImmediate(true);
     isaStudyBox.setNullSelectionAllowed(false);
 
+    preview = new Button("Preview Sample Graph");
+    preview.setEnabled(false);
+    addComponent(preview);
+    
     // missing info input layout
     addComponent(questionaire);
 
@@ -188,9 +192,6 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
     summary = new ExperimentSummaryTable();
     summary.setVisible(false);
     addComponent(summary);
-    preview = new Button("Preview Sample Graph");
-    preview.setEnabled(false);
-    addComponent(preview);
 
     // sample registration button
     register = new Button("Register All");
