@@ -237,7 +237,7 @@ public class DBManager {
    * 
    * @return
    */
-  public Map<String, Integer> getPrincipalInvestigatorsWithIDs() {
+  public Map<String, Integer> getPersonsWithIDs() {
     String sql = "SELECT id, first_name, family_name FROM persons WHERE active = 1";
     Map<String, Integer> res = new HashMap<String, Integer>();
     Connection conn = login();
@@ -401,7 +401,7 @@ public class DBManager {
   public Map<String, Integer> fetchPeople() {
     Map<String, Integer> map = new HashMap<String, Integer>();
     try {
-      map = getPrincipalInvestigatorsWithIDs();
+      map = getPersonsWithIDs();
     } catch (NullPointerException e) {
       map.put("No Connection", -1);
     }
