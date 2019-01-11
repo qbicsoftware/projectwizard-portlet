@@ -21,11 +21,8 @@ import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
 import life.qbic.datamodel.samples.ISampleBean;
-import life.qbic.datamodel.samples.SampleType;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
-import life.qbic.portal.Styles;
-import life.qbic.portal.Styles.NotificationType;
 import life.qbic.xml.manager.StudyXMLParser;
 import life.qbic.xml.study.Qexperiment;
 
