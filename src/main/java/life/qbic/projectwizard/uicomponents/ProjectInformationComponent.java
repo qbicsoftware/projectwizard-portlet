@@ -49,7 +49,7 @@ public class ProjectInformationComponent extends VerticalLayout {
   private CustomVisibilityComponent projectBox;
   private TextField project;
   private Button reloadProjects;
-  private TextField expName;
+  private TextField projectName;
   private CustomVisibilityComponent personBox;
   private ComboBox piBox;
   private ComboBox contactBox;
@@ -100,12 +100,12 @@ public class ProjectInformationComponent extends VerticalLayout {
             + "The code consists of 5 characters, must start with Q and not contain Y or Z. You can create a random unused code by clicking "
             + FontAwesome.REFRESH.getHtml() + ".",
         "New Sub-Project"));
-    expName = new StandardTextField("Short name");
-    expName.setWidth("200px");
+    projectName = new StandardTextField("Short name");
+    projectName.setWidth("200px");
     // expName.setRequired(true);
-    expName.setVisible(false);
-    expName.setInputPrompt("Name of sub project");
-    addComponent(expName);
+    projectName.setVisible(false);
+    projectName.setInputPrompt("Name of sub project");
+    addComponent(projectName);
 
     HorizontalLayout persBoxH = new HorizontalLayout();
     persBoxH.setCaption("Principal Investigator");
@@ -159,7 +159,7 @@ public class ProjectInformationComponent extends VerticalLayout {
       project.setValue("");
     }
     project.setEnabled(choseNewProject);
-    expName.setVisible(choseNewProject);
+    projectName.setVisible(choseNewProject);
     projectDescription.setVisible(choseNewProject);
     personBox.setVisible(choseNewProject);
   }
@@ -228,8 +228,16 @@ public class ProjectInformationComponent extends VerticalLayout {
     return projectDescription.getValue();
   }
 
-  public String getSecondaryName() {
-    return expName.getValue();
+  public String getProjectName() {
+    return projectName.getValue();
+  }
+
+  public void setDescription(String desc) {
+    this.projectDescription.setValue(desc);
+  }
+
+  public void setProjectName(String name) {
+    this.projectName.setValue(name);
   }
 
   public void addProjects(List<String> projects) {
@@ -246,8 +254,8 @@ public class ProjectInformationComponent extends VerticalLayout {
     projectBox.setEnabled(b);
   }
 
-  public TextField getExpNameField() {
-    return expName;
+  public TextField getProjectNameField() {
+    return projectName;
   }
 
   public String getPerson(PersonType type) {
@@ -281,7 +289,7 @@ public class ProjectInformationComponent extends VerticalLayout {
     piBox.addValueChangeListener(infoCompleteListener);
     contactBox.addValueChangeListener(infoCompleteListener);
     managerBox.addValueChangeListener(infoCompleteListener);
-    expName.addValueChangeListener(infoCompleteListener);
+    projectName.addValueChangeListener(infoCompleteListener);
     project.addValueChangeListener(infoCompleteListener);
     projectDescription.addValueChangeListener(infoCompleteListener);
   }
@@ -312,8 +320,8 @@ public class ProjectInformationComponent extends VerticalLayout {
   }
 
   public ProjectInfo getProjectInfo() {
-    return new ProjectInfo(getSpaceCode(), getSelectedProject(), projectDescription.getValue(), getSecondaryName(), false,
-        getPerson(PersonType.Investigator), getPerson(PersonType.Contact),
+    return new ProjectInfo(getSpaceCode(), getSelectedProject(), projectDescription.getValue(),
+        getProjectName(), false, getPerson(PersonType.Investigator), getPerson(PersonType.Contact),
         getPerson(PersonType.Manager));
   }
 }
