@@ -76,6 +76,7 @@ import life.qbic.expdesign.model.ExperimentalDesignType;
 import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.expdesign.model.StructuredExperiment;
 import life.qbic.isatab.ISAReader;
+import life.qbic.isatab.ISAStudyInfos;
 import life.qbic.isatab.ISAToQBIC;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBManager;
@@ -127,6 +128,7 @@ public class ExperimentImportController implements IRegistrationController {
   protected String experimentalDesignXML;
   private Map<String, Map<String, Object>> entitiesToUpdate;
   private ArrayList<Sample> currentProjectSamples;
+  private ProjectInformationComponent projectInfoComponent;
 
   public ExperimentImportController(OpenbisCreationController creator, Vocabularies vocabularies,
       IOpenBisClient openbis, DBManager dbm) {
@@ -157,8 +159,9 @@ public class ExperimentImportController implements IRegistrationController {
       @Override
       public void valueChange(ValueChangeEvent event) {
         Object study = isaStudyBox.getValue();
-        if (study != null)
+        if (study != null) {
           isaParser.selectStudyToParse(study.toString());
+        }
         boolean readSuccess = false;
         try {
           prep = new SamplePreparator();
@@ -171,7 +174,11 @@ public class ExperimentImportController implements IRegistrationController {
           e.printStackTrace();
         }
         if (readSuccess) {
+          ISAStudyInfos additionalInfos = isaParser.getStudyInfos(study.toString());
           handleImportResults(ExperimentalDesignType.ISA, prep.getSummary());
+          projectInfoComponent.setDescription(additionalInfos.getDescription());
+          projectInfoComponent.setProjectName(additionalInfos.getTitle());
+          // TODO long information, studydesigns
         } else {
           String error = prep.getError();
           Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
@@ -182,7 +189,7 @@ public class ExperimentImportController implements IRegistrationController {
 
   public void isaPrepComplete(List<Study> studies, String error) {
     MissingInfoComponent newQ = new MissingInfoComponent();
-    view.replaceComponent(questionaire, newQ);
+//    view.replaceComponent(questionaire, newQ);// TODO do we have to set the component?
     if (error != null) {
       Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
       view.resetFormatSelection();
@@ -580,7 +587,7 @@ public class ExperimentImportController implements IRegistrationController {
       Map<String, List<String>> catToVocabulary) {
     extCodeToBarcode = new HashMap<String, String>();
 
-    ProjectInformationComponent projectInfoComponent =
+    projectInfoComponent =
         new ProjectInformationComponent(vocabs.getSpaces(), vocabs.getPeople().keySet());
 
     ValueChangeListener missingInfoFilledListener = new ValueChangeListener() {
