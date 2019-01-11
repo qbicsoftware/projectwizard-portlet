@@ -128,6 +128,6 @@ public class MissingInfoComponent extends HorizontalLayout {
   }
 
   public String getProjectSecondaryName() {
-    return projectInfoComponent.getSecondaryName();
+    return projectInfoComponent.getProjectName();
   }
 }

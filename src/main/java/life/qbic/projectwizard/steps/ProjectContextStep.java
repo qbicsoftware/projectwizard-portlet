@@ -403,12 +403,12 @@ public class ProjectContextStep implements WizardStep {
   }
 
   public boolean expSecondaryNameSet() {
-    TextField expName = projectInfoComponent.getExpNameField();
+    TextField expName = projectInfoComponent.getProjectNameField();
     return expName != null && !expName.isEmpty();
   }
 
   public String getExpSecondaryName() {
-    return projectInfoComponent.getExpNameField().getValue();
+    return projectInfoComponent.getProjectNameField().getValue();
   }
 
   public void makePilotBoxVisible(boolean b) {
