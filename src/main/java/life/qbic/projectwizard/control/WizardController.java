@@ -1024,7 +1024,7 @@ public class WizardController implements IRegistrationController {
             if (entitiesToUpdate.isEmpty()) {
               try {
                 newExperimentalDesignXML =
-                    ParserHelpers.createDesignXML(preliminaryDesign, techTypes);
+                    ParserHelpers.createDesignXML(preliminaryDesign, techTypes, new HashSet<String>());
               } catch (JAXBException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
