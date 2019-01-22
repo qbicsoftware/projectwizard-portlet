@@ -1455,7 +1455,7 @@ public class WizardDataAggregator {
     if (expDesignExperiment != null) {
       Map<String, String> currentProps = expDesignExperiment.getProperties();
       Map<String, Object> map =
-          ParserHelpers.getExperimentalDesignMap(currentProps, importedDesignProperties, techTypes);
+          ParserHelpers.getExperimentalDesignMap(currentProps, importedDesignProperties, techTypes, new HashSet<>());
       final String SETUP_PROPERTY_CODE = "Q_EXPERIMENTAL_SETUP";
       String oldXML = currentProps.get(SETUP_PROPERTY_CODE);
       if (!map.get(SETUP_PROPERTY_CODE).equals(oldXML)) {
