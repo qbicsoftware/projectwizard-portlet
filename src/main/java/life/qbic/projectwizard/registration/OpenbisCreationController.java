@@ -3,6 +3,7 @@ package life.qbic.projectwizard.registration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -493,7 +494,7 @@ public class OpenbisCreationController {
     registerProject(space, project, description, user);
     StudyXMLParser p = new StudyXMLParser();
     JAXBElement<Qexperiment> res =
-        p.createNewDesign(new ArrayList<>(), new HashMap<>(), new HashMap<>());
+        p.createNewDesign(new HashSet<>(), new ArrayList<>(), new HashMap<>(), new HashMap<>());
     String emptyStudy = p.toString(res);
 
     String exp = project + "_INFO";
