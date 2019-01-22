@@ -41,9 +41,7 @@ import org.apache.logging.log4j.Logger;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SampleType;
 import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
-import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
@@ -396,13 +394,12 @@ public class MetadataUploadView extends VerticalLayout {
     // technologies used can't be changed, so we add an empty list
     if (updateNecessary) {
       JAXBElement<Qexperiment> updatedDesign =
-          studyXMLParser.mergeDesigns(expDesign, new ArrayList<>(), newDesign, newProperties);
+          studyXMLParser.mergeDesigns(expDesign, new HashSet<>(), new ArrayList<>(), newDesign, newProperties);
       return studyXMLParser.toString(updatedDesign);
     } else {
       return null;
     }
   }
-
 
   private void findAndSetDesignExperiment(String space, String project) throws JAXBException {
     designExperiment = null;
@@ -412,13 +409,10 @@ public class MetadataUploadView extends VerticalLayout {
       designExperiment = null;
       logger.error("could not find info experiment for project" + project);
     } else {
-      Experiment e = exps.get(0);
-      if (e.getExperimentTypeCode().equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
-        designExperiment = e;
-        expDesign = studyXMLParser
-            .parseXMLString(designExperiment.getProperties().get("Q_EXPERIMENTAL_SETUP"));
-        logger.debug("setting exp design: " + expDesign);
-      }
+      designExperiment = exps.get(0);
+      expDesign = studyXMLParser
+          .parseXMLString(designExperiment.getProperties().get("Q_EXPERIMENTAL_SETUP"));
+      logger.debug("setting exp design: " + expDesign);
     }
   }
 
