@@ -84,6 +84,7 @@ public class MSAnalyteStep implements WizardStep {
   private MSExperimentModel results;
   private List<String> lcmsMethods;
   private List<String> devices;
+  private List<String> dontFilter;
 
   public static enum AnalyteMultiplicationType {
     Fraction, Cycle;
@@ -740,14 +741,14 @@ public class MSAnalyteStep implements WizardStep {
       methods.addAll(lcmsMethods);
     else {
       msDevice = msDevice.replace(" ", "").toUpperCase();
-      for (String m : lcmsMethods) {
+      for (String method : lcmsMethods) {
         String devType = "notfound";
         try {
-          devType = m.split("_")[1];
+          devType = method.split("_")[1];
         } catch (ArrayIndexOutOfBoundsException e) {
         }
-        if (msDevice.contains(devType)) {
-          methods.add(m);
+        if (msDevice.contains(devType) || dontFilter.contains(method)) {
+          methods.add(method);
         }
       }
     }
@@ -1017,6 +1018,7 @@ public class MSAnalyteStep implements WizardStep {
   }
 
   public void filterDictionariesByPrefix(String prefix, List<String> dontFilter) {
+    this.dontFilter = dontFilter;
     devices = new ArrayList<String>();
     lcmsMethods = new ArrayList<String>();
     if (prefix.isEmpty()) {
