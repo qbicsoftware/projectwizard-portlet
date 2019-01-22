@@ -129,6 +129,8 @@ public class ExperimentImportController implements IRegistrationController {
   private Map<String, Map<String, Object>> entitiesToUpdate;
   private ArrayList<Sample> currentProjectSamples;
   private ProjectInformationComponent projectInfoComponent;
+  private Set<String> currentDesignTypes;
+  protected ISAStudyInfos isaStudyInfos;
 
   public ExperimentImportController(OpenbisCreationController creator, Vocabularies vocabularies,
       IOpenBisClient openbis, DBManager dbm) {
@@ -174,10 +176,12 @@ public class ExperimentImportController implements IRegistrationController {
           e.printStackTrace();
         }
         if (readSuccess) {
-          ISAStudyInfos additionalInfos = isaParser.getStudyInfos(study.toString());
+          isaStudyInfos = isaParser.getStudyInfos(study.toString());
           handleImportResults(ExperimentalDesignType.ISA, prep.getSummary());
-          projectInfoComponent.setDescription(additionalInfos.getDescription());
-          projectInfoComponent.setProjectName(additionalInfos.getTitle());
+          currentDesignTypes = new HashSet<>();
+          currentDesignTypes.addAll(isaStudyInfos.getDesignTypes());
+          projectInfoComponent.setDescription(isaStudyInfos.getDescription());
+          projectInfoComponent.setProjectName(isaStudyInfos.getTitle());
           // TODO long information, studydesigns
         } else {
           String error = prep.getError();
@@ -188,8 +192,6 @@ public class ExperimentImportController implements IRegistrationController {
   }
 
   public void isaPrepComplete(List<Study> studies, String error) {
-    MissingInfoComponent newQ = new MissingInfoComponent();
-//    view.replaceComponent(questionaire, newQ);// TODO do we have to set the component?
     if (error != null) {
       Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
       view.resetFormatSelection();
@@ -252,6 +254,7 @@ public class ExperimentImportController implements IRegistrationController {
       private static final long serialVersionUID = -8413963075202260180L;
 
       public void uploadFinished(FinishedEvent event) {
+        currentDesignTypes = new HashSet<>();
         String uploadError = uploader.getError();
         File file = uploader.getFile();
         view.resetAfterUpload();
@@ -487,8 +490,8 @@ public class ExperimentImportController implements IRegistrationController {
     }
     if (currentDesignExperiment != null) {
       Map<String, String> currentProps = currentDesignExperiment.getProperties();
-      Map<String, Object> map =
-          ParserHelpers.getExperimentalDesignMap(currentProps, importedDesignProperties, techTypes);
+      Map<String, Object> map = ParserHelpers.getExperimentalDesignMap(currentProps,
+          importedDesignProperties, techTypes, currentDesignTypes);
       final String SETUP_PROPERTY_CODE = "Q_EXPERIMENTAL_SETUP";
       String oldXML = currentProps.get(SETUP_PROPERTY_CODE);
       if (!map.get(SETUP_PROPERTY_CODE).equals(oldXML)) {
@@ -500,7 +503,8 @@ public class ExperimentImportController implements IRegistrationController {
     } else {
       try {
         logger.info("creating new experimental design");
-        experimentalDesignXML = ParserHelpers.createDesignXML(importedDesignProperties, techTypes);
+        experimentalDesignXML =
+            ParserHelpers.createDesignXML(importedDesignProperties, techTypes, currentDesignTypes);
       } catch (JAXBException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
@@ -985,8 +989,14 @@ public class ExperimentImportController implements IRegistrationController {
         space = questionaire.getSpaceCode();
         project = questionaire.getProjectCode();
         projectName = questionaire.getProjectSecondaryName();
-        addPeopleAndProjectToDB("/" + space + "/" + project, projectName);
+        String id = "/" + space + "/" + project;
+        addPeopleAndProjectToDB(id, projectName);
+        if (getImportType().equals(ExperimentalDesignType.ISA)) {
+          String protocol = isaStudyInfos.getProtocol();
+          dbm.changeLongProjectDescription(id, protocol);
+        }
       }
+
       // TODO
       // for (OpenbisExperiment e : exps) {
       // if (e.getType().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {

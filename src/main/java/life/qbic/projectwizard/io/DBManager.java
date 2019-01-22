@@ -22,7 +22,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -452,6 +454,75 @@ public class DBManager {
     logout(conn);
     System.out.println(res.size());
     return res;
+  }
+
+  private boolean saveOldDescription(String projectIdentifier) {
+    String sql = "SELECT * from projects WHERE openbis_project_identifier = ?";
+    int id = -1;
+    String oldDescription = "";
+    String oldTitle = "";
+    Connection conn = login();
+    PreparedStatement statement = null;
+    try {
+      statement = conn.prepareStatement(sql);
+      statement.setString(1, projectIdentifier);
+      ResultSet rs = statement.executeQuery();
+      if (rs.next()) {
+        id = rs.getInt("id");
+        oldDescription = rs.getString("long_description");
+        oldTitle = rs.getString("short_title");
+      }
+    } catch (SQLException e) {
+      logger.error("SQL operation unsuccessful: " + e.getMessage());
+      e.printStackTrace();
+    }
+    Date date = new Date();
+    Timestamp timestamp = new Timestamp(date.getTime());
+    sql =
+        "INSERT INTO projects_history (project_id, timestamp, long_description, short_title) VALUES(?, ?, ?, ?)";
+    statement = null;
+    int res = -1;
+    try {
+      statement = conn.prepareStatement(sql);
+      statement.setInt(1, id);
+      statement.setTimestamp(2, timestamp);
+      statement.setString(3, oldDescription);
+      statement.setString(4, oldTitle);
+      statement.execute();
+      res = statement.getUpdateCount();
+      logger.info("Successful.");
+    } catch (SQLException e) {
+      logger.error("SQL operation unsuccessful: " + e.getMessage());
+      e.printStackTrace();
+    } finally {
+      endQuery(conn, statement);
+    }
+    return res != -1;
+  }
+
+  public boolean changeLongProjectDescription(String projectIdentifier, String description) {
+    logger.info("Adding long description of project " + projectIdentifier);
+    boolean saved = saveOldDescription(projectIdentifier);
+    if (!saved)
+      logger.warn("Could not save old project description to database!");
+    String sql = "UPDATE projects SET long_description = ? WHERE openbis_project_identifier = ?";
+    Connection conn = login();
+    PreparedStatement statement = null;
+    int res = -1;
+    try {
+      statement = conn.prepareStatement(sql);
+      statement.setString(1, description);
+      statement.setString(2, projectIdentifier);
+      statement.execute();
+      res = statement.getUpdateCount();
+      logger.info("Successful.");
+    } catch (SQLException e) {
+      logger.error("SQL operation unsuccessful: " + e.getMessage());
+      e.printStackTrace();
+    } finally {
+      endQuery(conn, statement);
+    }
+    return res != -1;
   }
 
   public boolean findTissueInOntology(String tissue) {

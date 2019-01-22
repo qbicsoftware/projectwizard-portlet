@@ -307,7 +307,7 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     }
     StudyXMLParser p = new StudyXMLParser();
     List<TechnologyType> techTypes = new ArrayList<>(techs);
-    JAXBElement<Qexperiment> res = p.createNewDesign(techTypes, expDesign, otherProps);
+    JAXBElement<Qexperiment> res = p.createNewDesign(new HashSet<>(), techTypes, expDesign, otherProps);
     String xml = p.toString(res);
     Map<String, Object> props = new HashMap<>();
     props.put("Q_EXPERIMENTAL_SETUP", xml);

@@ -299,12 +299,12 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
         List<OpenbisExperiment> infoExperiments = new ArrayList<>();
         if (designExperiment != null) {
           entitiesToUpdate.put(designExperiment.getCode(), ParserHelpers
-              .getExperimentalDesignMap(designExperiment.getProperties(), design, techTypes));
+              .getExperimentalDesignMap(designExperiment.getProperties(), design, techTypes, new HashSet<>()));
         } else {
           Map<String, Object> props = new HashMap<>();
           String newDesignXML = "";
           try {
-            JAXBElement<Qexperiment> newDesign = xmlParser.createNewDesign(techTypes,
+            JAXBElement<Qexperiment> newDesign = xmlParser.createNewDesign(new HashSet<>(), techTypes,
                 design.getExperimentalDesign(), design.getProperties());
             newDesignXML = xmlParser.toString(newDesign);
           } catch (JAXBException e) {
