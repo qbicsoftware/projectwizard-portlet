@@ -69,6 +69,7 @@ import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.samples.AOpenbisSample;
 import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.ParserHelpers;
 import life.qbic.expdesign.SamplePreparator;
@@ -468,6 +469,7 @@ public class WizardController implements IRegistrationController {
           }
           // TODO this needs work
           List<List<ISampleBean>> samples = regStep.getSamples();
+          
           String space = contextStep.getSpaceCode();
           String project = contextStep.getProjectCode();
           String exp = project + "_INFO";

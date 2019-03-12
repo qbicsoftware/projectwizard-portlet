@@ -36,6 +36,7 @@ import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.VerticalLayout;
 
 import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
 import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.projectwizard.processes.RegistrationMode;
 import life.qbic.projectwizard.uicomponents.ExperimentSummaryTable;
