@@ -40,6 +40,7 @@ import life.qbic.portal.portlet.QBiCPortletUI;
 import life.qbic.portal.samplegraph.GraphPage;
 import life.qbic.portal.utils.ConfigurationManager;
 import life.qbic.portal.utils.ConfigurationManagerFactory;
+import life.qbic.portal.utils.LiferayIndependentConfigurationManager;
 import life.qbic.portal.utils.PortalUtils;
 import life.qbic.projectwizard.control.ExperimentImportController;
 import life.qbic.projectwizard.control.WizardController;
@@ -81,8 +82,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
     // read in the configuration file
     config = ConfigurationManagerFactory.getInstance();
-    tmpFolder = config.getTmpFolder();
-    MSLabelingMethods = config.getVocabularyMSLabeling();
 
     layout.setMargin(true);
     setContent(layout);
@@ -93,6 +92,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
       userID = PortalUtils.getUser().getScreenName();
     } else {
       if (development) {
+        LiferayIndependentConfigurationManager.Instance.init("local.properties");
+        config = LiferayIndependentConfigurationManager.Instance;
         logger.warn("Checks for local dev version successful. User is granted admin status.");
         userID = "admin";
         isAdmin = true;
@@ -103,6 +104,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
         layout.addComponent(new Label("User not found. Are you logged in?"));
       }
     }
+    tmpFolder = config.getTmpFolder();
+    MSLabelingMethods = config.getVocabularyMSLabeling();
     // establish connection to the OpenBIS API
     if (!development || !testMode) {
       try {
