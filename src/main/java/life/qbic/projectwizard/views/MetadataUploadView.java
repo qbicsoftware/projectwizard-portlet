@@ -393,8 +393,8 @@ public class MetadataUploadView extends VerticalLayout {
     }
     // technologies used can't be changed, so we add an empty list
     if (updateNecessary) {
-      JAXBElement<Qexperiment> updatedDesign =
-          studyXMLParser.mergeDesigns(expDesign, new HashSet<>(), new ArrayList<>(), newDesign, newProperties);
+      JAXBElement<Qexperiment> updatedDesign = studyXMLParser.mergeDesigns(expDesign,
+          new HashSet<>(), new ArrayList<>(), newDesign, newProperties);
       return studyXMLParser.toString(updatedDesign);
     } else {
       return null;
@@ -703,7 +703,7 @@ public class MetadataUploadView extends VerticalLayout {
       String tType = translateType.get(type);
       if (tType == null)
         tType = type;
-      sampleTable.setCaption(tType + " (" + sampleTable.size() + ")");
+      sampleTable.setCaption(tType + " (" + Integer.toString(sampleTable.size() - 1) + ")");
       sheet.addTab(sampleTable);
       sampleTables.add(sampleTable);
       sampleTable.setPageLength(Math.min(20, sampleTable.size()));
