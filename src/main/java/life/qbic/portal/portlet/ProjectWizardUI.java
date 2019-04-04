@@ -26,16 +26,23 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.themes.ValoTheme;
 
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.entitytype.id.EntityTypePermId;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentIdentifier;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.create.SampleCreation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SamplePermId;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.id.SpacePermId;
+
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Button.ClickEvent;
 
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
-import life.qbic.openbis.openbisclient.OpenBisClientMock;
 import life.qbic.portal.portlet.QBiCPortletUI;
 import life.qbic.portal.samplegraph.GraphPage;
 import life.qbic.portal.utils.ConfigurationManager;
@@ -57,7 +64,7 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean testMode = false;// TODO
-  public static boolean development = false;
+  public static boolean development = true;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 
@@ -79,15 +86,15 @@ public class ProjectWizardUI extends QBiCPortletUI {
   protected Layout getPortletContent(final VaadinRequest request) {
     tabs.addStyleName(ValoTheme.TABSHEET_FRAMED);
     final VerticalLayout layout = new VerticalLayout();
-
-    // read in the configuration file
-    config = ConfigurationManagerFactory.getInstance();
-
     layout.setMargin(true);
     setContent(layout);
+
     String userID = "";
     boolean success = true;
     if (PortalUtils.isLiferayPortlet()) {
+      // read in the configuration file
+      config = ConfigurationManagerFactory.getInstance();
+
       logger.info("Wizard is running on Liferay and user is logged in.");
       userID = PortalUtils.getUser().getScreenName();
     } else {
@@ -123,8 +130,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
     }
     if (development && testMode) {
       logger.error("No connection to openBIS. Trying mock version for testing.");
-      this.openbis = new OpenBisClientMock(config.getDataSourceUser(),
-          config.getDataSourcePassword(), config.getDataSourceUrl());
+      // this.openbis = new OpenBisClientMock(config.getDataSourceUser(),
+      // config.getDataSourcePassword(), config.getDataSourceUrl());
       layout.addComponent(new Label(
           "openBIS could not be reached. Resuming with mock version. Some options might be non-functional. Reload to retry."));
     }
@@ -159,8 +166,34 @@ public class ProjectWizardUI extends QBiCPortletUI {
           peopleMap, expTypes, enzymeMap, antibodiesWithLabels, deviceMap, msProtocols, lcmsMethods,
           chromTypes, fractionationTypes, enrichmentTypes, purificationMethods);
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
-      initView(dbm, vocabs, userID);
-      layout.addComponent(tabs);
+      // initView(dbm, vocabs, userID);
+      Button create = new Button("Create Everything");
+      layout.addComponent(create);
+      create.addClickListener(new Button.ClickListener() {
+
+        @Override
+        public void buttonClick(ClickEvent event) {
+          // we assume here that v3 object has been already created and we have already called login
+          // (please check "Accessing the API" section for more details)
+
+          SampleCreation sample = new SampleCreation();
+          sample.setTypeId(new EntityTypePermId("MY_SAMPLE_TYPE_CODE"));
+          sample.setSpaceId(new SpacePermId("MY_SPACE_CODE"));
+          sample.setExperimentId(
+              new ExperimentIdentifier("/MY_SPACE_CODE/MY_PROJECT_CODE/MY_EXPERIMENT_CODE"));
+          sample.setCode("MY_SAMPLE_CODE");
+
+          // you can also pass more than one creation object to create multiple entities at once
+
+          List<SamplePermId> permIds =
+              openbis.getV3().createSamples(openbis.getSessionToken(), Arrays.asList(sample));
+          System.out.println("Perm ids: " + permIds);
+        }
+      });
+
+
+
+      // layout.addComponent(tabs);
     }
     return layout;
   }
@@ -231,20 +264,20 @@ public class ProjectWizardUI extends QBiCPortletUI {
   // TODO group that might be used to delete metadata or even sample/experiment objects in the
   // future
   private boolean canDelete() {
-//    try {
-//      User user = PortalUtils.getUser();
-//      for (UserGroup grp : user.getUserGroups()) {
-//        String group = grp.getName();
-//        if (config.getDeletionGrp().contains(group)) {
-//          logger.info(
-//              "User " + user.getScreenName() + " can delete because they are part of " + group);
-//          return true;
-////        }
-//      }
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//      logger.error("Could not fetch user groups. User won't be able to delete.");
-//    }
+    // try {
+    // User user = PortalUtils.getUser();
+    // for (UserGroup grp : user.getUserGroups()) {
+    // String group = grp.getName();
+    // if (config.getDeletionGrp().contains(group)) {
+    // logger.info(
+    // "User " + user.getScreenName() + " can delete because they are part of " + group);
+    // return true;
+    //// }
+    // }
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // logger.error("Could not fetch user groups. User won't be able to delete.");
+    // }
     return false;
   }
 

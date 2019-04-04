@@ -46,8 +46,8 @@ import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -183,9 +183,9 @@ public class FinishStep implements WizardStep {
     for (String exp : samplesByExperiment.keySet()) {
       List<Sample> samps = samplesByExperiment.get(exp);
       for (Sample s : samps)
-        ids.add(s.getIdentifier());
+        ids.add(s.getIdentifier().getIdentifier());
       int amount = samps.size();
-      String sampleType = samps.get(0).getSampleTypeCode();
+      String sampleType = samps.get(0).getType().getCode();
       switch (sampleType) {
         case "Q_BIOLOGICAL_ENTITY":
           entitieNum += amount;
@@ -246,13 +246,14 @@ public class FinishStep implements WizardStep {
           }
         }
         logger.debug("designexpID " + designExpID);
-        List<Experiment> exps = openbis.getExperimentById2(designExpID);
+        //List<Experiment> exps = openbis.getExperimentById2(designExpID);
+        Experiment exp = openbis.getExperimentById(designExpID);
         StudyXMLParser parser = new StudyXMLParser();
         Set<String> factors = new HashSet<>();
         Map<Pair<String, String>, Property> factorsForLabelsAndSamples = new HashMap<>();
 
-        if (!exps.isEmpty()) {
-          String xml = exps.get(0).getProperties().get("Q_EXPERIMENTAL_SETUP");
+//        if (!exps.isEmpty()) {
+          String xml = exp.getProperties().get("Q_EXPERIMENTAL_SETUP");
           try {
             JAXBElement<Qexperiment> expDesign = parser.parseXMLString(xml);
             factors.addAll(parser.getFactorLabels(expDesign));
@@ -261,7 +262,7 @@ public class FinishStep implements WizardStep {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
-        }
+//        }
 
         Map<String, List<String>> tables = new HashMap<String, List<String>>();
         for (String type : sampleTypes) {

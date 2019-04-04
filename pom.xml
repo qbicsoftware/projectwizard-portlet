@@ -77,7 +77,7 @@
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>openbis-client-lib</artifactId>
-			<version>1.1.4</version>
+			<version>1.1.5-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opencsv</groupId>
