@@ -51,6 +51,7 @@ import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.ParserHelpers;
 import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
@@ -65,10 +66,8 @@ import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.components.StandardTextField;
 import life.qbic.xml.manager.StudyXMLParser;
-// import life.qbic.xml.manager.XMLParser;
 import life.qbic.xml.properties.Property;
 import life.qbic.xml.study.Qexperiment;
-import life.qbic.xml.study.Qproperty;
 import life.qbic.xml.study.TechnologyType;
 
 public class MCCViewNew extends VerticalLayout
@@ -89,13 +88,12 @@ public class MCCViewNew extends VerticalLayout
   private String user;
   // view
   private final String mccSpace = "MULTISCALEHCC";
-  private final Set<String> weeks =
-      new HashSet<>(Arrays.asList("W00", "W02", "W04", "W10", "W18", "W26", "W32", "W40", "W48"));
+  private final List<String> weeks = new ArrayList<>(
+      Arrays.asList("W00", "W02", "W04", "W10", "W18", "W26", "W32", "W40", "W48", "WXX"));
   private List<TechnologyType> techTypes;
   private ComboBox mccProjects;
   private StandardTextField newProject;
   private StandardTextField treatment;
-  private StandardTextField timepoint;
   private StandardTextField patient;
   private Table existingPatients;
 
@@ -120,6 +118,7 @@ public class MCCViewNew extends VerticalLayout
     techTypes.add(new TechnologyType("Transcriptomics"));
     techTypes.add(new TechnologyType("Proteomics"));
     techTypes.add(new TechnologyType("Metabolomics"));
+    techTypes.add(new TechnologyType("Imaging"));
 
     this.openbis = openbis;
     this.creator = creationController;
@@ -146,16 +145,13 @@ public class MCCViewNew extends VerticalLayout
     projectTab.addComponent(newProject);
 
     treatment = new StandardTextField("Treatment");
-    timepoint = new StandardTextField("Week");
-    timepoint.setWidth("40px");
-    patient = new StandardTextField("Patient #");
+    patient = new StandardTextField("# of new patients");
     patient.setWidth("50px");
 
     HorizontalLayout paramTab = new HorizontalLayout();
     paramTab.setSpacing(true);
     paramTab.addComponent(treatment);
     paramTab.addComponent(patient);
-    paramTab.addComponent(timepoint);
 
     existingPatients = new Table("Existing Patients");
     existingPatients.setStyleName(Styles.tableTheme);
@@ -197,16 +193,16 @@ public class MCCViewNew extends VerticalLayout
   private boolean allValid() {
     boolean project = !newProject.isEmpty() || mccProjects.getValue() != null;
     boolean treat = !treatment.isEmpty();
-    boolean pat = !patient.isEmpty() && patient.getValue().matches("1[0-9][0-9]*");
-    boolean time = !timepoint.isEmpty() && weeks.contains(timepoint.getValue());
-    boolean input = project && treat && pat && time;
-    boolean res = false;
-    if (input) {
-      // S101:W00:*
-      String extID =
-          treatment.getValue().substring(0, 1) + patient.getValue() + ":" + timepoint.getValue();
-      res = !cases.contains(extID);
-    }
+    boolean pat = !patient.isEmpty() && patient.getValue().matches("[0-9]*");
+    boolean input = project && treat && pat;
+    boolean res = input;
+    // not needed since we just specify number of new patients
+    // if (input) {
+    // S101:W00:*
+    // String extID =
+    // treatment.getValue().substring(0, 1) + patient.getValue() + ":" + timepoint.getValue();
+    // res = !cases.contains(extID);
+    // }
     return res;
   }
 
@@ -247,7 +243,6 @@ public class MCCViewNew extends VerticalLayout
       }
     };
     treatment.addValueChangeListener(check);
-    timepoint.addValueChangeListener(check);
     patient.addValueChangeListener(check);
 
     newProject.addValueChangeListener(new ValueChangeListener() {
@@ -325,9 +320,10 @@ public class MCCViewNew extends VerticalLayout
         }
         logger.debug("exps " + infoExperiments);
         logger.debug("update " + entitiesToUpdate);
-        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
-            registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
-            entitiesToUpdate, false);
+        // creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments,
+        // bar,
+        // registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
+        // entitiesToUpdate, false);
       }
     });
   }
@@ -345,7 +341,6 @@ public class MCCViewNew extends VerticalLayout
       try {
         findAndSetDesignExperiment(mccSpace, mccProjects.getValue().toString());
       } catch (JAXBException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
     }
@@ -408,175 +403,235 @@ public class MCCViewNew extends VerticalLayout
     existingPatients.sort(new Object[] {"ID", "week"}, new boolean[] {true});
   }
 
-  @SuppressWarnings("unchecked")
+  private TSVSampleBean createSample(String code, String expSuffix, SampleType type, String secondary,
+      String extID, String bioType, List<String> parentIDs) {
+    Map<String, Object> metadata = new HashMap<>();
+    switch (type) {
+      case Q_BIOLOGICAL_ENTITY:
+        metadata.put("Q_NCBI_ORGANISM", bioType);
+        break;
+      case Q_BIOLOGICAL_SAMPLE:
+        metadata.put("Q_PRIMARY_TISSUE", bioType);
+      case Q_TEST_SAMPLE:
+        metadata.put("Q_SAMPLE_TYPE", bioType);
+      default:
+        break;
+    }
+    metadata.put("Q_EXTERNALDB_ID", extID);
+    return new TSVSampleBean(code, project + expSuffix, project, mccSpace, type.toString(), secondary,
+        new ArrayList<String>(), metadata);
+  }
+
   private List<List<ISampleBean>> prepDefaultMCCSamples() {
-    String timepoint = this.timepoint.getValue();
-    String treatment = this.treatment.getValue();
-    String patient = this.patient.getValue();
+    SampleType t1 = SampleType.Q_BIOLOGICAL_ENTITY;
+    SampleType t2 = SampleType.Q_BIOLOGICAL_SAMPLE;
+    SampleType t3 = SampleType.Q_TEST_SAMPLE;
+    // String timepoint = this.timepoint.getValue();
+    String treatInput = this.treatment.getValue();
+    String patientInput = this.patient.getValue();
+    int numNewPatients = Integer.parseInt(patientInput);
     List<List<ISampleBean>> res = new ArrayList<List<ISampleBean>>();
     List<ISampleBean> patients = new ArrayList<ISampleBean>();
     List<ISampleBean> urine = new ArrayList<ISampleBean>();
     List<ISampleBean> uAliquots = new ArrayList<ISampleBean>();
     List<ISampleBean> liver = new ArrayList<ISampleBean>();
+    List<ISampleBean> tumor = new ArrayList<ISampleBean>();
     List<ISampleBean> plasma = new ArrayList<ISampleBean>();
     List<ISampleBean> pAliquots = new ArrayList<ISampleBean>();
+    List<ISampleBean> serum = new ArrayList<ISampleBean>();
+    List<ISampleBean> sAliquots = new ArrayList<ISampleBean>();
     List<ISampleBean> molecules = new ArrayList<ISampleBean>();
+    List<ISampleBean> blood = new ArrayList<ISampleBean>();
+    List<ISampleBean> cfDNA = new ArrayList<ISampleBean>();
+    List<ISampleBean> DNA = new ArrayList<ISampleBean>();
+    List<ISampleBean> RNA = new ArrayList<ISampleBean>();
 
     project = (String) mccProjects.getValue();
     if (!newProject.isEmpty())
       project = newProject.getValue();
 
-    String patientID = project + "ENTITY-" + patient;// new parent
+    for (int newPatient : listNewPatients(numNewPatients)) {
+      String patientID = project + "ENTITY-" + newPatient;// new parent
 
-    // if (patient.length() < 2)
-    // patient = "0" + patient;
-    String patientExtID = treatment.substring(0, 1).toUpperCase() + patient;
+      // if (patient.length() < 2)
+      // patient = "0" + patient;
+      String patientExtID = treatInput.substring(0, 1).toUpperCase() + newPatient;
 
-    HashMap<String, Object> metadata = new HashMap<String, Object>();
-    // if new patient, add to samples to register
-    if (!this.patients.contains(patientExtID)) {
-      metadata.put("Q_EXTERNALDB_ID", patientExtID);
-      metadata.put("Q_NCBI_ORGANISM", "9606");
-      patients.add(new TSVSampleBean(patientID, project + "E1", project, mccSpace,
-          "Q_BIOLOGICAL_ENTITY", "patient #" + patient, new ArrayList<String>(), metadata));
-    }
-    List<String> patientIDs = new ArrayList<String>(Arrays.asList(patientID));
-    String extIDBase = patientExtID + ":" + timepoint + ":";
-
-    String urineExtIDBase = extIDBase + "U";
-    metadata = new HashMap<String, Object>();
-    // TODO
-    metadata.put("XML_FACTORS", "treatment: " + treatment + "; week: evaluation #" + timepoint);
-    metadata.put("Q_PRIMARY_TISSUE", "URINE");
-    metadata.put("Q_EXTERNALDB_ID", urineExtIDBase + "0");
-    String urineID = counter.getNewBarcode();// parent
-    urine.add(new TSVSampleBean(urineID, project + "E2", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-        "urine sample", patientIDs, (HashMap<String, Object>) metadata.clone()));
-    for (int i = 1; i < 5; i++) {
-      metadata.put("Q_PRIMARY_TISSUE", "URINE");
-      String ID = counter.getNewBarcode();
-      metadata.put("Q_EXTERNALDB_ID", urineExtIDBase + i);
-      uAliquots.add(new TSVSampleBean(ID, project + "E3", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-          "urine aliquot #" + i, new ArrayList<String>(Arrays.asList(urineID)),
-          (HashMap<String, Object>) metadata.clone()));
-      
-      // small molecules - one for each for now TODO what letter?
-      metadata.remove("Q_PRIMARY_TISSUE");
-      for (int j = 1; j < 2; j++) {
-        String suffix = i + ":SM";
-        String molID = counter.getNewBarcode();
-        metadata.put("Q_EXTERNALDB_ID", urineExtIDBase + suffix);
-        metadata.put("Q_SAMPLE_TYPE", "SMALLMOLECULES");
-        molecules.add(new TSVSampleBean(molID, project + "E12", project, mccSpace, "Q_TEST_SAMPLE",
-            "urine #" + i+" molecules", new ArrayList<String>(Arrays.asList(ID)),
-            (HashMap<String, Object>) metadata.clone()));
+      // if new patient, add to samples to register
+      if (!this.patients.contains(patientExtID)) {
+        patients.add(createSample(patientID, "E1", t1, "patient #" + newPatient, patientExtID,
+            "9606", new ArrayList<>()));
       }
-      metadata.remove("Q_SAMPLE_TYPE");
-    }
+      List<String> patientIDs = new ArrayList<String>(Arrays.asList(patientID));
+      for (String timepoint : weeks) {
 
-    String plasmaExtIDBase = extIDBase + "P";
-    metadata = new HashMap<String, Object>();
-    // TODO
-    metadata.put("XML_FACTORS", "treatment: " + treatment + "; week: evaluation #" + timepoint);
-    metadata.put("Q_PRIMARY_TISSUE", "BLOOD_PLASMA");
-    metadata.put("Q_EXTERNALDB_ID", plasmaExtIDBase + "0");
-    String plasmaID = counter.getNewBarcode();// parent
-    plasma.add(new TSVSampleBean(plasmaID, project + "E4", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-        "plasma sample", patientIDs, (HashMap<String, Object>) metadata.clone()));
-    for (int i = 1; i < 5; i++) {
-      metadata.put("Q_PRIMARY_TISSUE", "BLOOD_PLASMA");
-      String ID = counter.getNewBarcode();
-      metadata.put("Q_EXTERNALDB_ID", plasmaExtIDBase + i);
-      uAliquots.add(new TSVSampleBean(ID, project + "E5", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-          "plasma aliquot #" + i, new ArrayList<String>(Arrays.asList(plasmaID)),
-          (HashMap<String, Object>) metadata.clone()));
-      
-      // small molecules - one for each for now TODO what letter?
-      metadata.remove("Q_PRIMARY_TISSUE");
-      for (int j = 1; j < 2; j++) {
-        String suffix = i + ":SM";
-        String molID = counter.getNewBarcode();
-        metadata.put("Q_EXTERNALDB_ID", plasmaExtIDBase + suffix);
-        metadata.put("Q_SAMPLE_TYPE", "SMALLMOLECULES");
-        molecules.add(new TSVSampleBean(molID, project + "E13", project, mccSpace, "Q_TEST_SAMPLE",
-            "plasma #" + i+" molecules", new ArrayList<String>(Arrays.asList(ID)),
-            (HashMap<String, Object>) metadata.clone()));
+        String extIDBase = patientExtID + ":" + timepoint + ":";
+
+        String urineExtIDBase = extIDBase + "U";
+        // TODO
+        // metadata.put("XML_FACTORS",
+        // "treatment: " + treatInput + "; week: evaluation #" + timepoint);
+        // metadata.put("Q_PRIMARY_TISSUE", "URINE");
+        // metadata.put("Q_EXTERNALDB_ID", urineExtIDBase + "0");
+        String urineID = counter.getNewBarcode();
+        urine.add(createSample(urineID, "E2", t2, "urine sample", urineExtIDBase + "0", "URINE",
+            patientIDs));
+        for (int i = 1; i < 5; i++) {
+          String ID = counter.getNewBarcode();
+          uAliquots.add(createSample(ID, "E3", t2, "urine aliquot #" + i, urineExtIDBase + i,
+              "URINE", new ArrayList<String>(Arrays.asList(urineID))));
+
+          // small molecules
+          for (int j = 1; j < 2; j++) {
+            String suffix = i + ":SM";
+            String molID = counter.getNewBarcode();
+            molecules.add(createSample(molID, "E12", t3, "urine #" + i + " molecules",
+                urineExtIDBase + suffix, "SMALLMOLECULES",
+                new ArrayList<String>(Arrays.asList(ID))));
+          }
+        }
+
+        String plasmaExtIDBase = extIDBase + "P";
+        String plasmaID = counter.getNewBarcode();// parent
+        plasma.add(createSample(plasmaID, "E4", t2, "plasma sample", plasmaExtIDBase + "0",
+            "BLOOD_PLASMA", patientIDs));
+
+        for (int i = 1; i < 5; i++) {
+          String ID = counter.getNewBarcode();
+          pAliquots.add(createSample(ID, "E5", t2, "plasma aliquot #" + i, plasmaExtIDBase + i,
+              "BLOOD_PLASMA", new ArrayList<String>(Arrays.asList(plasmaID))));
+
+          // small molecules
+          for (int j = 1; j < 2; j++) {
+            String suffix = i + ":SM";
+            String molID = counter.getNewBarcode();
+            molecules.add(createSample(molID, "E13", t3, "plasma #" + i + " molecules",
+                plasmaExtIDBase + suffix, "SMALLMOLECULES",
+                new ArrayList<String>(Arrays.asList(ID))));
+          }
+        }
+
+
+        String serumExtIDBase = extIDBase + "S";
+        String serumID = counter.getNewBarcode();// parent
+        serum.add(createSample(serumID, "E6", t2, "serum sample", serumExtIDBase + "0",
+            "BLOOD_SERUM", patientIDs));
+
+        for (int i = 1; i < 5; i++) {
+          String ID = counter.getNewBarcode();
+          sAliquots.add(createSample(ID, "E7", t2, "serum aliquot #" + i, serumExtIDBase + i,
+              "BLOOD_SERUM", new ArrayList<String>(Arrays.asList(serumID))));
+
+          // small molecules
+          for (int j = 1; j < 2; j++) {
+            String suffix = i + ":SM";
+            String molID = counter.getNewBarcode();
+            molecules.add(createSample(molID, "E14", t3, "serum #" + i + " molecules",
+                serumExtIDBase + suffix, "SMALLMOLECULES",
+                new ArrayList<String>(Arrays.asList(ID))));
+          }
+        }
+
+        // TODO
+        // String imagingExtBase = extIDBase + "I";
+        // for (int i = 1; i < 2; i++) {
+        // String ID = counter.getNewBarcode();
+        // List<String> parentID = new ArrayList<>(Arrays.asList(ID));
+        // metadata.put("Q_EXTERNALDB_ID", imagingExtBase + i);
+        // metadata.put("Q_PRIMARY_TISSUE", "HEPATOCELLULAR_CARCINOMA");// TODO huh?
+        // liver.add(new TSVSampleBean(ID, project + "E8", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
+        // "imaging", patientIDs, (HashMap<String, Object>) metadata.clone()));
+        // }
+        String bloodExtBase = extIDBase + "B";
+        for (int i = 1; i < 3; i++) {
+
+          String ID = counter.getNewBarcode();
+          blood.add(createSample(ID, "E9", t2, "blood sample #" + i, bloodExtBase + i,
+              "WHOLE_BLOOD", patientIDs));
+          List<String> parentID = new ArrayList<>(Arrays.asList(ID));
+          // DNA and cfDNA molecules
+          String cfID = counter.getNewBarcode();
+          cfDNA.add(createSample(cfID, "E14", t3, "blood #" + i + " cfDNA",
+              bloodExtBase + i + ":cfDNA", "CF_DNA", parentID));
+          String dnaID = counter.getNewBarcode();
+          DNA.add(createSample(dnaID, "E15", t3, "blood #" + i + " DNA", bloodExtBase + i + ":DNA",
+              "DNA", parentID));
+        }
+
+        if (timepoint.equals("W00") || timepoint.equals("WXX")) {
+          String tumorExtBase = extIDBase + "T";
+          for (int i = 1; i < 5; i++) {
+            String ID = counter.getNewBarcode();
+            tumor.add(createSample(ID, "E10", t2, "tumor biopsy #" + i, tumorExtBase + i,
+                "HEPATOCELLULAR_CARCINOMA", patientIDs));
+            List<String> parentID = new ArrayList<>(Arrays.asList(ID));
+            // DNA and RNA molecules
+            String rnaID = counter.getNewBarcode();
+            RNA.add(createSample(rnaID, "E16", t3, "tumor #" + i + " RNA", tumorExtBase + i + ":RNA",
+                "RNA", parentID));
+            String dnaID = counter.getNewBarcode();
+            DNA.add(createSample(dnaID, "E17", t3, "tumor #" + i + " DNA", tumorExtBase + i + ":DNA",
+                "DNA", parentID));
+
+            // metadata.put("Q_EXTERNALDB_ID", tumorExtBase + i);
+            // metadata.put("Q_PRIMARY_TISSUE", "HEPATOCELLULAR_CARCINOMA");
+            // liver.add(
+            // new TSVSampleBean(ID, project + "E10", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
+            // "tumor biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
+          }
+          String liverExtBase = extIDBase + "L";
+          for (int i = 1; i < 3; i++) {
+
+            String ID = counter.getNewBarcode();
+            liver.add(createSample(ID, "E11", t2, "liver biopsy #" + i, liverExtBase + i, "LIVER",
+                patientIDs));
+            List<String> parentID = new ArrayList<>(Arrays.asList(ID));
+            // DNA and RNA molecules
+            String rnaID = counter.getNewBarcode();
+            RNA.add(createSample(rnaID, "E16", t3, "liver #" + i + " RNA", liverExtBase + i + ":RNA",
+                "RNA", parentID));
+            String dnaID = counter.getNewBarcode();
+            DNA.add(createSample(dnaID, "E17", t3, "liver #" + i + " DNA", liverExtBase + i + ":DNA",
+                "DNA", parentID));
+
+            // String ID = counter.getNewBarcode();
+            // List<String> parentID = new ArrayList<>(Arrays.asList(ID));
+            // metadata.put("Q_EXTERNALDB_ID", liverExtBase + i);
+            // metadata.put("Q_PRIMARY_TISSUE", "LIVER");
+            // liver.add(
+            // new TSVSampleBean(ID, project + "E11", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
+            // "liver biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
+          }
+        }
       }
-      metadata.remove("Q_SAMPLE_TYPE");
     }
-
-    String serumExtIDBase = extIDBase + "S";
-    metadata = new HashMap<String, Object>();
-    // TODO
-    metadata.put("XML_FACTORS", "treatment: " + treatment + "; week: evaluation #" + timepoint);
-    metadata.put("Q_PRIMARY_TISSUE", "BLOOD_SERUM");
-    metadata.put("Q_EXTERNALDB_ID", serumExtIDBase + "0");
-    String serumID = counter.getNewBarcode();// parent
-    plasma.add(new TSVSampleBean(serumID, project + "E6", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-        "serum sample", patientIDs, (HashMap<String, Object>) metadata.clone()));
-    for (int i = 1; i < 5; i++) {
-      metadata.put("Q_PRIMARY_TISSUE", "BLOOD_SERUM");
-      String ID = counter.getNewBarcode();
-      metadata.put("Q_EXTERNALDB_ID", serumExtIDBase + i);
-      uAliquots.add(new TSVSampleBean(ID, project + "E7", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-          "serum aliquot #" + i, new ArrayList<String>(Arrays.asList(serumID)),
-          (HashMap<String, Object>) metadata.clone()));
-
-      // small molecules - one for each for now TODO what letter?
-      metadata.remove("Q_PRIMARY_TISSUE");
-      for (int j = 1; j < 2; j++) {
-        String suffix = i + ":SM";
-        String molID = counter.getNewBarcode();
-        metadata.put("Q_EXTERNALDB_ID", serumExtIDBase + suffix);
-        metadata.put("Q_SAMPLE_TYPE", "SMALLMOLECULES");
-        molecules.add(new TSVSampleBean(molID, project + "E14", project, mccSpace, "Q_TEST_SAMPLE",
-            "serum #" + i+" molecules", new ArrayList<String>(Arrays.asList(ID)),
-            (HashMap<String, Object>) metadata.clone()));
-      }
-      metadata.remove("Q_SAMPLE_TYPE");
-    }
-
-    String imagingExtBase = extIDBase + "I";
-    for (int i = 1; i < 2; i++) {
-      String ID = counter.getNewBarcode();
-      List<String> parentID = new ArrayList<>(Arrays.asList(ID));
-      metadata.put("Q_EXTERNALDB_ID", imagingExtBase + i);
-      metadata.put("Q_PRIMARY_TISSUE", "HEPATOCELLULAR_CARCINOMA");// TODO huh?
-      liver.add(new TSVSampleBean(ID, project + "E8", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-          "imaging", patientIDs, (HashMap<String, Object>) metadata.clone()));
-    }
-    String bloodExtBase = extIDBase + "B";
-    for (int i = 1; i < 3; i++) {
-      String ID = counter.getNewBarcode();
-      List<String> parentID = new ArrayList<>(Arrays.asList(ID));
-      metadata.put("Q_EXTERNALDB_ID", bloodExtBase + i);
-      metadata.put("Q_PRIMARY_TISSUE", "WHOLE_BLOOD");
-      liver.add(new TSVSampleBean(ID, project + "E9", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-          "blood sample #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
-    }
-    String tumorExtBase = extIDBase + "T";
-    for (int i = 1; i < 5; i++) {
-      String ID = counter.getNewBarcode();
-      List<String> parentID = new ArrayList<>(Arrays.asList(ID));
-      metadata.put("Q_EXTERNALDB_ID", tumorExtBase + i);
-      metadata.put("Q_PRIMARY_TISSUE", "HEPATOCELLULAR_CARCINOMA");
-      liver.add(new TSVSampleBean(ID, project + "E10", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-          "tumor biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
-    }
-    String liverExtBase = extIDBase + "L";
-    for (int i = 1; i < 3; i++) {
-      String ID = counter.getNewBarcode();
-      List<String> parentID = new ArrayList<>(Arrays.asList(ID));
-      metadata.put("Q_EXTERNALDB_ID", liverExtBase + i);
-      metadata.put("Q_PRIMARY_TISSUE", "LIVER");
-      liver.add(new TSVSampleBean(ID, project + "E11", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-          "liver biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
-    }
-    List<List<ISampleBean>> dummy = new ArrayList<List<ISampleBean>>(
-        Arrays.asList(patients, urine, uAliquots, plasma, pAliquots, molecules, liver));
-    for (List<ISampleBean> l : dummy)
-      if (l.size() > 0)
+    List<List<ISampleBean>> dummy =
+        new ArrayList<List<ISampleBean>>(Arrays.asList(patients, urine, uAliquots, plasma,
+            pAliquots, serum, sAliquots, molecules, blood, tumor, liver, DNA, cfDNA, RNA));
+    for (List<ISampleBean> l : dummy) {
+      System.out.println(l);
+      System.out.println();
+      if (l.size() > 0) {
         res.add(l);
+      }
+    }
+    return res;
+  }
+
+  private List<Integer> listNewPatients(int numNewPatients) {
+    List<Integer> res = new ArrayList<>();
+
+    int id = 101;
+    String patient = "S" + id;
+    while (cases.contains(patient)) {
+      id++;
+      patient = "S" + id;
+    }
+    for (int i = 0; i < numNewPatients; i++) {
+      res.add(id);
+      id++;
+    }
+
     return res;
   }
 

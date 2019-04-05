@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.adminviews.MCCView;
+import life.qbic.projectwizard.adminviews.MCCViewNew;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.portal.Styles;
@@ -55,7 +56,7 @@ public class AdminView extends VerticalLayout {
   private TextArea users;
   private Button createSpace;
   // mcc patients
-  private MCCView addMultiScale;
+  private MCCViewNew addMultiScale;
   private ExperimentalDesignConversionView conversionView;
 
   // edit data
@@ -100,7 +101,7 @@ public class AdminView extends VerticalLayout {
     // tabs.addTab(metadataUpload, "Update Metadata");
 
     // MULTISCALE
-    addMultiScale = new MCCView(openbis, creationController, user);
+    addMultiScale = new MCCViewNew(openbis, creationController, user);
     addMultiScale.setSpacing(true);
     addMultiScale.setMargin(true);   
 
