@@ -75,7 +75,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
   private boolean isAdmin = false;
 
   @Override
-  protected Layout getPortletContent(final VaadinRequest request) {
+  protected Layout getPortletContent(final VaadinRequest request) {    
     tabs.addStyleName(ValoTheme.TABSHEET_FRAMED);
     final VerticalLayout layout = new VerticalLayout();
 
