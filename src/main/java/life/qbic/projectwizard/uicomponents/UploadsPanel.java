@@ -39,6 +39,7 @@ import life.qbic.projectwizard.processes.MoveUploadsReadyRunnable;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
+import life.qbic.portal.portlet.ProjectWizardUI;
 
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.VerticalLayout;
@@ -69,13 +70,11 @@ public class UploadsPanel extends VerticalLayout {
   private ProgressBar bar;
 
   private String userID;
-  private String tmpFolder;
-  
-  public UploadsPanel(String tmpFolder, String space, String project, List<String> expOptions,
-      String userID, AttachmentConfig attachConfig, OpenBisClient openbis) {
-    this.openbisCreator = new OpenbisCreationController(openbis);
+
+  public UploadsPanel(String space, String project, List<String> expOptions, String userID,
+      AttachmentConfig attachConfig, OpenBisClient openbis, OpenbisCreationController creator) {
     this.openbis = openbis;
-    this.tmpFolder = tmpFolder;
+    this.openbisCreator = creator;
     this.userID = userID;
     this.space = space;
     this.project = project;
@@ -112,7 +111,7 @@ public class UploadsPanel extends VerticalLayout {
 
     final UploadsPanel view = this;
 
-    final AttachmentMover mover = new AttachmentMover(tmpFolder, attachConfig);
+    final AttachmentMover mover = new AttachmentMover(ProjectWizardUI.tmpFolder, attachConfig);
     commit.addClickListener(new ClickListener() {
 
       @Override
@@ -164,9 +163,10 @@ public class UploadsPanel extends VerticalLayout {
   }
 
   private void initUpload(int maxSize) {
-    upload = new UploadComponent("Select File", "Add File", tmpFolder, userID, maxSize * 1000000);
-    if (!new File(tmpFolder).exists()) {
-      logger.error("tmp folder " + tmpFolder
+    String tmp = ProjectWizardUI.tmpFolder;
+    upload = new UploadComponent("Select File", "Add File", tmp, userID, maxSize * 1000000);
+    if (!new File(tmp).exists()) {
+      logger.error("tmp folder " + tmp
           + " does not exist! Create it or set another folder in properties file.");
     }
 
@@ -264,8 +264,8 @@ public class UploadsPanel extends VerticalLayout {
     String experiment = project + "_INFO";
     if (!openbis.sampleExists(sample)) {
       if (!openbis.expExists(space, project, experiment)) {
-        openbisCreator.registerExperiment(space, project, ExperimentType.Q_PROJECT_DETAILS, experiment,
-            new HashMap<String, Object>(), userID);
+        openbisCreator.registerExperimentV3(space, project, ExperimentType.Q_PROJECT_DETAILS,
+            experiment, new HashMap<String, Object>());
         while (!openbis.expExists(space, project, experiment))
           try {
             Thread.sleep(100);
@@ -276,7 +276,7 @@ public class UploadsPanel extends VerticalLayout {
       List<ISampleBean> samples = new ArrayList<ISampleBean>();
       samples.add(new TSVSampleBean(sample, experiment, project, space, "Q_ATTACHMENT_SAMPLE", "",
           new ArrayList<String>(), new HashMap<String, Object>()));
-      openbisCreator.registerSampleBatchInETL(samples, userID);
+      openbisCreator.registerSampleBatchV3(samples);
       double timeoutS = 10.0;
       while (!openbis.sampleExists(sample))
         if (timeoutS <= 0) {

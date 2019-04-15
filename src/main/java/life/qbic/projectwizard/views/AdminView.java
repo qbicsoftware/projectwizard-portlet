@@ -107,7 +107,7 @@ public class AdminView extends VerticalLayout {
     tabs.addTab(addMultiScale, "Add Multiscale Samples");
     
     // Convert Projects to new experimental design
-    conversionView = new ExperimentalDesignConversionView(openbis);
+    conversionView = new ExperimentalDesignConversionView(openbis, registrator);
     tabs.addTab(conversionView, "Project Migration");
 
 //     tabs.addTab(new PrototypeView(), "Prototypes");
@@ -135,7 +135,7 @@ public class AdminView extends VerticalLayout {
                 new HashMap<OpenbisSpaceUserRole, ArrayList<String>>();
             if (getUsers().size() > 0)
               roleInfos.put(OpenbisSpaceUserRole.USER, getUsers());
-            registrator.registerSpace(space, roleInfos, user);
+            registrator.registerSpaceV3(space, "test description");//TODO
             // wait few seconds, then check for a maximum of timeout seconds, if space was created
             int timeout = 5;
             int wait = 2;

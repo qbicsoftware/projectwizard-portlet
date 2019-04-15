@@ -69,7 +69,6 @@ import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.samples.AOpenbisSample;
 import life.qbic.datamodel.samples.ISampleBean;
-import life.qbic.datamodel.samples.SampleType;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.ParserHelpers;
 import life.qbic.expdesign.SamplePreparator;
@@ -127,6 +126,7 @@ public class WizardController implements IRegistrationController {
   /**
    * 
    * @param openbis OpenBisClient API
+   * @param creationController 
    * @param dbm
    * @param taxMap Map containing the NCBI taxonomy (labels and ids) taken from openBIS
    * @param tissueMap Map containing the tissue
@@ -135,11 +135,11 @@ public class WizardController implements IRegistrationController {
    * @param dataMoverFolder for attachment upload
    * @param uploadSize
    */
-  public WizardController(IOpenBisClient openbis, DBManager dbm, Vocabularies vocabularies,
+  public WizardController(IOpenBisClient openbis, OpenbisCreationController creationController, DBManager dbm, Vocabularies vocabularies,
       AttachmentConfig attachmentConfig) {
     this.openbis = openbis;
     this.dbm = dbm;
-    this.openbisCreator = new OpenbisCreationController(openbis);// wont work if openbis is down
+    this.openbisCreator = creationController;
     this.vocabularies = vocabularies;
     this.attachConfig = attachmentConfig;
     this.designExperimentTypes = vocabularies.getExperimentTypes();
@@ -305,7 +305,7 @@ public class WizardController implements IRegistrationController {
     final SummaryRegisterStep regStep = new SummaryRegisterStep();
     final PoolingStep poolStep1 = new PoolingStep(Steps.Extract_Pooling);
     final PoolingStep poolStep2 = new PoolingStep(Steps.Test_Sample_Pooling);
-    final FinishStep finishStep = new FinishStep(w, attachConfig);
+    final FinishStep finishStep = new FinishStep(w, attachConfig, openbisCreator);
 
     final MSAnalyteStep protFracStep = new MSAnalyteStep(vocabularies, "PROTEINS");
     final MSAnalyteStep pepFracStep = new MSAnalyteStep(vocabularies, "PEPTIDES");
@@ -489,7 +489,7 @@ public class WizardController implements IRegistrationController {
             informativeExperiments.add(
                 new OpenbisExperiment(project + "_INFO", ExperimentType.Q_PROJECT_DETAILS, props));
           }
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, desc,
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWiseV3(samples, desc,
               informativeExperiments, regStep.getProgressBar(), regStep.getProgressLabel(),
               new RegisteredSamplesReadyRunnable(regStep, control), user, entitiesToUpdate, pilot);
           w.addStep(steps.get(Steps.Finish));
@@ -1094,8 +1094,8 @@ public class WizardController implements IRegistrationController {
             }
           }
           String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, proj);
-          finishStep.setExperimentInfos(space, proj, designExpID, p.getDescription(),
-              samplesByExperiment, openbis);
+//          finishStep.setExperimentInfos(space, proj, designExpID, p.getDescription(),TODO REMOVE
+//              samplesByExperiment, openbis);
         }
       }
 
@@ -1328,7 +1328,7 @@ public class WizardController implements IRegistrationController {
     String code = context.getProjectCode();
     boolean success = false;
     try {
-      success = openbisCreator.setupEmptyProject(space, code, desc, user);
+      success = openbisCreator.setupEmptyProjectV3(space, code, desc);
     } catch (JAXBException e1) {
       // TODO Auto-generated catch block
       e1.printStackTrace();

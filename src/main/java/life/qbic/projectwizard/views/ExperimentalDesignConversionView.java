@@ -54,9 +54,11 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
   private Button convert = new Button("Convert");
   private ProgressBar bar = new ProgressBar();
   private Label info = new Label();
+  private OpenbisCreationController creator;
 
-  public ExperimentalDesignConversionView(IOpenBisClient openbis) {
+  public ExperimentalDesignConversionView(IOpenBisClient openbis, OpenbisCreationController creator) {
     this.openbis = openbis;
+    this.creator = creator;
     spaceToProjects = new HashMap<>();
     projectInfoExpsWithDesignXML = new HashSet<>();
 
@@ -231,7 +233,6 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
       throws IllegalArgumentException, JAXBException, InterruptedException {
     Set<String> types = new HashSet<>(Arrays.asList("Q_BIOLOGICAL_SAMPLE", "Q_BIOLOGICAL_ENTITY",
         "Q_TEST_SAMPLE", "Q_MHC_LIGAND_EXTRACT"));
-    OpenbisCreationController creator = new OpenbisCreationController(openbis);
     Map<String, Map<Pair<String, String>, List<String>>> expDesign = new HashMap<>();
     Map<String, List<Qproperty>> otherProps = new HashMap<>();
     String TARGET_EXPERIMENT = ExperimentCodeFunctions.getInfoExperimentID(space, project);
@@ -312,12 +313,12 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     props.put("Q_EXPERIMENTAL_SETUP", xml);
     if (!exists) {
       logger.info("creating new experiment");
-      creator.registerExperiment(space, project, ExperimentType.Q_PROJECT_DETAILS,
-          project + "_INFO", props, "iisfr01");
+      creator.registerExperimentV3(space, project, ExperimentType.Q_PROJECT_DETAILS,
+          project + "_INFO", props);
     } else {
       logger.info("updating existing experiment");
       HashMap<String, Object> params = new HashMap<>();
-      params.put("user", "iisfr01");
+//      params.put("user", "iisfr01");
       params.put("identifier", TARGET_EXPERIMENT);
       params.put("properties", props);
       creator.openbisGenericIngest("update-experiment-metadata", params);

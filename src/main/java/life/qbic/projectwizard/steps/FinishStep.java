@@ -57,6 +57,7 @@ import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
 import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.processes.TSVReadyRunnable;
+import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.registration.UpdateProgressBar;
 import life.qbic.projectwizard.uicomponents.UploadsPanel;
 import life.qbic.xml.manager.StudyXMLParser;
@@ -90,10 +91,12 @@ public class FinishStep implements WizardStep {
 
   private static final Logger logger = LogManager.getLogger(FinishStep.class);
   private List<FileDownloader> downloaders = new ArrayList<FileDownloader>();
+  private OpenbisCreationController creator;
 
-  public FinishStep(final Wizard w, AttachmentConfig attachmentConfig) {
+  public FinishStep(final Wizard w, AttachmentConfig attachmentConfig, OpenbisCreationController creator) {
     this.w = w;
     this.attachConfig = attachmentConfig;
+    this.creator = creator;
 
     main = new VerticalLayout();
     main.setMargin(true);
@@ -247,13 +250,13 @@ public class FinishStep implements WizardStep {
         }
         logger.debug("designexpID " + designExpID);
         //List<Experiment> exps = openbis.getExperimentById2(designExpID);
-        Experiment exp = openbis.getExperimentById(designExpID);
+//        Experiment exp = openbis.getExperimentById(designExpID); TODO remove
         StudyXMLParser parser = new StudyXMLParser();
         Set<String> factors = new HashSet<>();
         Map<Pair<String, String>, Property> factorsForLabelsAndSamples = new HashMap<>();
 
 //        if (!exps.isEmpty()) {
-          String xml = exp.getProperties().get("Q_EXPERIMENTAL_SETUP");
+          String xml = "";//exp.getProperties().get("Q_EXPERIMENTAL_SETUP"); TODO remove
           try {
             JAXBElement<Qexperiment> expDesign = parser.parseXMLString(xml);
             factors.addAll(parser.getFactorLabels(expDesign));
@@ -314,9 +317,9 @@ public class FinishStep implements WizardStep {
         logger.error("Could not contact Liferay for User screen name.");
       }
 
-    this.uploads = new UploadsPanel(ProjectWizardUI.tmpFolder, space, project,
+    this.uploads = new UploadsPanel(space, project,
         new ArrayList<String>(Arrays.asList("Experimental Design")), userID, attachConfig,
-        (OpenBisClient) openbis);// TODO this cast is not safe in dev mode when openbis is down
+        (OpenBisClient) openbis, creator);// TODO this cast is not safe in dev mode when openbis is down
     this.uploads.setVisible(false);
     main.addComponent(uploads);
   }

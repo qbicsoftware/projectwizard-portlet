@@ -322,7 +322,10 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
         }
         logger.debug("exps " + infoExperiments);
         logger.debug("update " + entitiesToUpdate);
-        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
+//        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
+//            registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
+//            entitiesToUpdate, false);
+        creator.registerProjectWithExperimentsAndSamplesBatchWiseV3(samps, null, infoExperiments, bar,
             registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
             entitiesToUpdate, false);
       }

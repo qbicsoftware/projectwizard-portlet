@@ -394,7 +394,7 @@ public class ExperimentImportController implements IRegistrationController {
             complexExperiments
                 .add(new OpenbisExperiment(infoExpCode, ExperimentType.Q_PROJECT_DETAILS, props));
           }
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWiseV3(samples,
               projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
               view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control), user,
               entitiesToUpdate, projectInfo.isPilot());

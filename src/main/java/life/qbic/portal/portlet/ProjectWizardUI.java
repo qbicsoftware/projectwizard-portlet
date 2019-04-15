@@ -26,19 +26,14 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.themes.ValoTheme;
 
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.entitytype.id.EntityTypePermId;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentIdentifier;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.create.SampleCreation;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SamplePermId;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.id.SpacePermId;
+import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
+import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Button.ClickEvent;
 
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
@@ -102,7 +97,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
         LiferayIndependentConfigurationManager.Instance.init("local.properties");
         config = LiferayIndependentConfigurationManager.Instance;
         logger.warn("Checks for local dev version successful. User is granted admin status.");
-        userID = "admin";
+        userID = "iisfr01";
         isAdmin = true;
       } else {
         success = false;
@@ -166,44 +161,36 @@ public class ProjectWizardUI extends QBiCPortletUI {
           peopleMap, expTypes, enzymeMap, antibodiesWithLabels, deviceMap, msProtocols, lcmsMethods,
           chromTypes, fractionationTypes, enrichmentTypes, purificationMethods);
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
-      // initView(dbm, vocabs, userID);
-      Button create = new Button("Create Everything");
-      layout.addComponent(create);
-      create.addClickListener(new Button.ClickListener() {
-
-        @Override
-        public void buttonClick(ClickEvent event) {
-          // we assume here that v3 object has been already created and we have already called login
-          // (please check "Accessing the API" section for more details)
-
-          SampleCreation sample = new SampleCreation();
-          sample.setTypeId(new EntityTypePermId("MY_SAMPLE_TYPE_CODE"));
-          sample.setSpaceId(new SpacePermId("MY_SPACE_CODE"));
-          sample.setExperimentId(
-              new ExperimentIdentifier("/MY_SPACE_CODE/MY_PROJECT_CODE/MY_EXPERIMENT_CODE"));
-          sample.setCode("MY_SAMPLE_CODE");
-
-          // you can also pass more than one creation object to create multiple entities at once
-
-          List<SamplePermId> permIds =
-              openbis.getV3().createSamples(openbis.getSessionToken(), Arrays.asList(sample));
-          System.out.println("Perm ids: " + permIds);
-        }
-      });
-
-
-
-      // layout.addComponent(tabs);
+      initView(dbm, vocabs, userID);
+      layout.addComponent(tabs);
     }
     return layout;
   }
 
   private void initView(final DBManager dbm, final Vocabularies vocabularies, final String user) {
     tabs.removeAllComponents();
+    
+    
+    final String URL =
+        config.getDataSourceUrl() + "/openbis/openbis/" + IApplicationServerApi.SERVICE_URL;
+    System.out.println(URL);
+    final int TIMEOUT = 10000;
+    IApplicationServerApi v3 =
+        HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, URL, TIMEOUT);
+    String sessionToken =
+        v3.loginAs(config.getDataSourceUser(), config.getDataSourcePassword(), user);
+    OpenbisCreationController creationController =
+        new OpenbisCreationController(openbis, v3, sessionToken);// will
+    // not
+    // work
+    // when
+    // openbis
+    // is down
+    
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
-    WizardController c = new WizardController(openbis, dbm, vocabularies, attachConfig);
+    WizardController c = new WizardController(openbis, creationController, dbm, vocabularies, attachConfig);
     c.init(user);
     Wizard w = c.getWizard();
     WizardProgressListener wl = new WizardProgressListener() {
@@ -236,12 +223,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
 
-    OpenbisCreationController creationController = new OpenbisCreationController(openbis);// will
-                                                                                          // not
-                                                                                          // work
-                                                                                          // when
-                                                                                          // openbis
-                                                                                          // is down
     ExperimentImportController uc =
         new ExperimentImportController(creationController, vocabularies, openbis, dbm);
     uc.init(user, config.getISAConfigPath());

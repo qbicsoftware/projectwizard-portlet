@@ -83,8 +83,12 @@ import com.vaadin.ui.Upload.FinishedListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+//import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+//import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
 
 import com.vaadin.ui.Upload.FinishedEvent;
 
@@ -404,7 +408,7 @@ public class MetadataUploadView extends VerticalLayout {
   private void findAndSetDesignExperiment(String space, String project) throws JAXBException {
     designExperiment = null;
     String id = ExperimentCodeFunctions.getInfoExperimentID(space, project);
-    List<Experiment> exps = openbis.getExperimentById2(id);
+    List<Experiment> exps = null;//openbis.getExperimentById2(id); TODO REMOVE
     if (exps.isEmpty()) {
       designExperiment = null;
       logger.error("could not find info experiment for project" + project);
