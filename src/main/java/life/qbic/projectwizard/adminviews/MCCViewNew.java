@@ -83,6 +83,7 @@ public class MCCViewNew extends VerticalLayout
   private IOpenBisClient openbis;
   private OpenbisCreationController creator;
   // private XMLParser p = new XMLParser();
+  private List<OpenbisExperiment> infoExperiments;
   final private StudyXMLParser xmlParser = new StudyXMLParser();
   private Experiment designExperiment;
   private JAXBElement<Qexperiment> expDesign;
@@ -293,7 +294,6 @@ public class MCCViewNew extends VerticalLayout
         Map<String, Map<String, Object>> entitiesToUpdate =
             new HashMap<String, Map<String, Object>>();
 
-        List<OpenbisExperiment> infoExperiments = new ArrayList<>();
         if (designExperiment != null) {
           entitiesToUpdate.put(designExperiment.getCode(), ParserHelpers.getExperimentalDesignMap(
               designExperiment.getProperties(), newDesign, techTypes, new HashSet<>()));
@@ -409,18 +409,20 @@ public class MCCViewNew extends VerticalLayout
     existingPatients.sort(new Object[] {"ID", "week"}, new boolean[] {true});
   }
 
-  private TSVSampleBean createSample(String code, String expSuffix, SampleType type,
-      String secondary, String extID, String bioType, List<String> parentIDs) {
+  private TSVSampleBean createSample(String code, String expSuffix, SampleType sType,
+      String secondary, String extID, String type, List<String> parentIDs) {
     Map<String, Object> metadata = new HashMap<>();
-    switch (type) {
+    switch (sType) {
       case Q_BIOLOGICAL_ENTITY:
-        metadata.put("Q_NCBI_ORGANISM", bioType);
+        metadata.put("Q_NCBI_ORGANISM", type);
         break;
       case Q_BIOLOGICAL_SAMPLE:
-        metadata.put("Q_PRIMARY_TISSUE", bioType);
+        metadata.put("Q_PRIMARY_TISSUE", type);
         break;
       case Q_TEST_SAMPLE:
-        metadata.put("Q_SAMPLE_TYPE", bioType);
+        metadata.put("Q_SAMPLE_TYPE", type);
+        break;
+      case Q_BMI_GENERIC_IMAGING_RUN:
         break;
       default:
         break;
@@ -443,6 +445,8 @@ public class MCCViewNew extends VerticalLayout
     int numNewPatients = Integer.parseInt(patientInput);
     List<List<ISampleBean>> res = new ArrayList<List<ISampleBean>>();
     List<ISampleBean> patients = new ArrayList<ISampleBean>();
+
+    List<ISampleBean> imaging = new ArrayList<ISampleBean>();
 
     List<ISampleBean> urine = new ArrayList<ISampleBean>();
     List<ISampleBean> uAliquots = new ArrayList<ISampleBean>();
@@ -469,6 +473,25 @@ public class MCCViewNew extends VerticalLayout
       project = newProject.getValue();
 
     String prefix = treatInput.substring(0, 1).toUpperCase();
+
+    ExperimentType imExp = ExperimentType.Q_BMI_GENERIC_IMAGING;
+
+    // TODO
+    Map<String, Object> mrProps = new HashMap<>();
+    mrProps.put("Q_BMI_MODALITY", "MR");
+    Map<String, Object> elastProps = new HashMap<>();
+    elastProps.put("Q_BMI_MODALITY", "MR-ELASTOGRAPHY");
+    Map<String, Object> ctPerfProps = new HashMap<>();
+    ctPerfProps.put("Q_BMI_MODALITY", "CT-PERFUSION");
+    Map<String, Object> ctPuncProps = new HashMap<>();
+    ctPuncProps.put("Q_BMI_MODALITY", "CT-BIOPSY");
+    OpenbisExperiment MR = new OpenbisExperiment(project + "E8", imExp, mrProps);
+    OpenbisExperiment elast = new OpenbisExperiment(project + "E9", imExp, elastProps);
+    OpenbisExperiment ctPerf = new OpenbisExperiment(project + "E10", imExp, ctPerfProps);
+    OpenbisExperiment ctPunc = new OpenbisExperiment(project + "E11", imExp, ctPuncProps);
+
+    infoExperiments = new ArrayList<>(Arrays.asList(MR, elast, ctPerf, ctPunc));
+
     List<String> allPatients = new ArrayList<>();
     for (int newPatient : listNewPatients(numNewPatients, prefix)) {
       String patientID = project + "ENTITY-" + newPatient;// new parent
@@ -509,7 +532,7 @@ public class MCCViewNew extends VerticalLayout
           for (int j = 1; j < 2; j++) {
             String suffix = i + ":SM";
             String molID = counter.getNewBarcode();
-            molecules.add(createSample(molID, "E12", t3, "urine #" + i + " molecules",
+            molecules.add(createSample(molID, "E15", t3, "urine #" + i + " molecules",
                 urineExtIDBase + suffix, "SMALLMOLECULES",
                 new ArrayList<String>(Arrays.asList(ID))));
             sampleIDsThisWeek.add(molID);
@@ -530,7 +553,7 @@ public class MCCViewNew extends VerticalLayout
           for (int j = 1; j < 2; j++) {
             String suffix = i + ":SM";
             String molID = counter.getNewBarcode();
-            molecules.add(createSample(molID, "E13", t3, "plasma #" + i + " molecules",
+            molecules.add(createSample(molID, "E16", t3, "plasma #" + i + " molecules",
                 plasmaExtIDBase + suffix, "SMALLMOLECULES",
                 new ArrayList<String>(Arrays.asList(ID))));
             sampleIDsThisWeek.add(molID);
@@ -558,32 +581,46 @@ public class MCCViewNew extends VerticalLayout
           }
         }
 
-        // TODO
-        // String imagingExt = extIDBase + "I1";
-        // String ID = counter.getNewBarcode();
-        // List<String> parentID = new ArrayList<>(Arrays.asList(ID));
-        // metadata.put("Q_EXTERNALDB_ID", imagingExt);
-        // metadata.put("Q_PRIMARY_TISSUE", "");// TODO huh?
-
-        // createSample(ID, "E8", t2, "imaging", imagingExt, "?", patientIDs);
-
-        // liver.add(new TSVSampleBean(ID, project + "E8", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-        // "imaging", patientIDs, (HashMap<String, Object>) metadata.clone()));
+        // IMAGING TODO
+        // mrProps.put("Q_BMI_MODALITY", "MR");
+        // elastProps.put("Q_BMI_MODALITY", "MR-ELASTOGRAPHY");
+        // ctPerfProps.put("Q_BMI_MODALITY", "CT-PERFUSION");
+        // ctPuncProps.put("Q_BMI_MODALITY", "CT-BIOPSY");
+        String imagingExt = extIDBase;
+        String imaID = counter.getNewBarcode();
+        imaging
+            .add(createSample(imaID, MR.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+                "MR imaging", imagingExt + "I1", "N/A", patientIDs));
+        sampleIDsThisWeek.add(imaID);
+        imaID = counter.getNewBarcode();
+        imaging.add(
+            createSample(imaID, elast.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+                "MR Elastography", imagingExt + "I2", "N/A", patientIDs));
+        sampleIDsThisWeek.add(imaID);
+        imaID = counter.getNewBarcode();
+        imaging.add(
+            createSample(imaID, ctPerf.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+                "CT perfusion", imagingExt + "I3", "N/A", patientIDs));
+        sampleIDsThisWeek.add(imaID);
+        imaID = counter.getNewBarcode();
+        imaging.add(
+            createSample(imaID, ctPunc.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+                "CT punction", imagingExt + "I4", "N/A", patientIDs));
+        sampleIDsThisWeek.add(imaID);
 
         String bloodExtBase = extIDBase + "B";
         for (int i = 1; i < 3; i++) {
-
           String ID = counter.getNewBarcode();
-          blood.add(createSample(ID, "E9", t2, "blood sample #" + i, bloodExtBase + i,
+          blood.add(createSample(ID, "E12", t2, "blood sample #" + i, bloodExtBase + i,
               "WHOLE_BLOOD", patientIDs));
           sampleIDsThisWeek.add(ID);
           List<String> parentID = new ArrayList<>(Arrays.asList(ID));
           // DNA and cfDNA molecules
           String cfID = counter.getNewBarcode();
-          cfDNA.add(createSample(cfID, "E14", t3, "blood #" + i + " cfDNA",
+          cfDNA.add(createSample(cfID, "E17", t3, "blood #" + i + " cfDNA",
               bloodExtBase + i + ":cfDNA", "CF_DNA", parentID));
           String dnaID = counter.getNewBarcode();
-          DNA.add(createSample(dnaID, "E15", t3, "blood #" + i + " DNA", bloodExtBase + i + ":DNA",
+          DNA.add(createSample(dnaID, "E18", t3, "blood #" + i + " DNA", bloodExtBase + i + ":DNA",
               "DNA", parentID));
           sampleIDsThisWeek.add(cfID);
           sampleIDsThisWeek.add(dnaID);
@@ -593,48 +630,36 @@ public class MCCViewNew extends VerticalLayout
           String tumorExtBase = extIDBase + "T";
           for (int i = 1; i < 5; i++) {
             String ID = counter.getNewBarcode();
-            tumor.add(createSample(ID, "E10", t2, "tumor biopsy #" + i, tumorExtBase + i,
+            tumor.add(createSample(ID, "E13", t2, "tumor biopsy #" + i, tumorExtBase + i,
                 "HEPATOCELLULAR_CARCINOMA", patientIDs));
             sampleIDsThisWeek.add(ID);
             List<String> parentID = new ArrayList<>(Arrays.asList(ID));
             // DNA and RNA molecules
             String rnaID = counter.getNewBarcode();
-            RNA.add(createSample(rnaID, "E16", t3, "tumor #" + i + " RNA",
+            RNA.add(createSample(rnaID, "E19", t3, "tumor #" + i + " RNA",
                 tumorExtBase + i + ":RNA", "RNA", parentID));
             String dnaID = counter.getNewBarcode();
-            DNA.add(createSample(dnaID, "E17", t3, "tumor #" + i + " DNA",
+            DNA.add(createSample(dnaID, "E20", t3, "tumor #" + i + " DNA",
                 tumorExtBase + i + ":DNA", "DNA", parentID));
             sampleIDsThisWeek.add(rnaID);
             sampleIDsThisWeek.add(dnaID);
-            // metadata.put("Q_EXTERNALDB_ID", tumorExtBase + i);
-            // metadata.put("Q_PRIMARY_TISSUE", "HEPATOCELLULAR_CARCINOMA");
-            // liver.add(
-            // new TSVSampleBean(ID, project + "E10", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-            // "tumor biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
           }
           String liverExtBase = extIDBase + "L";
           for (int i = 1; i < 3; i++) {
             String ID = counter.getNewBarcode();
-            liver.add(createSample(ID, "E11", t2, "liver biopsy #" + i, liverExtBase + i, "LIVER",
+            liver.add(createSample(ID, "E14", t2, "liver biopsy #" + i, liverExtBase + i, "LIVER",
                 patientIDs));
             sampleIDsThisWeek.add(ID);
             List<String> parentID = new ArrayList<>(Arrays.asList(ID));
             // DNA and RNA molecules
             String rnaID = counter.getNewBarcode();
-            RNA.add(createSample(rnaID, "E16", t3, "liver #" + i + " RNA",
+            RNA.add(createSample(rnaID, "E19", t3, "liver #" + i + " RNA",
                 liverExtBase + i + ":RNA", "RNA", parentID));
             String dnaID = counter.getNewBarcode();
-            DNA.add(createSample(dnaID, "E17", t3, "liver #" + i + " DNA",
+            DNA.add(createSample(dnaID, "E20", t3, "liver #" + i + " DNA",
                 liverExtBase + i + ":DNA", "DNA", parentID));
             sampleIDsThisWeek.add(rnaID);
             sampleIDsThisWeek.add(dnaID);
-            // String ID = counter.getNewBarcode();
-            // List<String> parentID = new ArrayList<>(Arrays.asList(ID));
-            // metadata.put("Q_EXTERNALDB_ID", liverExtBase + i);
-            // metadata.put("Q_PRIMARY_TISSUE", "LIVER");
-            // liver.add(
-            // new TSVSampleBean(ID, project + "E11", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-            // "liver biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
           }
         }
         Pair<String, String> key = new ImmutablePair<String, String>(timepoint, null);
@@ -653,7 +678,7 @@ public class MCCViewNew extends VerticalLayout
 
     // System.out.println(expDesign);
     List<List<ISampleBean>> dummy =
-        new ArrayList<List<ISampleBean>>(Arrays.asList(patients, urine, uAliquots, plasma,
+        new ArrayList<List<ISampleBean>>(Arrays.asList(patients, imaging, urine, uAliquots, plasma,
             pAliquots, serum, sAliquots, molecules, blood, tumor, liver, DNA, cfDNA, RNA));
     for (List<ISampleBean> l : dummy) {
       if (l.size() > 0) {
