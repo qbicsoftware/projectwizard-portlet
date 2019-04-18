@@ -23,29 +23,21 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.entitytype.id.EntityTypePermId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.create.CreateExperimentsOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.create.ExperimentCreation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentIdentifier;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentPermId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.update.ExperimentUpdate;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.operation.OperationExecution;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.operation.SynchronousOperationExecutionOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.operation.SynchronousOperationExecutionResults;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.operation.fetchoptions.OperationExecutionFetchOptions;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.operation.id.IOperationExecutionId;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.operation.id.OperationExecutionPermId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.create.CreateProjectsOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.create.ProjectCreation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.ProjectIdentifier;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.ProjectPermId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.create.CreateSamplesOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.create.SampleCreation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SamplePermId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.create.CreateSpacesOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.create.SpaceCreation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.id.SpacePermId;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
-import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
@@ -62,18 +54,16 @@ import life.qbic.xml.study.Qexperiment;
  */
 public class OpenbisCreationController {
   final int RETRY_UNTIL_SECONDS_PASSED = 5;
-  final int SPLIT_AT_ENTITY_SIZE = 200;
+  final int SPLIT_AT_ENTITY_SIZE = 500;
   private IOpenBisClient openbis;
-  private IApplicationServerApi api;
-  private String sessionToken;
+  private OpenbisV3APIWrapper api;
+  // private String sessionToken;
   private static final Logger logger = LogManager.getLogger(OpenbisCreationController.class);
   private String errors;
 
-  public OpenbisCreationController(IOpenBisClient openbis, IApplicationServerApi v3API,
-      String sessionToken) {
+  public OpenbisCreationController(IOpenBisClient openbis, OpenbisV3APIWrapper v3API) {
     this.openbis = openbis;
     this.api = v3API;
-    this.sessionToken = sessionToken;
   }
 
   /**
@@ -120,13 +110,13 @@ public class OpenbisCreationController {
     space.setDescription(description);
 
     logger.info("creating space");
-    
-//    List<SpacePermId> permIds = api.createSpaces(sessionToken, Arrays.asList(space));
-//    logger.info("space created:");
-//    logger.info(permIds);
-    
+
+    // List<SpacePermId> permIds = api.createSpaces(sessionToken, Arrays.asList(space));
+    // logger.info("space created:");
+    // logger.info(permIds);
+
     IOperation operation = new CreateSpacesOperation(space);
-    return handleOperations(operation);
+    return api.handleOperations(operation);
   }
 
   /**
@@ -152,14 +142,13 @@ public class OpenbisCreationController {
 
     ProjectCreation project = new ProjectCreation();
     project.setCode(name);
-    space = "fake!";
     project.setSpaceId(new SpacePermId(space));
     project.setDescription(description);
-//    List<ProjectPermId> permIds2 = api.createProjects(sessionToken, Arrays.asList(project));
-//    logger.info("created: " + permIds2);
+    // List<ProjectPermId> permIds2 = api.createProjects(sessionToken, Arrays.asList(project));
+    // logger.info("created: " + permIds2);
 
     IOperation operation = new CreateProjectsOperation(project);
-    return handleOperations(operation);    
+    return api.handleOperations(operation);
   }
 
   /**
@@ -250,11 +239,11 @@ public class OpenbisCreationController {
     }
     exp.setProperties(props);
 
-//    List<ExperimentPermId> permIds3 = api.createExperiments(sessionToken, Arrays.asList(exp));
-//    logger.info("experiments created: " + permIds3);
-    
+    // List<ExperimentPermId> permIds3 = api.createExperiments(sessionToken, Arrays.asList(exp));
+    // logger.info("experiments created: " + permIds3);
+
     IOperation operation = new CreateExperimentsOperation(exp);
-    return handleOperations(operation);
+    return api.handleOperations(operation);
   }
 
   public boolean registerExperimentsV3(String space, String proj,
@@ -272,10 +261,10 @@ public class OpenbisCreationController {
       }
     }
     if (exps.size() > 0) {
-//      List<ExperimentPermId> permIds3 = api.createExperiments(sessionToken, expCreations);
-//      logger.info("experiments created: " + permIds3);
+      // List<ExperimentPermId> permIds3 = api.createExperiments(sessionToken, expCreations);
+      logger.info("Sending " + expCreations.size() + " new experiments to the V3 API.");
       IOperation operation = new CreateExperimentsOperation(expCreations);
-      return handleOperations(operation);
+      return api.handleOperations(operation);
     }
     return true;
   }
@@ -421,11 +410,15 @@ public class OpenbisCreationController {
         boolean success = false;
         if (!openbis.projectExists(space, project)) {
           success = registerProjectV3(space, project, desc);
-          errors = "Project could not be registered.";
+          if (!success) {
+            errors = "Project could not be registered.";
+          }
         }
-        if(success) {
+        if (success) {
           success = registerExperimentsV3(space, project, exps);
-          errors = "Experiments could not be registered.";
+          if (!success) {
+            errors = "Experiments could not be registered.";
+          }
         }
         if (!success) {
           // experiments were not registered, break registration
@@ -476,6 +469,7 @@ public class OpenbisCreationController {
 
         UI.getCurrent().setPollInterval(-1);
         UI.getCurrent().access(ready);
+        api.logout();
       }
     });
     t.start();
@@ -492,7 +486,8 @@ public class OpenbisCreationController {
     exp.setProperties(props);
 
     logger.info("updating " + expID);
-    api.updateExperiments(sessionToken, Arrays.asList(exp));
+    // api.updateExperiments(sessionToken, Arrays.asList(exp));
+    api.updateExperiments(Arrays.asList(exp));
   }
 
   /**
@@ -729,27 +724,12 @@ public class OpenbisCreationController {
         newSamples.add(sampleCreation);
       }
     }
-    logger.info("Sending batch of new samples to V3 API.");
-//    List<SamplePermId> permIds4 = api.createSamples(sessionToken, newSamples);
-//    logger.info("created: " + permIds4);
-    
+    logger.info("Sending " + newSamples.size() + " new samples to V3 API.");
+    // List<SamplePermId> permIds4 = api.createSamples(sessionToken, newSamples);
+    // logger.info("created: " + permIds4);
+
     IOperation operation = new CreateSamplesOperation(newSamples);
-    return handleOperations(operation);    
-  }
-
-  private boolean handleOperations(IOperation operation) {    
-    SynchronousOperationExecutionOptions options = new SynchronousOperationExecutionOptions();
-
-    try {
-      SynchronousOperationExecutionResults results =
-          (SynchronousOperationExecutionResults) api.executeOperations(sessionToken,
-              Arrays.asList(operation), options);    
-    } catch (Exception e) {
-      errors = e.getCause().getMessage();
-      logger.error(errors);
-      return false;
-    }
-    return true;
+    return api.handleOperations(operation);
   }
 
   // public boolean registerSampleBatchInETL(List<ISampleBean> samples, String user) {

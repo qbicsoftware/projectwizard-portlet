@@ -27,6 +27,7 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.themes.ValoTheme;
 
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.session.SessionInformation;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 
 import com.vaadin.ui.Label;
@@ -50,6 +51,7 @@ import life.qbic.projectwizard.io.DBConfig;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.OpenbisV3APIWrapper;
 import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
 
@@ -59,7 +61,7 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean testMode = false;// TODO
-  public static boolean development = true;
+  public static boolean development = false;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 
@@ -97,7 +99,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
         LiferayIndependentConfigurationManager.Instance.init("local.properties");
         config = LiferayIndependentConfigurationManager.Instance;
         logger.warn("Checks for local dev version successful. User is granted admin status.");
-        userID = "iisfr01";
+        userID = "admin";
         isAdmin = true;
       } else {
         success = false;
@@ -170,17 +172,9 @@ public class ProjectWizardUI extends QBiCPortletUI {
   private void initView(final DBManager dbm, final Vocabularies vocabularies, final String user) {
     tabs.removeAllComponents();
     
-    
-    final String URL =
-        config.getDataSourceUrl() + "/openbis/openbis/" + IApplicationServerApi.SERVICE_URL;
-    System.out.println(URL);
-    final int TIMEOUT = 10000;
-    IApplicationServerApi v3 =
-        HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, URL, TIMEOUT);
-    String sessionToken =
-        v3.loginAs(config.getDataSourceUser(), config.getDataSourcePassword(), user);
+    OpenbisV3APIWrapper v3API= new OpenbisV3APIWrapper(config.getDataSourceUrl(), config.getDataSourceUser(), config.getDataSourcePassword(), user);
     OpenbisCreationController creationController =
-        new OpenbisCreationController(openbis, v3, sessionToken);// will
+        new OpenbisCreationController(openbis, v3API);// will
     // not
     // work
     // when

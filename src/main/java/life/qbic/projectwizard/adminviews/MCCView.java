@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -66,10 +65,8 @@ import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.components.StandardTextField;
 import life.qbic.xml.manager.StudyXMLParser;
-// import life.qbic.xml.manager.XMLParser;
 import life.qbic.xml.properties.Property;
 import life.qbic.xml.study.Qexperiment;
-import life.qbic.xml.study.Qproperty;
 import life.qbic.xml.study.TechnologyType;
 
 public class MCCView extends VerticalLayout implements IRegistrationView, IRegistrationController {
