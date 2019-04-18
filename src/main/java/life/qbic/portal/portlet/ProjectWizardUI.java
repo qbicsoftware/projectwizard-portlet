@@ -26,10 +26,6 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.themes.ValoTheme;
 
-import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.session.SessionInformation;
-import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
-
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
@@ -43,7 +39,6 @@ import life.qbic.portal.portlet.QBiCPortletUI;
 import life.qbic.portal.samplegraph.GraphPage;
 import life.qbic.portal.utils.ConfigurationManager;
 import life.qbic.portal.utils.ConfigurationManagerFactory;
-import life.qbic.portal.utils.LiferayIndependentConfigurationManager;
 import life.qbic.portal.utils.PortalUtils;
 import life.qbic.projectwizard.control.ExperimentImportController;
 import life.qbic.projectwizard.control.WizardController;
@@ -87,17 +82,14 @@ public class ProjectWizardUI extends QBiCPortletUI {
     setContent(layout);
 
     String userID = "";
+    config = ConfigurationManagerFactory.getInstance();
     boolean success = true;
     if (PortalUtils.isLiferayPortlet()) {
       // read in the configuration file
-      config = ConfigurationManagerFactory.getInstance();
-
       logger.info("Wizard is running on Liferay and user is logged in.");
       userID = PortalUtils.getUser().getScreenName();
     } else {
       if (development) {
-        LiferayIndependentConfigurationManager.Instance.init("local.properties");
-        config = LiferayIndependentConfigurationManager.Instance;
         logger.warn("Checks for local dev version successful. User is granted admin status.");
         userID = "admin";
         isAdmin = true;
@@ -174,12 +166,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     
     OpenbisV3APIWrapper v3API= new OpenbisV3APIWrapper(config.getDataSourceUrl(), config.getDataSourceUser(), config.getDataSourcePassword(), user);
     OpenbisCreationController creationController =
-        new OpenbisCreationController(openbis, v3API);// will
-    // not
-    // work
-    // when
-    // openbis
-    // is down
+        new OpenbisCreationController(openbis, v3API);
     
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
