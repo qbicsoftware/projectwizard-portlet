@@ -84,7 +84,8 @@ import life.qbic.projectwizard.model.MHCTyping;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.ISAParseReady;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.projectwizard.views.ExperimentImportView;
@@ -98,7 +99,7 @@ public class ExperimentImportController implements IRegistrationController {
 
   private ExperimentImportView view;
   private final Uploader uploader = new Uploader();
-  private OpenbisCreationController openbisCreator;
+  private IOpenbisCreationController openbisCreator;
   private SamplePreparator prep;
   //
   private ProjectInfo projectInfo;
@@ -132,7 +133,7 @@ public class ExperimentImportController implements IRegistrationController {
   private Set<String> currentDesignTypes;
   protected ISAStudyInfos isaStudyInfos;
 
-  public ExperimentImportController(OpenbisCreationController creator, Vocabularies vocabularies,
+  public ExperimentImportController(IOpenbisCreationController creationController, Vocabularies vocabularies,
       IOpenBisClient openbis, DBManager dbm) {
     view = new ExperimentImportView();
     this.dbm = dbm;
@@ -150,7 +151,7 @@ public class ExperimentImportController implements IRegistrationController {
     for (Map.Entry<String, String> entry : tissueMap.entrySet()) {
       this.reverseTissueMap.put(entry.getValue(), entry.getKey());
     }
-    this.openbisCreator = creator;
+    this.openbisCreator = creationController;
   }
 
 
@@ -394,9 +395,9 @@ public class ExperimentImportController implements IRegistrationController {
             complexExperiments
                 .add(new OpenbisExperiment(infoExpCode, ExperimentType.Q_PROJECT_DETAILS, props));
           }
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWiseV3(samples,
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
               projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
-              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control), user,
+              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control),
               entitiesToUpdate, projectInfo.isPilot());
           List<String> tsv = prep.getOriginalTSV();
           switch (getImportType()) {

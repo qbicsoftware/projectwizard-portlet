@@ -34,7 +34,7 @@ import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.expdesign.ParserHelpers;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.registration.UpdateProgressBar;
 import life.qbic.xml.manager.StudyXMLParser;
 import life.qbic.xml.manager.XMLParser;
@@ -54,11 +54,12 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
   private Button convert = new Button("Convert");
   private ProgressBar bar = new ProgressBar();
   private Label info = new Label();
-  private OpenbisCreationController creator;
+  private IOpenbisCreationController creator;
 
-  public ExperimentalDesignConversionView(IOpenBisClient openbis, OpenbisCreationController creator) {
+  public ExperimentalDesignConversionView(IOpenBisClient openbis,
+      IOpenbisCreationController registrator) {
     this.openbis = openbis;
-    this.creator = creator;
+    this.creator = registrator;
     spaceToProjects = new HashMap<>();
     projectInfoExpsWithDesignXML = new HashSet<>();
 
@@ -74,11 +75,11 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     projectTable.setColumnWidth("Converted projects", 140);
     projectTable.setSelectable(true);
     projectTable.setMultiSelect(true);
-    
+
     Button loadProjects = new Button("Load Existing Projects");
     addComponent(loadProjects);
     loadProjects.addClickListener(new ClickListener() {
-      
+
       @Override
       public void buttonClick(ClickEvent event) {
         initTable();
@@ -245,10 +246,10 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     logger.info("target experiment: " + TARGET_EXPERIMENT);
     List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment> exps =
         openbis.getExperimentById2(TARGET_EXPERIMENT);
-    
+
     boolean exists = false;
     for (Experiment e : exps) {
-      if(e.getIdentifier().equals(TARGET_EXPERIMENT)) {
+      if (e.getIdentifier().equals(TARGET_EXPERIMENT)) {
         exists = true;
       }
     }
@@ -307,21 +308,21 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     }
     StudyXMLParser p = new StudyXMLParser();
     List<TechnologyType> techTypes = new ArrayList<>(techs);
-    JAXBElement<Qexperiment> res = p.createNewDesign(new HashSet<>(), techTypes, expDesign, otherProps);
+    JAXBElement<Qexperiment> res =
+        p.createNewDesign(new HashSet<>(), techTypes, expDesign, otherProps);
     String xml = p.toString(res);
     Map<String, Object> props = new HashMap<>();
     props.put("Q_EXPERIMENTAL_SETUP", xml);
     if (!exists) {
       logger.info("creating new experiment");
-      creator.registerExperimentV3(space, project, ExperimentType.Q_PROJECT_DETAILS,
+      creator.registerExperiment(space, project, ExperimentType.Q_PROJECT_DETAILS,
           project + "_INFO", props);
     } else {
       logger.info("updating existing experiment");
       HashMap<String, Object> params = new HashMap<>();
-//      params.put("user", "iisfr01");
-      params.put("identifier", TARGET_EXPERIMENT);
       params.put("properties", props);
-      creator.openbisGenericIngest("update-experiment-metadata", params);
+
+      creator.updateExperiment(TARGET_EXPERIMENT, params);
     }
     logger.info(project + " done");
   }

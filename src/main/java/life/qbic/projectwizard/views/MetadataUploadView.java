@@ -137,7 +137,7 @@ public class MetadataUploadView extends VerticalLayout {
   private final int BATCH_SIZE = 50;
 
   public MetadataUploadView(IOpenBisClient openbis, Vocabularies vocabularies,
-      boolean overWriteAllowed) {
+      boolean overWriteAllowed, String user) {
     allowedSpaces = new HashSet<String>(vocabularies.getSpaces());
     this.overWriteAllowed = overWriteAllowed;
     sheet = new TabSheet();
@@ -174,7 +174,7 @@ public class MetadataUploadView extends VerticalLayout {
     setMargin(true);
     addComponent(typeOfData);
     upload = new UploadComponent("Upload Metadata (tab-separated)", "Upload",
-        ProjectWizardUI.tmpFolder, "meta_", 200000);
+        ProjectWizardUI.tmpFolder, user, 200000);
     upload.setVisible(false);
     addComponent(upload);
     reload = new Button("Reset columns");
@@ -408,7 +408,7 @@ public class MetadataUploadView extends VerticalLayout {
   private void findAndSetDesignExperiment(String space, String project) throws JAXBException {
     designExperiment = null;
     String id = ExperimentCodeFunctions.getInfoExperimentID(space, project);
-    List<Experiment> exps = null;//openbis.getExperimentById2(id); TODO REMOVE
+    List<Experiment> exps = openbis.getExperimentById2(id);
     if (exps.isEmpty()) {
       designExperiment = null;
       logger.error("could not find info experiment for project" + project);

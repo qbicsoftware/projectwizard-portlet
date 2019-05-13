@@ -59,7 +59,8 @@ import life.qbic.projectwizard.control.IRegistrationController;
 import life.qbic.projectwizard.control.SampleCounter;
 import life.qbic.projectwizard.model.MCCPatient;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.projectwizard.views.IRegistrationView;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
@@ -78,7 +79,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
   private Logger logger = LogManager.getLogger(MCCView.class);
 
   private IOpenBisClient openbis;
-  private OpenbisCreationController creator;
+  private IOpenbisCreationController creator;
   // private XMLParser p = new XMLParser();
   final private StudyXMLParser xmlParser = new StudyXMLParser();
   private Experiment designExperiment;
@@ -109,7 +110,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
 
   private String project;
 
-  public MCCView(IOpenBisClient openbis, OpenbisCreationController creationController,
+  public MCCView(IOpenBisClient openbis, IOpenbisCreationController creationController,
       String user) {
     techTypes = new ArrayList<TechnologyType>();
     techTypes.add(new TechnologyType("Transcriptomics"));
@@ -322,8 +323,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
 //        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
 //            registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
 //            entitiesToUpdate, false);
-        creator.registerProjectWithExperimentsAndSamplesBatchWiseV3(samps, null, infoExperiments, bar,
-            registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
+        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
+            registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()),
             entitiesToUpdate, false);
       }
     });

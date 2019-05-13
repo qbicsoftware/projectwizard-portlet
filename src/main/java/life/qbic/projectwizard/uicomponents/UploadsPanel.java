@@ -36,7 +36,8 @@ import life.qbic.openbis.openbisclient.OpenBisClient;
 import life.qbic.projectwizard.io.AttachmentInformation;
 import life.qbic.projectwizard.io.AttachmentMover;
 import life.qbic.projectwizard.processes.MoveUploadsReadyRunnable;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.portlet.ProjectWizardUI;
@@ -65,14 +66,14 @@ public class UploadsPanel extends VerticalLayout {
   private Button commit;
 
   private OpenBisClient openbis;
-  private OpenbisCreationController openbisCreator;
+  private IOpenbisCreationController openbisCreator;
   private Label info;
   private ProgressBar bar;
 
   private String userID;
 
   public UploadsPanel(String space, String project, List<String> expOptions, String userID,
-      AttachmentConfig attachConfig, OpenBisClient openbis, OpenbisCreationController creator) {
+      AttachmentConfig attachConfig, OpenBisClient openbis, IOpenbisCreationController creator) {
     this.openbis = openbis;
     this.openbisCreator = creator;
     this.userID = userID;
@@ -264,7 +265,7 @@ public class UploadsPanel extends VerticalLayout {
     String experiment = project + "_INFO";
     if (!openbis.sampleExists(sample)) {
       if (!openbis.expExists(space, project, experiment)) {
-        openbisCreator.registerExperimentV3(space, project, ExperimentType.Q_PROJECT_DETAILS,
+        openbisCreator.registerExperiment(space, project, ExperimentType.Q_PROJECT_DETAILS,
             experiment, new HashMap<String, Object>());
         while (!openbis.expExists(space, project, experiment))
           try {
@@ -276,7 +277,7 @@ public class UploadsPanel extends VerticalLayout {
       List<ISampleBean> samples = new ArrayList<ISampleBean>();
       samples.add(new TSVSampleBean(sample, experiment, project, space, "Q_ATTACHMENT_SAMPLE", "",
           new ArrayList<String>(), new HashMap<String, Object>()));
-      openbisCreator.registerSampleBatchV3(samples);
+      openbisCreator.registerSampleBatch(samples);
       double timeoutS = 10.0;
       while (!openbis.sampleExists(sample))
         if (timeoutS <= 0) {

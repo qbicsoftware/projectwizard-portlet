@@ -57,7 +57,8 @@ import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
 import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.processes.TSVReadyRunnable;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.projectwizard.registration.UpdateProgressBar;
 import life.qbic.projectwizard.uicomponents.UploadsPanel;
 import life.qbic.xml.manager.StudyXMLParser;
@@ -91,12 +92,12 @@ public class FinishStep implements WizardStep {
 
   private static final Logger logger = LogManager.getLogger(FinishStep.class);
   private List<FileDownloader> downloaders = new ArrayList<FileDownloader>();
-  private OpenbisCreationController creator;
+  private IOpenbisCreationController creator;
 
-  public FinishStep(final Wizard w, AttachmentConfig attachmentConfig, OpenbisCreationController creator) {
+  public FinishStep(final Wizard w, AttachmentConfig attachmentConfig, IOpenbisCreationController openbisCreator) {
     this.w = w;
     this.attachConfig = attachmentConfig;
-    this.creator = creator;
+    this.creator = openbisCreator;
 
     main = new VerticalLayout();
     main.setMargin(true);

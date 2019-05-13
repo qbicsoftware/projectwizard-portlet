@@ -25,7 +25,8 @@ import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.adminviews.MCCView;
 import life.qbic.projectwizard.model.Vocabularies;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 
@@ -46,7 +47,7 @@ public class AdminView extends VerticalLayout {
   private static final long serialVersionUID = -1713715806593305379L;
 
   IOpenBisClient openbis;
-  OpenbisCreationController registrator;
+  IOpenbisCreationController registrator;
   String user;
 
   private TabSheet tabs;
@@ -67,7 +68,7 @@ public class AdminView extends VerticalLayout {
   private Logger logger = LogManager.getLogger(AdminView.class);
   
   public AdminView(IOpenBisClient openbis, Vocabularies vocabularies,
-      OpenbisCreationController creationController, String user) {
+      IOpenbisCreationController creationController, String user) {
     this.user = user;
     this.registrator = creationController;
     this.openbis = openbis;
@@ -135,7 +136,7 @@ public class AdminView extends VerticalLayout {
                 new HashMap<OpenbisSpaceUserRole, ArrayList<String>>();
             if (getUsers().size() > 0)
               roleInfos.put(OpenbisSpaceUserRole.USER, getUsers());
-            registrator.registerSpaceV3(space, "test description");//TODO
+            registrator.registerSpace(space, "test description", roleInfos);//TODO
             // wait few seconds, then check for a maximum of timeout seconds, if space was created
             int timeout = 5;
             int wait = 2;

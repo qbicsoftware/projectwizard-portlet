@@ -17,6 +17,21 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.operation.IOperation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.entitytype.id.EntityTypePermId;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.create.CreateExperimentsOperation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.create.ExperimentCreation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentIdentifier;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.update.ExperimentUpdate;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.create.CreateProjectsOperation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.create.ProjectCreation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.ProjectIdentifier;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.create.CreateSamplesOperation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.create.SampleCreation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.create.CreateSpacesOperation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.create.SpaceCreation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.id.SpacePermId;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
@@ -35,55 +50,44 @@ import life.qbic.xml.study.Qexperiment;
  * @author Andreas Friedrich
  * 
  */
-public class OpenbisCreationController implements IOpenbisCreationController {
+public class OpenbisV3CreationController implements IOpenbisCreationController {
   final int RETRY_UNTIL_SECONDS_PASSED = 5;
-  final int SPLIT_AT_ENTITY_SIZE = 100;
+  final int SPLIT_AT_ENTITY_SIZE = 500;
   private IOpenBisClient openbis;
-  private static final Logger logger = LogManager.getLogger(OpenbisCreationController.class);
+  private OpenbisV3APIWrapper api;
+
+  private static final Logger logger = LogManager.getLogger(OpenbisV3CreationController.class);
   private String errors;
   private String user;
 
-
-  public OpenbisCreationController(IOpenBisClient openbis, String user) {
+  public OpenbisV3CreationController(IOpenBisClient openbis, String user,
+      OpenbisV3APIWrapper v3API) {
     this.openbis = openbis;
+    this.api = v3API;
     this.user = user;
   }
 
   /**
-   * Interact with an ingestion service script registered for the openBIS instance
-   * 
-   * @param ingestionService Name of the ingestions service script registered at openBIS
-   * @param params HashMap of String parameter names and their arguments for the ingestion service
-   */
-  public void openbisGenericIngest(String ingestionService, HashMap<String, Object> params) {
-    openbis.ingest("DSS1", ingestionService, params);
-  }
-
-  /**
-   * Creates a space in openBIS and adds (existing) users with different rights using ingestion
-   * scripts on the server
+   * Creates a space in openBIS using v3 API
    * 
    * @param name The name of the space to create
-   * @param userInfo HashMap of type HashMap<OpenbisSpaceUserRole,ArrayList<String>> containing one
-   *        or more users of one or more types
+   * @param description space description
    */
   @Override
   public boolean registerSpace(String name, String description,
       HashMap<OpenbisSpaceUserRole, ArrayList<String>> userInfo) {
-    Map<String, Object> params = new HashMap<String, Object>();
-    params.put("code", name);
-    params.put("registration_user", user);
-    for (OpenbisSpaceUserRole type : OpenbisSpaceUserRole.values()) {
-      if (userInfo.containsKey(type))
-        params.put(type.toString().toLowerCase(), userInfo.get(type));
-    }
-    // call ingestion service for space creation
-    openbis.ingest("DSS1", "register-space", params);
-    return true;
+    SpaceCreation space = new SpaceCreation();
+    space.setCode(name);
+    space.setDescription(description);
+
+    logger.info("creating space");
+
+    IOperation operation = new CreateSpacesOperation(space);
+    return api.handleOperations(operation);
   }
 
   /**
-   * Create a project belonging to a space in openBIS using ingestion scripts on the server
+   * Create a project belonging to a space in openBIS using v3 API
    * 
    * @param space Existing space the project to create should resides in
    * @param name Name of the project to create
@@ -103,17 +107,18 @@ public class OpenbisCreationController implements IOpenbisCreationController {
       description = "Created using the project wizard.";
       logger.warn("No project description input found. Setting standard info.");
     }
-    Map<String, Object> params = new HashMap<String, Object>();
-    params.put("user", user);
-    params.put("code", name);
-    params.put("space", space);
-    params.put("desc", description);
-    openbis.ingest("DSS1", "register-proj", params);
-    return true;
+
+    ProjectCreation project = new ProjectCreation();
+    project.setCode(name);
+    project.setSpaceId(new SpacePermId(space));
+    project.setDescription(description);
+
+    IOperation operation = new CreateProjectsOperation(project);
+    return api.handleOperations(operation);
   }
 
   /**
-   * Create an experiment belonging to a project (and space) using ingestion scripts on the server
+   * Create an experiment belonging to a project (and space) using v3 api
    * 
    * @param space Existing space in openBis
    * @param project Existing project in the space that this experiment will belong to
@@ -132,56 +137,38 @@ public class OpenbisCreationController implements IOpenbisCreationController {
       logger.error(errors);
       return false;
     }
-    Map<String, Object> params = new HashMap<String, Object>();
-    params.put("code", name);
-    params.put("type", expType.toString());
-    params.put("project", project);
-    params.put("space", space);
-    params.put("properties", map);
-    params.put("user", user);
-    openbis.ingest("DSS1", "register-exp", params);
-    return true;
+    ExperimentCreation exp = new ExperimentCreation();
+    exp.setCode(name);
+    exp.setProjectId(new ProjectIdentifier(space, project));
+    exp.setTypeId(new EntityTypePermId(expType.toString()));
+    Map<String, String> props = new HashMap<>();
+    for (String key : map.keySet()) {
+      props.put(key, map.get(key).toString());
+    }
+    exp.setProperties(props);
+
+    IOperation operation = new CreateExperimentsOperation(exp);
+    return api.handleOperations(operation);
   }
 
   @Override
   public boolean registerExperiments(String space, String proj, List<RegisterableExperiment> exps) {
-    errors = "";
-    int step = 100;
-    int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
-    List<String> codes = new ArrayList<String>();
-    List<String> types = new ArrayList<String>();
-    List<Map<String, Object>> props = new ArrayList<Map<String, Object>>();
+    List<ExperimentCreation> expCreations = new ArrayList<>();
+
     for (RegisterableExperiment e : exps) {
       if (!openbis.expExists(space, proj, e.getCode())) {
-        codes.add(e.getCode());
-        types.add(e.getType());
-        props.add(e.getProperties());
+        ExperimentCreation exp = new ExperimentCreation();
+        exp.setCode(e.getCode());
+        exp.setProjectId(new ProjectIdentifier(space, proj));
+        exp.setTypeId(new EntityTypePermId(e.getType()));
+        exp.setProperties(e.getStringProperties());
+        expCreations.add(exp);
       }
     }
-    if (codes.size() > 0) {
-      while (!openbis.projectExists(space, proj) && max > 0) {
-        try {
-          Thread.sleep(step);
-          max -= step;
-        } catch (InterruptedException e) {
-          logger.error("thread sleep waiting for experiment creation interruped.");
-          e.printStackTrace();
-        }
-      }
-      logger.info("Creating experiments " + codes);
-      if (!openbis.projectExists(space, proj)) {
-        errors = proj + " in " + space + " does not exist. Not creating experiments.";
-        logger.error(errors);
-        return false;
-      }
-      Map<String, Object> params = new HashMap<String, Object>();
-      params.put("codes", codes);
-      params.put("types", types);
-      params.put("project", proj);
-      params.put("space", space);
-      params.put("properties", props);
-      params.put("user", user);
-      openbis.ingest("DSS1", "register-exp", params);
+    if (exps.size() > 0) {
+      logger.info("Sending " + expCreations.size() + " new experiments to the V3 API.");
+      IOperation operation = new CreateExperimentsOperation(expCreations);
+      return api.handleOperations(operation);
     }
     return true;
   }
@@ -230,10 +217,7 @@ public class OpenbisCreationController implements IOpenbisCreationController {
       long modificationTime = openbis.getExperimentById2(expID).get(0).getRegistrationDetails()
           .getModificationDate().getTime();
 
-      HashMap<String, Object> parameters = new HashMap<String, Object>();
-      parameters.put("properties", entitiesToUpdate.get(experiment));
-
-      updateExperiment(expID, parameters);
+      updateExperiment(expID, entitiesToUpdate.get(experiment));
 
       long newModificationTime = modificationTime;
       double TIMEOUT = 10000;
@@ -278,42 +262,39 @@ public class OpenbisCreationController implements IOpenbisCreationController {
           splitSteps += exp.getSamples().size() / (SPLIT_AT_ENTITY_SIZE + 1);
         }
 
-        // final int todo = exps.size() + splitSteps + 1;// TODO huge number of samples should be
-        // split
-        // into groups
         final int todo = tsvSampleHierarchy.size() + splitSteps + 1;
-        // of 50 or 100. this needs to be reflected in the progress
         // bar
         current++;
         double frac = current * 1.0 / todo;
         info.setCaption("Registering Project and Experiments");
         UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-        if (!openbis.projectExists(space, project))
-          registerProject(space, project, desc);
-        boolean success = registerExperiments(space, project, exps);
+        boolean success = false;
+        if (!openbis.projectExists(space, project)) {
+          success = registerProject(space, project, desc);
+          if (!success) {
+            errors = "Project could not be registered.";
+          }
+        }
+        if (success) {
+          success = registerExperiments(space, project, exps);
+          if (!success) {
+            errors = "Experiments could not be registered.";
+          }
+        }
         if (!success) {
           // experiments were not registered, break registration
-          errors = "Experiments could not be registered.";
           bar.setVisible(false);
           info.setCaption("An error occured.");
           UI.getCurrent().setPollInterval(-1);
           UI.getCurrent().access(ready);
           return;
         }
-
-        try {
-          Thread.sleep(500);
-        } catch (InterruptedException e) {
-          logger.error("thread sleep waiting for experiment creation interruped.");
-          e.printStackTrace();
-        }
-        // for (RegisterableExperiment exp : exps) { old version!
         int i = 0;
         for (List<ISampleBean> level : tsvSampleHierarchy) {
           i++;
           logger.info("registration of level " + i);
-          // List<ISampleBean> level = exp.getSamples(); old version!
           info.setCaption("Registering samples");
+          info.setValue("");
           current++;
           frac = current * 1.0 / todo;
           UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
@@ -327,18 +308,6 @@ public class OpenbisCreationController implements IOpenbisCreationController {
                 UI.getCurrent().setPollInterval(-1);
                 UI.getCurrent().access(ready);
                 return;
-              }
-              ISampleBean last = batch.get(batch.size() - 1);
-              logger.info("waiting for last batch sample to reach openbis");
-              int step = 100;
-              int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
-              while (!openbis.sampleExists(last.getCode()) && max > 0) {
-                try {
-                  Thread.sleep(step);
-                  max -= step;
-                } catch (InterruptedException e) {
-                  e.printStackTrace();
-                }
               }
               current++;
               frac = current * 1.0 / todo;
@@ -354,20 +323,6 @@ public class OpenbisCreationController implements IOpenbisCreationController {
               return;
             }
           }
-          if (level.size() > 0) {
-            ISampleBean last = level.get(level.size() - 1);
-            logger.info("waiting for last sample to reach openbis");
-            int step = 50;
-            int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
-            while (!openbis.sampleExists(last.getCode()) && max > 0) {
-              try {
-                Thread.sleep(step);
-                max -= step;
-              } catch (InterruptedException e) {
-                e.printStackTrace();
-              }
-            }
-          }
         }
         current++;
         frac = current * 1.0 / todo;
@@ -375,6 +330,7 @@ public class OpenbisCreationController implements IOpenbisCreationController {
 
         UI.getCurrent().setPollInterval(-1);
         UI.getCurrent().access(ready);
+        api.logout();
       }
     });
     t.start();
@@ -382,55 +338,66 @@ public class OpenbisCreationController implements IOpenbisCreationController {
   }
 
   @Override
+  public void updateExperiment(String expID, Map<String, Object> map) {
+    ExperimentUpdate exp = new ExperimentUpdate();
+    exp.setExperimentId(new ExperimentIdentifier(expID));
+    Map<String, String> props = new HashMap<>();
+    for (String key : map.keySet()) {
+      props.put(key, map.get(key).toString());
+    }
+    exp.setProperties(props);
+
+    logger.info("updating " + expID);
+    // api.updateExperiments(sessionToken, Arrays.asList(exp));
+    api.updateExperiments(Arrays.asList(exp));
+  }
+
+  @Override
   public boolean registerSampleBatch(List<ISampleBean> samples) {
-    String s = null;
-    String p = null;
-    String e = null;
+    List<SampleCreation> newSamples = new ArrayList<>();
+
     if (samples.size() == 0)
       return true;
-    // to speed up things only the first sample and its experiment is checked for existence, might
-    // lead to errors
-    ISampleBean first = samples.get(0);
-    if (!first.getExperiment().equals(e)) {
-      s = first.getSpace();
-      p = first.getProject();
-      e = first.getExperiment();
-      if (!openbis.expExists(s, p, e)) {
-        errors = e + " not found in " + p + " (" + s + ") Stopping registration of samples.";
-        logger.error(errors + " This will most likely lead to openbis errors or lost samples!");
-        return false;
-      }
-    }
-    Map<String, Object> params = new HashMap<String, Object>();
-    params.put("user", user);
 
     for (ISampleBean sample : samples) {
       if (openbis.sampleExists(sample.getCode())) {
-        logger.warn(sample.getCode() + " already exists in " + p
+        logger.warn(sample.getCode() + " already exists."
             + " Removing this sample from registration process.");
       } else {
+
+        SampleCreation sampleCreation = new SampleCreation();
         String space = sample.getSpace();
-        String project = sample.getProject();
-        String exp = sample.getExperiment();
-        List<String> parents = sample.getParentIDs();
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("code", sample.getCode());
-        map.put("space", space);
-        map.put("project", project);
-        map.put("experiment", exp);
-        map.put("type", sample.getType());
-        if (!sample.getSecondaryName().isEmpty()) {
-          map.put("Q_SECONDARY_NAME", sample.getSecondaryName());
+        sampleCreation.setTypeId(new EntityTypePermId(sample.getType()));
+        sampleCreation.setSpaceId(new SpacePermId(space));
+
+        List<SampleIdentifier> parents = new ArrayList<>();
+        for (String parent : sample.getParentIDs()) {
+          parents.add(new SampleIdentifier(space, null, parent));
         }
-        if (!parents.isEmpty())
-          map.put("parents", parents);
-        map.put("metadata", sample.getMetadata());
-        params.put(sample.getCode(), map);
+        sampleCreation.setParentIds(parents);
+        sampleCreation.setExperimentId(new ExperimentIdentifier(
+            "/" + space + "/" + sample.getProject() + "/" + sample.getExperiment()));
+        sampleCreation.setCode(sample.getCode());
+
+
+        Map<String, String> props = new HashMap<>();
+        if (!sample.getSecondaryName().isEmpty()) {
+          props.put("Q_SECONDARY_NAME", sample.getSecondaryName());
+        }
+        for (String key : sample.getMetadata().keySet()) {
+          props.put(key, sample.getMetadata().get(key).toString());
+        }
+        sampleCreation.setProperties(props);
+
+        newSamples.add(sampleCreation);
       }
     }
-    logger.info("Sending batch of new samples to Ingestion Service.");
-    openbis.ingest("DSS1", "register-sample-batch", params);
-    return true;
+    logger.info("Sending " + newSamples.size() + " new samples to V3 API.");
+    // List<SamplePermId> permIds4 = api.createSamples(sessionToken, newSamples);
+    // logger.info("created: " + permIds4);
+
+    IOperation operation = new CreateSamplesOperation(newSamples);
+    return api.handleOperations(operation);
   }
 
   public String getErrors() {
@@ -471,13 +438,6 @@ public class OpenbisCreationController implements IOpenbisCreationController {
     } else {
       return true;
     }
-  }
-
-  @Override
-  public void updateExperiment(String expID, Map<String, Object> params) {
-    params.put("user", user);
-    params.put("identifier", expID);
-    openbis.triggerIngestionService("update-experiment-metadata", params);
   }
 
 }

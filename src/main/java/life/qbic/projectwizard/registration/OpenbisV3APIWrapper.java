@@ -28,6 +28,7 @@ public class OpenbisV3APIWrapper {
 
   public OpenbisV3APIWrapper(String url, String adminUser, String pw, String user) {
     final String URL = url + "/openbis/openbis" + IApplicationServerApi.SERVICE_URL;
+
     API = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, URL, TIMEOUT);
     adminAPI = HttpInvokerUtils.createServiceStub(IApplicationServerApi.class, URL, TIMEOUT);
 
@@ -43,12 +44,14 @@ public class OpenbisV3APIWrapper {
 
   private void checklogin() {
     if (userToken == null) {
-      logger.info("Not logged in to the openBIS V3 API. Logging in as user.");
+      logger.info("Not logged in to the openBIS V3 API. Logging in as user " + user + ".");
       userToken = API.loginAs(adminUser, pw, user);
+      System.out.println(userToken);
     }
     if (adminToken == null) {
       logger.info("Logging in as config user.");
       adminToken = adminAPI.login(adminUser, pw);
+      System.out.println(adminToken);
     }
   }
 
@@ -68,21 +71,25 @@ public class OpenbisV3APIWrapper {
       API.executeOperations(userToken, ops, options);
       return true;
     } catch (Exception e) {
-      errors = e.getCause().getMessage();
-      if (errors.startsWith("Access denied to object with ProjectIdentifier")) {
-        logger.warn("User " + user
-            + " could not create project, most likely because they are no power user in openBIS.");
-        logger.info("Trying to create project with config user instead.");
-        try {
-          adminAPI.executeOperations(adminToken, ops, options);
-          logger.info("Successful.");
-          return true;
-        } catch (Exception f) {
-          errors = f.getCause().getMessage();
+      if (e.getCause() != null) {
+        errors = e.getCause().getMessage();
+        if (errors.startsWith("Access denied to object with ProjectIdentifier")) {
+          logger.warn("User " + user
+              + " could not create project, most likely because they are no power user in openBIS.");
+          logger.info("Trying to create project with config user instead.");
+          try {
+            adminAPI.executeOperations(adminToken, ops, options);
+            logger.info("Successful.");
+            return true;
+          } catch (Exception f) {
+            errors = f.getCause().getMessage();
+            logger.error(errors);
+          }
+        } else {
           logger.error(errors);
         }
       } else {
-        logger.error(errors);
+        logger.error(e);
       }
       return false;
     }

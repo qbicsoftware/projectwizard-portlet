@@ -83,7 +83,8 @@ import life.qbic.projectwizard.model.TestSampleInformation;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
 import life.qbic.projectwizard.processes.RegistrationMode;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.projectwizard.steps.*;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.portal.Styles;
@@ -101,7 +102,7 @@ import life.qbic.xml.study.TechnologyType;
 public class WizardController implements IRegistrationController {
 
   private IOpenBisClient openbis;
-  private OpenbisCreationController openbisCreator;
+  private IOpenbisCreationController openbisCreator;
   private Wizard w;
   private Map<Steps, WizardStep> steps;
   private WizardDataAggregator dataAggregator;
@@ -135,7 +136,7 @@ public class WizardController implements IRegistrationController {
    * @param dataMoverFolder for attachment upload
    * @param uploadSize
    */
-  public WizardController(IOpenBisClient openbis, OpenbisCreationController creationController, DBManager dbm, Vocabularies vocabularies,
+  public WizardController(IOpenBisClient openbis, IOpenbisCreationController creationController, DBManager dbm, Vocabularies vocabularies,
       AttachmentConfig attachmentConfig) {
     this.openbis = openbis;
     this.dbm = dbm;
@@ -489,9 +490,9 @@ public class WizardController implements IRegistrationController {
             informativeExperiments.add(
                 new OpenbisExperiment(project + "_INFO", ExperimentType.Q_PROJECT_DETAILS, props));
           }
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWiseV3(samples, desc,
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, desc,
               informativeExperiments, regStep.getProgressBar(), regStep.getProgressLabel(),
-              new RegisteredSamplesReadyRunnable(regStep, control), user, entitiesToUpdate, pilot);
+              new RegisteredSamplesReadyRunnable(regStep, control), entitiesToUpdate, pilot);
           w.addStep(steps.get(Steps.Finish));
         }
       }
@@ -1328,7 +1329,7 @@ public class WizardController implements IRegistrationController {
     String code = context.getProjectCode();
     boolean success = false;
     try {
-      success = openbisCreator.setupEmptyProjectV3(space, code, desc);
+      success = openbisCreator.setupEmptyProject(space, code, desc);
     } catch (JAXBException e1) {
       // TODO Auto-generated catch block
       e1.printStackTrace();

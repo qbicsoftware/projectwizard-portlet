@@ -1,5 +1,6 @@
 package life.qbic.portal.portlet;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -45,8 +46,8 @@ import life.qbic.projectwizard.control.WizardController;
 import life.qbic.projectwizard.io.DBConfig;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.model.Vocabularies;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
-import life.qbic.projectwizard.registration.OpenbisV3APIWrapper;
 import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
 
@@ -100,7 +101,10 @@ public class ProjectWizardUI extends QBiCPortletUI {
         layout.addComponent(new Label("User not found. Are you logged in?"));
       }
     }
-    tmpFolder = config.getTmpFolder();
+    File tmpFolder = new File(config.getTmpFolder());
+    if (!tmpFolder.exists()) {
+      tmpFolder.mkdirs();
+    }
     MSLabelingMethods = config.getVocabularyMSLabeling();
     // establish connection to the OpenBIS API
     if (!development || !testMode) {
@@ -163,15 +167,18 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
   private void initView(final DBManager dbm, final Vocabularies vocabularies, final String user) {
     tabs.removeAllComponents();
-    
-    OpenbisV3APIWrapper v3API= new OpenbisV3APIWrapper(config.getDataSourceUrl(), config.getDataSourceUser(), config.getDataSourcePassword(), user);
-    OpenbisCreationController creationController =
-        new OpenbisCreationController(openbis, v3API);
-    
+
+    // OpenbisV3APIWrapper v3API = new OpenbisV3APIWrapper(config.getDataSourceUrl(),
+    // config.getDataSourceUser(), config.getDataSourcePassword(), user);
+    // IOpenbisCreationController creationController = new OpenbisV3CreationController(openbis,
+    // user, v3API);
+    IOpenbisCreationController creationController = new OpenbisCreationController(openbis, user);
+
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
-    WizardController c = new WizardController(openbis, creationController, dbm, vocabularies, attachConfig);
+    WizardController c =
+        new WizardController(openbis, creationController, dbm, vocabularies, attachConfig);
     c.init(user);
     Wizard w = c.getWizard();
     WizardProgressListener wl = new WizardProgressListener() {
@@ -210,7 +217,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     tabs.addTab(uc.getView(), "Import Project").setIcon(FontAwesome.FILE);
 
     boolean overwriteAllowed = isAdmin || canOverwrite();
-    tabs.addTab(new MetadataUploadView(openbis, vocabularies, overwriteAllowed), "Update Metadata")
+    tabs.addTab(new MetadataUploadView(openbis, vocabularies, overwriteAllowed, user), "Update Metadata")
         .setIcon(FontAwesome.PENCIL);;
     if (isAdmin) {
       logger.info("User is " + user + " and can see admin panel.");

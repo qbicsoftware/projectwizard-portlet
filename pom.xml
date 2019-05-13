@@ -44,7 +44,7 @@
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>core-utils-lib</artifactId>
-			<version>1.0.0</version>
+			<version>1.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
@@ -72,7 +72,7 @@
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>portal-utils-lib</artifactId>
-			<version>1.5.0</version>
+			<version>1.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>life.qbic</groupId>
