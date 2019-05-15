@@ -537,6 +537,8 @@ public class ExperimentImportController implements IRegistrationController {
 
   protected String addBarcodesToTSV(List<String> tsv, List<List<ISampleBean>> levels,
       ExperimentalDesignType designType) {
+    logger.info("adding barcodes to tsv");
+    logger.info("design type: " + designType);
     StringBuilder builder = new StringBuilder(5000);
     switch (designType) {
       case Standard:
@@ -562,6 +564,7 @@ public class ExperimentImportController implements IRegistrationController {
         for (List<ISampleBean> samples : levels) {
           for (ISampleBean s : samples) {
             if (s.getType().equals("Q_MS_RUN")) {
+              System.out.println(s.getCode());
               Map<String, Object> props = s.getMetadata();
               fileNameToBarcode.put(props.get("File").toString(), s.getCode());
               props.remove("File");
@@ -657,6 +660,7 @@ public class ExperimentImportController implements IRegistrationController {
             for (ISampleBean b : level) {
               TSVSampleBean t = (TSVSampleBean) b;
               String extID = (String) t.getMetadata().get("Q_EXTERNALDB_ID");
+              logger.debug("extid: "+extID);
               if (extIDToSample.containsKey(extID)) {
                 existing.add(t);
                 extCodeToBarcode.put(extID, extIDToSample.get(extID).getCode());
@@ -722,6 +726,7 @@ public class ExperimentImportController implements IRegistrationController {
                     exp = specialExpToExpCode.get(t.getExperiment());
                     break;
                   case "Q_MS_RUN":
+                    logger.debug("found: " + t);
                     // get ms experiment to connect it correctly
                     if (!specialExpToExpCode.containsKey(t.getExperiment())) {
                       specialExpToExpCode.put(t.getExperiment(), getNextExperiment(project));
@@ -935,9 +940,11 @@ public class ExperimentImportController implements IRegistrationController {
       String code = s.getCode();
       // collect existing samples by their external id
       String extID = s.getProperties().get("Q_EXTERNALDB_ID");
-      if (extIDToSample.containsKey(extID))
+      boolean emptyID = extID == null || extID.isEmpty();
+      if (!emptyID && extIDToSample.containsKey(extID)) {
         logger.warn(extID + " was found as a secondary name for multiple samples. This might"
             + " lead to inconsistencies if new samples are to be attached to this secondary name.");
+      }
       extIDToSample.put(extID, s);
       if (SampleCodeFunctions.isQbicBarcode(code)) {
         if (SampleCodeFunctions.compareSampleCodes(firstFreeBarcode, code) <= 0) {
