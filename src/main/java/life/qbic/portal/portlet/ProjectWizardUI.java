@@ -25,7 +25,6 @@ import com.vaadin.annotations.Widgetset;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.themes.ValoTheme;
-
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
@@ -75,7 +74,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
   private boolean isAdmin = false;
 
   @Override
-  protected Layout getPortletContent(final VaadinRequest request) {    
+  protected Layout getPortletContent(final VaadinRequest request) {
     tabs.addStyleName(ValoTheme.TABSHEET_FRAMED);
     final VerticalLayout layout = new VerticalLayout();
 
@@ -91,9 +90,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
       userID = PortalUtils.getUser().getScreenName();
     } else {
       if (development) {
-//        config = ConfigurationManagerFactory.getInstance();
-//        LiferayIndependentConfigurationManager.Instance.init("local.properties");
-//        config = LiferayIndependentConfigurationManager.Instance;
         logger.warn("Checks for local dev version successful. User is granted admin status.");
         userID = "admin";
         isAdmin = true;
@@ -231,20 +227,20 @@ public class ProjectWizardUI extends QBiCPortletUI {
   // TODO group that might be used to delete metadata or even sample/experiment objects in the
   // future
   private boolean canDelete() {
-//    try {
-//      User user = PortalUtils.getUser();
-//      for (UserGroup grp : user.getUserGroups()) {
-//        String group = grp.getName();
-//        if (config.getDeletionGrp().contains(group)) {
-//          logger.info(
-//              "User " + user.getScreenName() + " can delete because they are part of " + group);
-//          return true;
-////        }
-//      }
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//      logger.error("Could not fetch user groups. User won't be able to delete.");
-//    }
+    // try {
+    // User user = PortalUtils.getUser();
+    // for (UserGroup grp : user.getUserGroups()) {
+    // String group = grp.getName();
+    // if (config.getDeletionGrp().contains(group)) {
+    // logger.info(
+    // "User " + user.getScreenName() + " can delete because they are part of " + group);
+    // return true;
+    //// }
+    // }
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // logger.error("Could not fetch user groups. User won't be able to delete.");
+    // }
     return false;
   }
 
