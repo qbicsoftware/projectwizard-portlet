@@ -18,7 +18,6 @@ package life.qbic.projectwizard.steps;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.vaadin.teemu.wizards.WizardStep;
@@ -32,7 +31,6 @@ import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.components.CustomVisibilityComponent;
 
 import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;

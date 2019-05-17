@@ -71,7 +71,7 @@ public class ProjectInformationComponent extends VerticalLayout {
     setSizeUndefined();
 
     Collections.sort(spaces);
-    spaceBox = new ComboBox("Project space", spaces);
+    spaceBox = new ComboBox("Project", spaces);
     spaceBox.setStyleName(Styles.boxTheme);
     spaceBox.setNullSelectionAllowed(false);
     spaceBox.setImmediate(true);
@@ -82,7 +82,7 @@ public class ProjectInformationComponent extends VerticalLayout {
     imgCheck = new CheckBox("Imaging Support");
     addComponent(imgCheck);
 
-    ComboBox prBox = new ComboBox("Project");
+    ComboBox prBox = new ComboBox("Sub-Project");
     prBox.setStyleName(Styles.boxTheme);
     projectBox = new CustomVisibilityComponent(prBox);
     projectBox.setStyleName(Styles.boxTheme);
@@ -100,7 +100,7 @@ public class ProjectInformationComponent extends VerticalLayout {
     Styles.iconButton(reloadProjects, FontAwesome.REFRESH);
 
     HorizontalLayout proj = new HorizontalLayout();
-    proj.setCaption("New Project");
+    proj.setCaption("New Sub-Project");
     proj.addComponent(project);
     proj.addComponent(reloadProjects);
     CustomVisibilityComponent newProj = new CustomVisibilityComponent(proj);
