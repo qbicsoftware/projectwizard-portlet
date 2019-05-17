@@ -63,7 +63,7 @@ public class EntityStep implements WizardStep {
 
   private String emptyFactor = "Other (please specify)";
   private List<String> suggestions = new ArrayList<String>(Arrays.asList("Age", "Genotype",
-      "Health State", "Phenotype", "Species", "Treatment", emptyFactor));
+      "Health State", "Phenotype", "Species", "Transient expression", "Treatment", emptyFactor));
 
   private OpenbisInfoTextField speciesNum;
   private ComboBox person;
@@ -197,7 +197,7 @@ public class EntityStep implements WizardStep {
   }
 
   public boolean speciesIsFactor() {
-    //TODO was: isEnabld
+    // TODO was: isEnabld
     return !species.isVisible();
   }
 

@@ -69,7 +69,7 @@ public class ExtractionStep implements WizardStep {
 
   private String emptyFactor = "Other (please specify)";
   private List<String> suggestions = new ArrayList<String>(Arrays.asList("Extraction time",
-      "Tissue", "Growth Medium", "Radiation", "Treatment", emptyFactor));
+      "Growth Medium", "Radiation", "Tissue", "Transient expression", "Treatment", emptyFactor));
   private CheckBox isotopes;
   private ComboBox isotopeTypes;
 
@@ -263,7 +263,7 @@ public class ExtractionStep implements WizardStep {
   }
 
   public boolean isTissueFactor() {
-    //TODO test. was: isEnabled 
+    // TODO test. was: isEnabled
     return !tissue.isVisible();
   }
 

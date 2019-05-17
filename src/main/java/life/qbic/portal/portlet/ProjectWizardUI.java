@@ -26,7 +26,6 @@ import com.vaadin.annotations.Widgetset;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.themes.ValoTheme;
-
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
@@ -57,7 +56,7 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean testMode = false;// TODO
-  public static boolean development = false;
+  public static boolean development = true;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 
