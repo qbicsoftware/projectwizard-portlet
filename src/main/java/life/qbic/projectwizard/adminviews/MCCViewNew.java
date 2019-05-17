@@ -61,7 +61,7 @@ import life.qbic.projectwizard.control.IRegistrationController;
 import life.qbic.projectwizard.control.SampleCounter;
 import life.qbic.projectwizard.model.NewMCCPatient;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.views.IRegistrationView;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
@@ -81,7 +81,7 @@ public class MCCViewNew extends VerticalLayout
   private Logger logger = LogManager.getLogger(MCCViewNew.class);
 
   private IOpenBisClient openbis;
-  private OpenbisCreationController creator;
+  private IOpenbisCreationController creator;
   // private XMLParser p = new XMLParser();
   private List<OpenbisExperiment> infoExperiments;
   final private StudyXMLParser xmlParser = new StudyXMLParser();
@@ -118,7 +118,7 @@ public class MCCViewNew extends VerticalLayout
 
   private ExperimentalDesignPropertyWrapper newDesign;
 
-  public MCCViewNew(IOpenBisClient openbis, OpenbisCreationController creationController,
+  public MCCViewNew(IOpenBisClient openbis, IOpenbisCreationController creationController,
       String user) {
     techTypes = new ArrayList<TechnologyType>();
     techTypes.add(new TechnologyType("Transcriptomics"));
@@ -321,9 +321,9 @@ public class MCCViewNew extends VerticalLayout
         }
         // logger.debug("exps " + infoExperiments);
         // logger.debug("update " + entitiesToUpdate);
-        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
-            registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
-            entitiesToUpdate, false);
+        Runnable runnable = new RegisteredSamplesReadyRunnable(getView(), getView());
+        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, "", infoExperiments, bar,
+            registerInfo, runnable, entitiesToUpdate, false);
       }
     });
   }

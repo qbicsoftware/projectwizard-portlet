@@ -176,8 +176,9 @@ public class ProjectWizardUI extends QBiCPortletUI {
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
-    WizardController c =
-        new WizardController(openbis, creationController, dbm, vocabularies, attachConfig);
+
+    WizardController c = new WizardController(openbis, creationController, dbm, vocabularies, attachConfig, config);
+
     c.init(user);
     Wizard w = c.getWizard();
     WizardProgressListener wl = new WizardProgressListener() {

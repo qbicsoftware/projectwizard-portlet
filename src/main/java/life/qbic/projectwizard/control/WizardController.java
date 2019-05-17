@@ -22,18 +22,11 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.bind.JAXBException;
 
+import life.qbic.portal.utils.ConfigurationManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.teemu.wizards.Wizard;
@@ -92,6 +85,7 @@ import life.qbic.portal.Styles.NotificationType;
 import life.qbic.xml.notes.Note;
 import life.qbic.xml.properties.Property;
 import life.qbic.xml.study.TechnologyType;
+import life.qbic.omero.BasicOMEROClient;
 
 /**
  * Controller for the sample/experiment creation wizard
@@ -119,6 +113,12 @@ public class WizardController implements IRegistrationController {
   protected List<String> designExperimentTypes;
   private String newExperimentalDesignXML;
 
+  //
+  private String omero_usr;
+  private String omero_pwd;
+  private int omero_port;
+  private String omero_host;
+
   private Logger logger = LogManager.getLogger(WizardController.class);
 
   private AttachmentConfig attachConfig;
@@ -136,14 +136,21 @@ public class WizardController implements IRegistrationController {
    * @param dataMoverFolder for attachment upload
    * @param uploadSize
    */
+
   public WizardController(IOpenBisClient openbis, IOpenbisCreationController creationController, DBManager dbm, Vocabularies vocabularies,
-      AttachmentConfig attachmentConfig) {
+      AttachmentConfig attachmentConfig, ConfigurationManager configManager) {
+
     this.openbis = openbis;
     this.dbm = dbm;
     this.openbisCreator = creationController;
     this.vocabularies = vocabularies;
     this.attachConfig = attachmentConfig;
     this.designExperimentTypes = vocabularies.getExperimentTypes();
+
+    this.omero_usr = configManager.getOmeroUser();
+    this.omero_pwd = configManager.getOmeroPassword();
+    this.omero_host = configManager.getOmeroHostname();
+    this.omero_port = Integer.parseInt(configManager.getOmeroPort());
   }
 
   // Functions to add steps to the wizard depending on context
@@ -494,6 +501,103 @@ public class WizardController implements IRegistrationController {
               informativeExperiments, regStep.getProgressBar(), regStep.getProgressLabel(),
               new RegisteredSamplesReadyRunnable(regStep, control), entitiesToUpdate, pilot);
           w.addStep(steps.get(Steps.Finish));
+
+          ///////////////
+          // OMERO Block
+          // add OMERO project and samples
+          // if they are only adding samples (datasets) check if there is a corresponding OMERO project and then add sample datasets
+
+          logger.info("OMERO sample block ---%%%%%%%%%");
+          logger.info("project:: " + project);
+
+          boolean imgSupport = contextStep.hasImagingSupport();
+          if (imgSupport){
+
+            BasicOMEROClient oc = new BasicOMEROClient(omero_usr, omero_pwd, omero_host, omero_port);
+            oc.connect();
+            HashMap<Long, String> projectMap = oc.loadProjects();
+            oc.disconnect();
+            Set set = projectMap.entrySet();
+            Iterator iterator = set.iterator();
+            long omeroProjectId = -1;
+            while (iterator.hasNext()) {
+              Map.Entry entry = (Map.Entry) iterator.next();
+
+              if(entry.getValue().equals(project)){
+                omeroProjectId = (Long)entry.getKey();
+                break;
+              }
+            }
+
+            logger.info("omero project id: " + omeroProjectId);
+
+            if(omeroProjectId == -1){
+              oc.connect();
+              omeroProjectId = oc.createProject(project, contextStep.getDescription());
+              oc.disconnect();
+            }
+
+            List<ISampleBean> omeroSamples = new ArrayList<>();
+            for(List<ISampleBean> level : samples) {
+
+              String type = "";
+              if(!level.isEmpty()) {
+                type = level.get(0).getType();
+
+              }
+              if(type.equals("Q_BIOLOGICAL_SAMPLE")) {
+                omeroSamples.addAll(level);
+              }
+
+            }
+
+            oc.connect();
+
+            for(ISampleBean omeroSample : omeroSamples) {
+
+              logger.info("sample: " + omeroSample.getCode() + " ----%%%%%%%%%");
+              logger.info("desc: " + omeroSample.getSecondaryName());
+
+              long dataset_id = oc.createDataset(omeroProjectId, omeroSample.getCode(), omeroSample.getSecondaryName());
+            }
+
+            oc.disconnect();
+
+          }
+
+
+//          List<ISampleBean> omeroSamples = new ArrayList<>();
+//          for(List<ISampleBean> level : samples) {
+//
+//            //logger.info("level size: " + String.valueOf(level.size()) + " ----");
+//            //logger.info("level 0: " + level.get(0).getMetadata().toString() + " ----");
+//
+//
+//            String type = "";
+//            if(!level.isEmpty()) {
+//              type = level.get(0).getType();
+//              //logger.info("sample: " + level.toString() + " ----");
+//
+//            }
+//            //if(type.equals(SampleType.Q_BIOLOGICAL_SAMPLE.toString())) {
+//            if(type.equals("Q_BIOLOGICAL_SAMPLE")) {
+//              omeroSamples.addAll(level);
+//            }
+//
+//            logger.info("sample type: " + type + " ----");
+//
+//          }
+//
+//          for(ISampleBean omeroSample : omeroSamples) {
+//            omeroSample.getCode();
+//            omeroSample.getSecondaryName();
+//
+//            logger.info("sample: " + omeroSample.getCode() + " ----%%%%%%%%%");
+//            logger.info("desc: " + omeroSample.getSecondaryName());
+//          }
+          // End of OMERO Block
+          ////////////////////////////////
+
         }
       }
 
@@ -1327,6 +1431,23 @@ public class WizardController implements IRegistrationController {
     ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
     String space = context.getSpaceCode();
     String code = context.getProjectCode();
+
+    //
+    boolean imgSupport = context.hasImagingSupport();
+
+    logger.info("project: " + code + " xxxxxxx");
+    logger.info("desc: " + desc);
+    logger.info("img: " + imgSupport);
+
+    if (imgSupport) {
+
+      BasicOMEROClient oc = new BasicOMEROClient(this.omero_usr, this.omero_pwd, this.omero_host, this.omero_port);
+      oc.connect();
+      oc.createProject(code, desc);
+      oc.disconnect();
+    }
+    //
+
     boolean success = false;
     try {
       success = openbisCreator.setupEmptyProject(space, code, desc);
