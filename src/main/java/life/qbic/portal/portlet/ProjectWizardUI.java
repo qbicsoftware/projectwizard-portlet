@@ -40,7 +40,6 @@ import life.qbic.portal.portlet.QBiCPortletUI;
 import life.qbic.portal.samplegraph.GraphPage;
 import life.qbic.portal.utils.ConfigurationManager;
 import life.qbic.portal.utils.ConfigurationManagerFactory;
-import life.qbic.portal.utils.LiferayIndependentConfigurationManager;
 import life.qbic.portal.utils.PortalUtils;
 import life.qbic.projectwizard.control.ExperimentImportController;
 import life.qbic.projectwizard.control.WizardController;
@@ -57,7 +56,7 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean testMode = false;// TODO
-  public static boolean development = false;
+  public static boolean development = true;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 
@@ -92,8 +91,9 @@ public class ProjectWizardUI extends QBiCPortletUI {
       userID = PortalUtils.getUser().getScreenName();
     } else {
       if (development) {
-        LiferayIndependentConfigurationManager.Instance.init("local.properties");
-        config = LiferayIndependentConfigurationManager.Instance;
+        //LiferayIndependentConfigurationManager.Instance.init("local.properties");
+        //config = LiferayIndependentConfigurationManager.Instance;
+
         logger.warn("Checks for local dev version successful. User is granted admin status.");
         userID = "admin";
         isAdmin = true;
@@ -170,7 +170,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
-    WizardController c = new WizardController(openbis, dbm, vocabularies, attachConfig);
+    WizardController c = new WizardController(openbis, dbm, vocabularies, attachConfig, config);
     c.init(user);
     Wizard w = c.getWizard();
     WizardProgressListener wl = new WizardProgressListener() {

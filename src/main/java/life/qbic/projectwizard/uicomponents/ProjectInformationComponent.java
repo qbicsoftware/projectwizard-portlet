@@ -32,6 +32,9 @@ import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+//
+import com.vaadin.ui.CheckBox;
+
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.projects.ProjectInfo;
 import life.qbic.portal.Styles;
@@ -56,6 +59,9 @@ public class ProjectInformationComponent extends VerticalLayout {
   private ComboBox managerBox;
   private Button reloadPeople;
 
+  //
+  private CheckBox imgCheck;
+
   private TextArea projectDescription;
 
   private ValueChangeListener projectSelectListener;
@@ -65,14 +71,18 @@ public class ProjectInformationComponent extends VerticalLayout {
     setSizeUndefined();
 
     Collections.sort(spaces);
-    spaceBox = new ComboBox("Project", spaces);
+    spaceBox = new ComboBox("Project space", spaces);
     spaceBox.setStyleName(Styles.boxTheme);
     spaceBox.setNullSelectionAllowed(false);
     spaceBox.setImmediate(true);
     spaceBox.setFilteringMode(FilteringMode.CONTAINS);
     addComponent(Styles.questionize(spaceBox, "Name of the project", "Project Name"));
 
-    ComboBox prBox = new ComboBox("Sub-Project");
+    //
+    imgCheck = new CheckBox("Imaging Support");
+    addComponent(imgCheck);
+
+    ComboBox prBox = new ComboBox("Project");
     prBox.setStyleName(Styles.boxTheme);
     projectBox = new CustomVisibilityComponent(prBox);
     projectBox.setStyleName(Styles.boxTheme);
@@ -90,7 +100,7 @@ public class ProjectInformationComponent extends VerticalLayout {
     Styles.iconButton(reloadProjects, FontAwesome.REFRESH);
 
     HorizontalLayout proj = new HorizontalLayout();
-    proj.setCaption("New Sub-Project");
+    proj.setCaption("New Project");
     proj.addComponent(project);
     proj.addComponent(reloadProjects);
     CustomVisibilityComponent newProj = new CustomVisibilityComponent(proj);
@@ -222,6 +232,12 @@ public class ProjectInformationComponent extends VerticalLayout {
         project = project.split(" ")[0];
       return project;
     }
+  }
+
+  public boolean hasImagingSupport(){
+
+    return this.imgCheck.getValue();
+
   }
 
   public String getProjectDescription() {
