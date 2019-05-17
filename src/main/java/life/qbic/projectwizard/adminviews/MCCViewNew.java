@@ -92,6 +92,8 @@ public class MCCViewNew extends VerticalLayout
   private final String mccSpace = "MULTISCALEHCC";
   private final List<String> weeks = new ArrayList<>(
       Arrays.asList("W00", "W02", "W04", "W10", "W18", "W26", "W32", "W40", "W48", "WXX"));
+
+  private final Set<String> imagingWeeks = new HashSet<>(Arrays.asList("W00", "W04", "WXX"));
   private List<TechnologyType> techTypes;
   private ComboBox mccProjects;
   private StandardTextField newProject;
@@ -586,27 +588,29 @@ public class MCCViewNew extends VerticalLayout
         // elastProps.put("Q_BMI_MODALITY", "MR-ELASTOGRAPHY");
         // ctPerfProps.put("Q_BMI_MODALITY", "CT-PERFUSION");
         // ctPuncProps.put("Q_BMI_MODALITY", "CT-BIOPSY");
-        String imagingExt = extIDBase;
-        String imaID = counter.getNewBarcode();
-        imaging
-            .add(createSample(imaID, MR.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
-                "MR imaging", imagingExt + "I1", "N/A", patientIDs));
-        sampleIDsThisWeek.add(imaID);
-        imaID = counter.getNewBarcode();
-        imaging.add(
-            createSample(imaID, elast.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
-                "MR Elastography", imagingExt + "I2", "N/A", patientIDs));
-        sampleIDsThisWeek.add(imaID);
-        imaID = counter.getNewBarcode();
-        imaging.add(
-            createSample(imaID, ctPerf.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
-                "CT perfusion", imagingExt + "I3", "N/A", patientIDs));
-        sampleIDsThisWeek.add(imaID);
-        imaID = counter.getNewBarcode();
-        imaging.add(
-            createSample(imaID, ctPunc.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
-                "CT punction", imagingExt + "I4", "N/A", patientIDs));
-        sampleIDsThisWeek.add(imaID);
+        if (imagingWeeks.contains(timepoint)) {
+          String imagingExt = extIDBase;
+          String imaID = counter.getNewBarcode();
+          imaging
+              .add(createSample(imaID, MR.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+                  "MR imaging", imagingExt + "I1", "N/A", patientIDs));
+          sampleIDsThisWeek.add(imaID);
+          imaID = counter.getNewBarcode();
+          imaging.add(
+              createSample(imaID, elast.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+                  "MR Elastography", imagingExt + "I2", "N/A", patientIDs));
+          sampleIDsThisWeek.add(imaID);
+          imaID = counter.getNewBarcode();
+          imaging.add(
+              createSample(imaID, ctPerf.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+                  "CT perfusion", imagingExt + "I3", "N/A", patientIDs));
+          sampleIDsThisWeek.add(imaID);
+          imaID = counter.getNewBarcode();
+          imaging.add(
+              createSample(imaID, ctPunc.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+                  "CT punction", imagingExt + "I4", "N/A", patientIDs));
+          sampleIDsThisWeek.add(imaID);
+        }
 
         String bloodExtBase = extIDBase + "B";
         for (int i = 1; i < 3; i++) {
