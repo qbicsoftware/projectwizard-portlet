@@ -31,6 +31,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.openbis.openbisclient.OpenBisClient;
 import life.qbic.projectwizard.io.AttachmentInformation;
@@ -275,7 +276,7 @@ public class UploadsPanel extends VerticalLayout {
           }
       }
       List<ISampleBean> samples = new ArrayList<ISampleBean>();
-      samples.add(new TSVSampleBean(sample, experiment, project, space, "Q_ATTACHMENT_SAMPLE", "",
+      samples.add(new TSVSampleBean(sample, experiment, project, space, SampleType.Q_ATTACHMENT_SAMPLE, "",
           new ArrayList<String>(), new HashMap<String, Object>()));
       openbisCreator.registerSampleBatch(samples);
       double timeoutS = 10.0;

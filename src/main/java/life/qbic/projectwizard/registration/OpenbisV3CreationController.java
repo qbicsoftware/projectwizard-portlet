@@ -37,6 +37,7 @@ import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
 import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.xml.manager.StudyXMLParser;
@@ -367,7 +368,7 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
 
         SampleCreation sampleCreation = new SampleCreation();
         String space = sample.getSpace();
-        sampleCreation.setTypeId(new EntityTypePermId(sample.getType()));
+        sampleCreation.setTypeId(new EntityTypePermId(sample.getType().toString()));
         sampleCreation.setSpaceId(new SpacePermId(space));
 
         List<SampleIdentifier> parents = new ArrayList<>();
@@ -427,7 +428,7 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
       logger.error(errors);
       return false;
     }
-    ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, "Q_ATTACHMENT_SAMPLE", "",
+    ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, SampleType.Q_ATTACHMENT_SAMPLE, "",
         new ArrayList<String>(), new HashMap<String, Object>());
     success = registerSampleBatch(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
     if (!success) {

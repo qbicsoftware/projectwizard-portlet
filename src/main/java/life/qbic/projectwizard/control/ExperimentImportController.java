@@ -63,6 +63,7 @@ import life.qbic.datamodel.identifiers.TooManySamplesException;
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.projects.ProjectInfo;
 import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.ParserHelpers;
 import life.qbic.expdesign.SamplePreparator;
@@ -85,7 +86,6 @@ import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.ISAParseReady;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
-import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.projectwizard.views.ExperimentImportView;
@@ -376,8 +376,7 @@ public class ExperimentImportController implements IRegistrationController {
           String project = projectInfo.getProjectCode();
           String infoExpCode = project + "_INFO";
           String code = project + "000";
-          String sampleType = "Q_ATTACHMENT_SAMPLE";
-          ISampleBean infoSample = new TSVSampleBean(code, infoExpCode, project, space, sampleType,
+          ISampleBean infoSample = new TSVSampleBean(code, infoExpCode, project, space, SampleType.Q_ATTACHMENT_SAMPLE,
               "", new ArrayList<String>(), new HashMap<String, Object>());
           samples.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
 
@@ -652,9 +651,9 @@ public class ExperimentImportController implements IRegistrationController {
           techTypes.addAll(prep.getTechnologyTypes());
 
           for (List<ISampleBean> level : processed) {
-            String type = level.get(0).getType();
+            SampleType type = level.get(0).getType();
             String exp = "";
-            if (!type.equals("Q_MS_RUN") && !type.equals("Q_MHC_LIGAND_EXTRACT"))
+            if (!type.equals(SampleType.Q_MS_RUN) && !type.equals(SampleType.Q_MHC_LIGAND_EXTRACT))
               exp = getNextExperiment(project);
             // list of existing samples to be removed before registration
             List<ISampleBean> existing = new ArrayList<ISampleBean>();
@@ -671,14 +670,14 @@ public class ExperimentImportController implements IRegistrationController {
                 String code = "";
                 Map<String, Object> props = t.getMetadata();
                 switch (t.getType()) {
-                  case "Q_BIOLOGICAL_ENTITY":
+                  case Q_BIOLOGICAL_ENTITY:
                     code = project + "ENTITY-" + entityNum;
                     String newVal = questionaire.getVocabularyLabelForValue("Species",
                         props.get("Q_NCBI_ORGANISM"));
                     props.put("Q_NCBI_ORGANISM", taxMap.get(newVal));
                     entityNum++;
                     break;
-                  case "Q_BIOLOGICAL_SAMPLE":
+                  case Q_BIOLOGICAL_SAMPLE:
                     try {
                       incrementOrCreateBarcode(project);
                     } catch (TooManySamplesException e) {
@@ -689,7 +688,7 @@ public class ExperimentImportController implements IRegistrationController {
                         props.get("Q_PRIMARY_TISSUE"));
                     props.put("Q_PRIMARY_TISSUE", tissueMap.get(newVal));
                     break;
-                  case "Q_TEST_SAMPLE":
+                  case Q_TEST_SAMPLE:
                     try {
                       incrementOrCreateBarcode(project);
                     } catch (TooManySamplesException e) {
@@ -714,7 +713,7 @@ public class ExperimentImportController implements IRegistrationController {
                       }
                     }
                     break;
-                  case "Q_MHC_LIGAND_EXTRACT":
+                  case Q_MHC_LIGAND_EXTRACT:
                     try {
                       incrementOrCreateBarcode(project);
                     } catch (TooManySamplesException e) {
@@ -726,7 +725,7 @@ public class ExperimentImportController implements IRegistrationController {
                     }
                     exp = specialExpToExpCode.get(t.getExperiment());
                     break;
-                  case "Q_MS_RUN":
+                  case Q_MS_RUN:
                     logger.debug("found: " + t);
                     // get ms experiment to connect it correctly
                     if (!specialExpToExpCode.containsKey(t.getExperiment())) {

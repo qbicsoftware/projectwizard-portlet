@@ -62,6 +62,7 @@ import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.samples.AOpenbisSample;
 import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.ParserHelpers;
 import life.qbic.expdesign.SamplePreparator;
@@ -77,7 +78,6 @@ import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
 import life.qbic.projectwizard.processes.RegistrationMode;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
-import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.projectwizard.steps.*;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.portal.Styles;
@@ -482,9 +482,8 @@ public class WizardController implements IRegistrationController {
           String project = contextStep.getProjectCode();
           String exp = project + "_INFO";
           String code = project + "000";
-          String sampleType = "Q_ATTACHMENT_SAMPLE";
           boolean pilot = contextStep.isPilot();
-          ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, sampleType, "",
+          ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, SampleType.Q_ATTACHMENT_SAMPLE, "",
               new ArrayList<String>(), new HashMap<String, Object>());
           samples.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
           List<OpenbisExperiment> informativeExperiments =
@@ -540,12 +539,12 @@ public class WizardController implements IRegistrationController {
             List<ISampleBean> omeroSamples = new ArrayList<>();
             for(List<ISampleBean> level : samples) {
 
-              String type = "";
+              SampleType type = null;
               if(!level.isEmpty()) {
                 type = level.get(0).getType();
 
               }
-              if(type.equals("Q_BIOLOGICAL_SAMPLE")) {
+              if(type.equals(SampleType.Q_BIOLOGICAL_SAMPLE)) {
                 omeroSamples.addAll(level);
               }
 
