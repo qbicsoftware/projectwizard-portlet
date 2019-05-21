@@ -314,9 +314,9 @@ public class MCCViewNew extends VerticalLayout
           props.put("Q_EXPERIMENTAL_SETUP", newDesignXML);
           infoExperiments.add(new OpenbisExperiment(exp, ExperimentType.Q_PROJECT_DETAILS, props));
           String code = project + "000";
-          String sampleType = "Q_ATTACHMENT_SAMPLE";
-          ISampleBean infoSample = new TSVSampleBean(code, exp, project, mccSpace, sampleType, "",
-              new ArrayList<String>(), new HashMap<String, Object>());
+          ISampleBean infoSample =
+              new TSVSampleBean(code, exp, project, mccSpace, SampleType.Q_ATTACHMENT_SAMPLE, "",
+                  new ArrayList<String>(), new HashMap<String, Object>());
           samps.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
         }
         // logger.debug("exps " + infoExperiments);
@@ -413,6 +413,9 @@ public class MCCViewNew extends VerticalLayout
 
   private TSVSampleBean createSample(String code, String expSuffix, SampleType sType,
       String secondary, String extID, String type, List<String> parentIDs) {
+    if (expSuffix.contains(project)) {
+      expSuffix = expSuffix.replace(project, "");
+    }
     Map<String, Object> metadata = new HashMap<>();
     switch (sType) {
       case Q_BIOLOGICAL_ENTITY:
@@ -430,8 +433,8 @@ public class MCCViewNew extends VerticalLayout
         break;
     }
     metadata.put("Q_EXTERNALDB_ID", extID);
-    return new TSVSampleBean(code, project + expSuffix, project, mccSpace, type.toString(),
-        secondary, parentIDs, metadata);
+    return new TSVSampleBean(code, project + expSuffix, project, mccSpace, sType, secondary,
+        parentIDs, metadata);
   }
 
   private List<List<ISampleBean>> prepDefaultMCCSamples() {
@@ -478,7 +481,6 @@ public class MCCViewNew extends VerticalLayout
 
     ExperimentType imExp = ExperimentType.Q_BMI_GENERIC_IMAGING;
 
-    // TODO
     Map<String, Object> mrProps = new HashMap<>();
     mrProps.put("Q_BMI_MODALITY", "MR");
     Map<String, Object> elastProps = new HashMap<>();
@@ -673,7 +675,6 @@ public class MCCViewNew extends VerticalLayout
           weekLevels.put(key, sampleIDsThisWeek);
         }
       }
-      System.out.println(weekLevels);
     }
     treatLevels.put(new ImmutablePair<String, String>(treatInput, null), allPatients);
     expDesign.put("week", weekLevels);
