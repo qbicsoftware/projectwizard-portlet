@@ -166,7 +166,7 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
         expCreations.add(exp);
       }
     }
-    if (exps.size() > 0) {
+    if (expCreations.size() > 0) {
       logger.info("Sending " + expCreations.size() + " new experiments to the V3 API.");
       IOperation operation = new CreateExperimentsOperation(expCreations);
       return api.handleOperations(operation);
@@ -269,7 +269,7 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
         double frac = current * 1.0 / todo;
         info.setCaption("Registering Project and Experiments");
         UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-        boolean success = false;
+        boolean success = true;
         if (!openbis.projectExists(space, project)) {
           success = registerProject(space, project, desc);
           if (!success) {
