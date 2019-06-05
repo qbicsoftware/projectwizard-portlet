@@ -653,7 +653,7 @@ public class MCCViewNew extends VerticalLayout
           String liverExtBase = extIDBase + "L";
           for (int i = 1; i < 3; i++) {
             String ID = counter.getNewBarcode();
-            liver.add(createSample(ID, "E14", t2, "liver biopsy #" + i, liverExtBase + i, "LIVER",
+            liver.add(createSample(ID, "E21", t2, "liver biopsy #" + i, liverExtBase + i, "LIVER",
                 patientIDs));
             sampleIDsThisWeek.add(ID);
             List<String> parentID = new ArrayList<>(Arrays.asList(ID));
