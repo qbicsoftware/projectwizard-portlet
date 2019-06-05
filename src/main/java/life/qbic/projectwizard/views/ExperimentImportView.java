@@ -245,7 +245,6 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
   }
 
   public void setProcessed(List<List<ISampleBean>> processed) {
-    logger.debug("setting processed: "+processed);
     samples = processed;
   }
 
@@ -255,7 +254,6 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
   }
 
   public List<List<ISampleBean>> getSamples() {
-    logger.debug("samples: "+samples);
     return samples;
   }
 
