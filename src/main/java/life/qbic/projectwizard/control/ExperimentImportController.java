@@ -394,10 +394,6 @@ public class ExperimentImportController implements IRegistrationController {
             complexExperiments
                 .add(new OpenbisExperiment(infoExpCode, ExperimentType.Q_PROJECT_DETAILS, props));
           }
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
-              projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
-              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control),
-              entitiesToUpdate, projectInfo.isPilot());
           List<String> tsv = prep.getOriginalTSV();
           switch (getImportType()) {
             case Standard:
@@ -409,6 +405,12 @@ public class ExperimentImportController implements IRegistrationController {
             default:
               break;
           }
+          
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
+              projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
+              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control),
+              entitiesToUpdate, projectInfo.isPilot());
+
         }
       }
 
@@ -563,8 +565,7 @@ public class ExperimentImportController implements IRegistrationController {
         Map<String, String> fileNameToBarcode = new HashMap<String, String>();
         for (List<ISampleBean> samples : levels) {
           for (ISampleBean s : samples) {
-            if (s.getType().equals("Q_MS_RUN")) {
-              System.out.println(s.getCode());
+            if (s.getType().equals(SampleType.Q_MS_RUN)) {
               Map<String, Object> props = s.getMetadata();
               fileNameToBarcode.put(props.get("File").toString(), s.getCode());
               props.remove("File");
@@ -659,8 +660,9 @@ public class ExperimentImportController implements IRegistrationController {
             List<ISampleBean> existing = new ArrayList<ISampleBean>();
             for (ISampleBean b : level) {
               TSVSampleBean t = (TSVSampleBean) b;
+              
               String extID = (String) t.getMetadata().get("Q_EXTERNALDB_ID");
-              logger.debug("extid: "+extID);
+              
               if (extIDToSample.containsKey(extID)) {
                 existing.add(t);
                 extCodeToBarcode.put(extID, extIDToSample.get(extID).getCode());
@@ -726,7 +728,6 @@ public class ExperimentImportController implements IRegistrationController {
                     exp = specialExpToExpCode.get(t.getExperiment());
                     break;
                   case Q_MS_RUN:
-                    logger.debug("found: " + t);
                     // get ms experiment to connect it correctly
                     if (!specialExpToExpCode.containsKey(t.getExperiment())) {
                       specialExpToExpCode.put(t.getExperiment(), getNextExperiment(project));
