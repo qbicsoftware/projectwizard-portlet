@@ -59,6 +59,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean testMode = false;// TODO
   public static boolean development = true;
+  public static boolean v3API = false;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 
@@ -168,11 +169,12 @@ public class ProjectWizardUI extends QBiCPortletUI {
   private void initView(final DBManager dbm, final Vocabularies vocabularies, final String user) {
     tabs.removeAllComponents();
 
-//    OpenbisV3APIWrapper v3API = new OpenbisV3APIWrapper(config.getDataSourceUrl(),
-//        config.getDataSourceUser(), config.getDataSourcePassword(), user);
-//    IOpenbisCreationController creationController =
-//        new OpenbisV3CreationController(openbis, user, v3API);
-     IOpenbisCreationController creationController = new OpenbisCreationController(openbis, user);
+    IOpenbisCreationController creationController = new OpenbisCreationController(openbis, user);
+    if (v3API) {
+      OpenbisV3APIWrapper v3API = new OpenbisV3APIWrapper(config.getDataSourceUrl(),
+          config.getDataSourceUser(), config.getDataSourcePassword(), user);
+      creationController = new OpenbisV3CreationController(openbis, user, v3API);
+    }
 
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
