@@ -94,6 +94,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
         logger.warn("Checks for local dev version successful. User is granted admin status.");
         userID = "admin";
         isAdmin = true;
+        logger.warn("User is connected to: "+config.getDataSourceUrl());
       } else {
         success = false;
         logger.info(
