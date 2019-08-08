@@ -87,7 +87,6 @@ public class MCCViewNew extends VerticalLayout
   final private StudyXMLParser xmlParser = new StudyXMLParser();
   private Experiment designExperiment;
   private JAXBElement<Qexperiment> expDesign;
-  private String user;
   // view
   private final String mccSpace = "MULTISCALEHCC";
   private final List<String> weeks = new ArrayList<>(
@@ -128,7 +127,6 @@ public class MCCViewNew extends VerticalLayout
 
     this.openbis = openbis;
     this.creator = creationController;
-    this.user = user;
 
     // this.casesWithWeeks = new HashSet<String>();
     this.existingPatientIDs = new HashSet<>();

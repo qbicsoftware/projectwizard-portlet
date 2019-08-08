@@ -61,7 +61,6 @@ import life.qbic.projectwizard.control.SampleCounter;
 import life.qbic.projectwizard.model.MCCPatient;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
-import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.projectwizard.views.IRegistrationView;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
@@ -85,7 +84,6 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
   final private StudyXMLParser xmlParser = new StudyXMLParser();
   private Experiment designExperiment;
   private JAXBElement<Qexperiment> expDesign;
-  private String user;
   // view
   private final String mccSpace = "MULTISCALEHCC";
   private List<TechnologyType> techTypes;
@@ -120,7 +118,6 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
 
     this.openbis = openbis;
     this.creator = creationController;
-    this.user = user;
 
     this.cases = new HashSet<String>();
     this.patients = new ArrayList<String>();

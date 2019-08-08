@@ -10,7 +10,6 @@ import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.datamodel.samples.ISampleBean;
-import life.qbic.datamodel.samples.SampleType;
 
 public class RegisterableProject {
 

@@ -41,7 +41,6 @@ import com.vaadin.ui.VerticalLayout;
 
 import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.io.QuantificationMethodVocabularyParser;
-import life.qbic.projectwizard.model.TissueInfo;
 import life.qbic.projectwizard.uicomponents.ConditionsPanel;
 import life.qbic.projectwizard.uicomponents.LabelingMethod;
 import life.qbic.portal.Styles;

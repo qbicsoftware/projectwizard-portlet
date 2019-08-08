@@ -38,7 +38,6 @@ import life.qbic.projectwizard.io.AttachmentInformation;
 import life.qbic.projectwizard.io.AttachmentMover;
 import life.qbic.projectwizard.processes.MoveUploadsReadyRunnable;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
-import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.portlet.ProjectWizardUI;

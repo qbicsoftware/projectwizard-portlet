@@ -744,6 +744,78 @@ public class ExperimentImportController implements IRegistrationController {
                     }
                     msCodes.add(code);
                     break;
+				case Q_ATTACHMENT_SAMPLE:
+					break;
+				case Q_BMI_GENERIC_IMAGING_RUN:
+					break;
+				case Q_EDDA_BENCHMARK:
+					break;
+				case Q_EXT_MS_QUALITYCONTROL_RUN:
+					break;
+				case Q_EXT_NGS_QUALITYCONTROL_RUN:
+					break;
+				case Q_FASTA:
+					break;
+				case Q_HT_QPCR_RUN:
+					break;
+				case Q_MICROARRAY_RUN:
+					break;
+				case Q_NGS_EPITOPES:
+					break;
+				case Q_NGS_FLOWCELL_RUN:
+					break;
+				case Q_NGS_HLATYPING:
+					break;
+				case Q_NGS_IMMUNE_MONITORING:
+					break;
+				case Q_NGS_IONTORRENT_RUN:
+					break;
+				case Q_NGS_MAPPING:
+					break;
+				case Q_NGS_MTB_DIAGNOSIS_RUN:
+					break;
+				case Q_NGS_READ_MATCH_ALIGNMENT_RUN:
+					break;
+				case Q_NGS_SINGLE_SAMPLE_RUN:
+					break;
+				case Q_NGS_VARIANT_CALLING:
+					break;
+				case Q_VACCINE_CONSTRUCT:
+					break;
+				case Q_WF_MA_QUALITYCONTROL_RUN:
+					break;
+				case Q_WF_MS_INDIVIDUALIZED_PROTEOME_RUN:
+					break;
+				case Q_WF_MS_LIGANDOMICS_ID_RUN:
+					break;
+				case Q_WF_MS_LIGANDOMICS_QC_RUN:
+					break;
+				case Q_WF_MS_MAXQUANT_RUN:
+					break;
+				case Q_WF_MS_PEPTIDEID_RUN:
+					break;
+				case Q_WF_MS_QUALITYCONTROL_RUN:
+					break;
+				case Q_WF_NGS_16S_TAXONOMIC_PROFILING:
+					break;
+				case Q_WF_NGS_EPITOPE_PREDICTION_RUN:
+					break;
+				case Q_WF_NGS_HLATYPING_RUN:
+					break;
+				case Q_WF_NGS_MAPPING_RUN:
+					break;
+				case Q_WF_NGS_QUALITYCONTROL_RUN:
+					break;
+				case Q_WF_NGS_RNA_EXPRESSION_ANALYSIS_RUN:
+					break;
+				case Q_WF_NGS_SHRNA_COUNTING_RUN:
+					break;
+				case Q_WF_NGS_VARIANT_ANNOTATION_RUN:
+					break;
+				case Q_WF_NGS_VARIANT_CALLING_RUN:
+					break;
+				default:
+					break;
                 }
                 t.setExperiment(exp);
                 t.setCode(code);

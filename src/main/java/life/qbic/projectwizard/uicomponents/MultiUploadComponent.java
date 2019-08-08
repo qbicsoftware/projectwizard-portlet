@@ -10,7 +10,6 @@ import java.util.Date;
 
 import org.apache.commons.io.IOUtils;
 
-import com.vaadin.server.FontAwesome;
 import com.vaadin.server.StreamVariable;
 import com.wcs.wcslib.vaadin.widget.multifileupload.ui.AllUploadFinishedHandler;
 import com.wcs.wcslib.vaadin.widget.multifileupload.ui.MultiFileUpload;

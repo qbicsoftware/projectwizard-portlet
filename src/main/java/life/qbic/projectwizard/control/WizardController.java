@@ -95,198 +95,202 @@ import life.qbic.omero.BasicOMEROClient;
  */
 public class WizardController implements IRegistrationController {
 
-  private IOpenBisClient openbis;
-  private IOpenbisCreationController openbisCreator;
-  private Wizard w;
-  private Map<Steps, WizardStep> steps;
-  private WizardDataAggregator dataAggregator;
-  private boolean bioFactorInstancesSet = false;
-  private boolean extractFactorInstancesSet = false;
-  private boolean extractPoolsSet = false;
-  private boolean testPoolsSet = false;
-  private boolean copyMode = false;
-  private Vocabularies vocabularies;
-  private DBManager dbm;
-  private FileDownloader tsvDL;
-  private List<Note> notes;
-  private SamplePreparator prep = new SamplePreparator();
-  protected List<String> designExperimentTypes;
-  private String newExperimentalDesignXML;
+	private IOpenBisClient openbis;
+	private IOpenbisCreationController openbisCreator;
+	private Wizard w;
+	private Map<Steps, WizardStep> steps;
+	private WizardDataAggregator dataAggregator;
+	private boolean bioFactorInstancesSet = false;
+	private boolean extractFactorInstancesSet = false;
+	private boolean extractPoolsSet = false;
+	private boolean testPoolsSet = false;
+	private boolean copyMode = false;
+	private Vocabularies vocabularies;
+	private DBManager dbm;
+	private FileDownloader tsvDL;
+	private List<Note> notes;
+	private SamplePreparator prep = new SamplePreparator();
+	protected List<String> designExperimentTypes;
+	private String newExperimentalDesignXML;
 
-  //
-  private String omero_usr;
-  private String omero_pwd;
-  private int omero_port;
-  private String omero_host;
+	//
+	private String omero_usr;
+	private String omero_pwd;
+	private int omero_port;
+	private String omero_host;
 
-  private Logger logger = LogManager.getLogger(WizardController.class);
+	private Logger logger = LogManager.getLogger(WizardController.class);
 
-  private AttachmentConfig attachConfig;
-  protected Map<String, Map<String, Object>> entitiesToUpdate;
+	private AttachmentConfig attachConfig;
+	protected Map<String, Map<String, Object>> entitiesToUpdate;
 
-  /**
-   * 
-   * @param openbis OpenBisClient API
-   * @param creationController 
-   * @param dbm
-   * @param taxMap Map containing the NCBI taxonomy (labels and ids) taken from openBIS
-   * @param tissueMap Map containing the tissue
-   * @param sampleTypes List containing the different sample (technology) types
-   * @param spaces List of space names existing in openBIS
-   * @param dataMoverFolder for attachment upload
-   * @param uploadSize
-   */
+	/**
+	 * 
+	 * @param openbis            OpenBisClient API
+	 * @param creationController
+	 * @param dbm
+	 * @param taxMap             Map containing the NCBI taxonomy (labels and ids)
+	 *                           taken from openBIS
+	 * @param tissueMap          Map containing the tissue
+	 * @param sampleTypes        List containing the different sample (technology)
+	 *                           types
+	 * @param spaces             List of space names existing in openBIS
+	 * @param dataMoverFolder    for attachment upload
+	 * @param uploadSize
+	 */
 
-  public WizardController(IOpenBisClient openbis, IOpenbisCreationController creationController, DBManager dbm, Vocabularies vocabularies,
-      AttachmentConfig attachmentConfig, ConfigurationManager configManager) {
+	public WizardController(IOpenBisClient openbis, IOpenbisCreationController creationController, DBManager dbm,
+			Vocabularies vocabularies, AttachmentConfig attachmentConfig, ConfigurationManager configManager) {
 
-    this.openbis = openbis;
-    this.dbm = dbm;
-    this.openbisCreator = creationController;
-    this.vocabularies = vocabularies;
-    this.attachConfig = attachmentConfig;
-    this.designExperimentTypes = vocabularies.getExperimentTypes();
+		this.openbis = openbis;
+		this.dbm = dbm;
+		this.openbisCreator = creationController;
+		this.vocabularies = vocabularies;
+		this.attachConfig = attachmentConfig;
+		this.designExperimentTypes = vocabularies.getExperimentTypes();
 
-    this.omero_usr = configManager.getOmeroUser();
-    this.omero_pwd = configManager.getOmeroPassword();
-    this.omero_host = configManager.getOmeroHostname();
-    this.omero_port = Integer.parseInt(configManager.getOmeroPort());
-  }
+		this.omero_usr = configManager.getOmeroUser();
+		this.omero_pwd = configManager.getOmeroPassword();
+		this.omero_host = configManager.getOmeroHostname();
+		this.omero_port = Integer.parseInt(configManager.getOmeroPort());
+	}
 
-  // Functions to add steps to the wizard depending on context
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	// Functions to add steps to the wizard depending on context
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  private void setRegStep() {
-    w.addStep(steps.get(Steps.Registration)); // tsv upload and registration
-  }
+	private void setRegStep() {
+		w.addStep(steps.get(Steps.Registration)); // tsv upload and registration
+	}
 
-  private void setInheritEntities() {
-    w.addStep(steps.get(Steps.Entity_Tailoring)); // entity negative selection
-    w.addStep(steps.get(Steps.Extraction)); // extract first step
-    setInheritExtracts();
-  }
+	private void setInheritEntities() {
+		w.addStep(steps.get(Steps.Entity_Tailoring)); // entity negative selection
+		w.addStep(steps.get(Steps.Extraction)); // extract first step
+		setInheritExtracts();
+	}
 
-  private void setInheritExtracts() {
-    w.addStep(steps.get(Steps.Extract_Tailoring)); // extracts negative selection
-    w.addStep(steps.get(Steps.Test_Samples)); // test samples first step
-    setRegStep();
-  }
+	private void setInheritExtracts() {
+		w.addStep(steps.get(Steps.Extract_Tailoring)); // extracts negative selection
+		w.addStep(steps.get(Steps.Test_Samples)); // test samples first step
+		setRegStep();
+	}
 
-  private void setExtractsPooling() {
-    w.addStep(steps.get(Steps.Extract_Pooling)); // pooling step
-    setTestStep();
-  }
+	private void setExtractsPooling() {
+		w.addStep(steps.get(Steps.Extract_Pooling)); // pooling step
+		setTestStep();
+	}
 
-  private void setTestStep() {
-    w.addStep(steps.get(Steps.Test_Samples)); // test samples first step
-    setRegStep();
-  }
+	private void setTestStep() {
+		w.addStep(steps.get(Steps.Test_Samples)); // test samples first step
+		setRegStep();
+	}
 
-  private void setTestsPooling() {
-    w.addStep(steps.get(Steps.Test_Sample_Pooling));
-    setRegStep();
-  }
+	private void setTestsPooling() {
+		w.addStep(steps.get(Steps.Test_Sample_Pooling));
+		setRegStep();
+	}
 
-  private void setTailoringStepsOnly() {
-    w.addStep(steps.get(Steps.Entity_Tailoring));
-    w.addStep(steps.get(Steps.Extract_Tailoring));
-    w.addStep(steps.get(Steps.Test_Samples)); // test samples first step
-    setRegStep();
-  }
+	private void setTailoringStepsOnly() {
+		w.addStep(steps.get(Steps.Entity_Tailoring));
+		w.addStep(steps.get(Steps.Extract_Tailoring));
+		w.addStep(steps.get(Steps.Test_Samples)); // test samples first step
+		setRegStep();
+	}
 
-  private void setCreateEntities() {
-    w.addStep(steps.get(Steps.Entities)); // entities first step
-    setInheritEntities();
-  }
+	private void setCreateEntities() {
+		w.addStep(steps.get(Steps.Entities)); // entities first step
+		setInheritEntities();
+	}
 
-  private void setEntityConditions() {
-    w.addStep(steps.get(Steps.Entity_Conditions)); // entity conditions
-    setInheritEntities();
-  }
+	private void setEntityConditions() {
+		w.addStep(steps.get(Steps.Entity_Conditions)); // entity conditions
+		setInheritEntities();
+	}
 
-  private void setExtractConditions() {
-    w.addStep(steps.get(Steps.Extract_Conditions)); // extract conditions
-    setInheritExtracts();
-  }
+	private void setExtractConditions() {
+		w.addStep(steps.get(Steps.Extract_Conditions)); // extract conditions
+		setInheritExtracts();
+	}
 
-  private void resetNextSteps() {
-    List<WizardStep> steps = w.getSteps();
-    List<WizardStep> copy = new ArrayList<WizardStep>();
-    copy.addAll(steps);
-    boolean isNew = false;
-    for (int i = 0; i < copy.size(); i++) {
-      WizardStep cur = copy.get(i);
-      if (isNew) {
-        w.removeStep(cur);
-      }
-      if (w.isActive(cur))
-        isNew = true;
-    }
-  }
+	private void resetNextSteps() {
+		List<WizardStep> steps = w.getSteps();
+		List<WizardStep> copy = new ArrayList<WizardStep>();
+		copy.addAll(steps);
+		boolean isNew = false;
+		for (int i = 0; i < copy.size(); i++) {
+			WizardStep cur = copy.get(i);
+			if (isNew) {
+				w.removeStep(cur);
+			}
+			if (w.isActive(cur))
+				isNew = true;
+		}
+	}
 
-  /**
-   * Test is a project has biological entities registered. Used to check availability of context
-   * options
-   * 
-   * @param spaceCode Code of the selected openBIS space
-   * @param code Code of the project
-   * @return
-   */
-  public boolean projectHasBioEntities(String spaceCode, String code) {
-    if (!openbis.projectExists(spaceCode, code))
-      return false;
-    for (Experiment e : openbis.getExperimentsOfProjectByCode(code)) {
-      if (e.getExperimentTypeCode().equals("Q_EXPERIMENTAL_DESIGN")) {
-        if (openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0)
-          return true;
-      }
-    }
-    return false;
-  }
+	/**
+	 * Test is a project has biological entities registered. Used to check
+	 * availability of context options
+	 * 
+	 * @param spaceCode Code of the selected openBIS space
+	 * @param code      Code of the project
+	 * @return
+	 */
+	public boolean projectHasBioEntities(String spaceCode, String code) {
+		if (!openbis.projectExists(spaceCode, code))
+			return false;
+		for (Experiment e : openbis.getExperimentsOfProjectByCode(code)) {
+			if (e.getExperimentTypeCode().equals("Q_EXPERIMENTAL_DESIGN")) {
+				if (openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0)
+					return true;
+			}
+		}
+		return false;
+	}
 
-  /**
-   * Test is a project has biological extracts registered. Used to check availability of context
-   * options
-   * 
-   * @param spaceCode Code of the selected openBIS space
-   * @param code Code of the project
-   * @return
-   */
-  public boolean projectHasExtracts(String spaceCode, String code) {
-    if (!openbis.projectExists(spaceCode, code))
-      return false;
-    for (Experiment e : openbis.getExperimentsOfProjectByCode(code)) {
-      if (e.getExperimentTypeCode().equals("Q_SAMPLE_EXTRACTION"))
-        if (openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0)
-          return true;
-    }
-    return false;
-  }
+	/**
+	 * Test is a project has biological extracts registered. Used to check
+	 * availability of context options
+	 * 
+	 * @param spaceCode Code of the selected openBIS space
+	 * @param code      Code of the project
+	 * @return
+	 */
+	public boolean projectHasExtracts(String spaceCode, String code) {
+		if (!openbis.projectExists(spaceCode, code))
+			return false;
+		for (Experiment e : openbis.getExperimentsOfProjectByCode(code)) {
+			if (e.getExperimentTypeCode().equals("Q_SAMPLE_EXTRACTION"))
+				if (openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0)
+					return true;
+		}
+		return false;
+	}
 
-  public Wizard getWizard() {
-    return w;
-  }
+	public Wizard getWizard() {
+		return w;
+	}
 
-  private String generateProjectCode() {
-    Random r = new Random();
-    String res = "";
-    while (res.length() < 5 || openbis.getProjectByCode(res) != null) {
-      res = "Q";
-      for (int i = 1; i < 5; i++) {
-        char c = 'Y';
-        while (c == 'Y' || c == 'Z')
-          c = (char) (r.nextInt(26) + 'A');
-        res += c;
-      }
-    }
-    return res;
-  }
+	private String generateProjectCode() {
+		Random r = new Random();
+		String res = "";
+		while (res.length() < 5 || openbis.getProjectByCode(res) != null) {
+			res = "Q";
+			for (int i = 1; i < 5; i++) {
+				char c = 'Y';
+				while (c == 'Y' || c == 'Z')
+					c = (char) (r.nextInt(26) + 'A');
+				res += c;
+			}
+		}
+		return res;
+	}
 
-  public static enum Steps {
-    Project_Context, Entities, Entity_Conditions, Entity_Tailoring, Extraction, Extract_Conditions, Extract_Tailoring, Extract_Pooling, Test_Samples, Test_Sample_Pooling, Registration, Finish, Protein_Fractionation, Protein_Fractionation_Pooling, Peptide_Fractionation, Peptide_Fractionation_Pooling;
-  }
+	public static enum Steps {
+		Project_Context, Entities, Entity_Conditions, Entity_Tailoring, Extraction, Extract_Conditions,
+		Extract_Tailoring, Extract_Pooling, Test_Samples, Test_Sample_Pooling, Registration, Finish,
+		Protein_Fractionation, Protein_Fractionation_Pooling, Peptide_Fractionation, Peptide_Fractionation_Pooling;
+	}
 
-  /**
+	/**
    * Initialize all possible steps in the wizard and the listeners used
    */
   public void init(final String user) {
@@ -516,11 +520,11 @@ public class WizardController implements IRegistrationController {
             oc.connect();
             HashMap<Long, String> projectMap = oc.loadProjects();
             oc.disconnect();
-            Set set = projectMap.entrySet();
-            Iterator iterator = set.iterator();
+            Set<Map.Entry<Long,String>> set = projectMap.entrySet();
+            Iterator<Map.Entry<Long,String>> iterator = set.iterator();
             long omeroProjectId = -1;
             while (iterator.hasNext()) {
-              Map.Entry entry = (Map.Entry) iterator.next();
+              Map.Entry<Long,String> entry = iterator.next();
 
               if(entry.getValue().equals(project)){
                 omeroProjectId = (Long)entry.getKey();
@@ -551,13 +555,15 @@ public class WizardController implements IRegistrationController {
             }
 
             oc.connect();
-
+            logger.info("omero samples:");
             for(ISampleBean omeroSample : omeroSamples) {
 
+            
               logger.info("sample: " + omeroSample.getCode() + " ----%%%%%%%%%");
               logger.info("desc: " + omeroSample.getSecondaryName());
 
               long dataset_id = oc.createDataset(omeroProjectId, omeroSample.getCode(), omeroSample.getSecondaryName());
+              logger.info("dataset id: "+dataset_id);
             }
 
             oc.disconnect();
@@ -1197,9 +1203,6 @@ public class WizardController implements IRegistrationController {
               samplesByExperiment.put(exp, lis);
             }
           }
-          String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, proj);
-//          finishStep.setExperimentInfos(space, proj, designExpID, p.getDescription(),TODO REMOVE
-//              samplesByExperiment, openbis);
         }
       }
 
@@ -1238,315 +1241,311 @@ public class WizardController implements IRegistrationController {
     w.addListener(wl);
   }
 
-  protected List<AOpenbisSample> filterForProperties(List<AOpenbisSample> samples, String property,
-      String value) {
-    List<AOpenbisSample> res = new ArrayList<AOpenbisSample>();
-    for (AOpenbisSample sample : samples) {
-      if (value.equals(sample.getValueMap().get(property)))
-        res.add(sample);
-    }
-    return res;
-  }
+	protected List<AOpenbisSample> filterForProperties(List<AOpenbisSample> samples, String property, String value) {
+		List<AOpenbisSample> res = new ArrayList<AOpenbisSample>();
+		for (AOpenbisSample sample : samples) {
+			if (value.equals(sample.getValueMap().get(property)))
+				res.add(sample);
+		}
+		return res;
+	}
 
-  protected void createTSV() {
-    try {
-      dataAggregator.createTSV();
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-  }
+	protected void createTSV() {
+		try {
+			dataAggregator.createTSV();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+	}
 
-  protected void initConditionListener(final ConditionInstanceStep step, final String amount,
-      final List<AOpenbisSample> previousLevel) {
+	protected void initConditionListener(final ConditionInstanceStep step, final String amount,
+			final List<AOpenbisSample> previousLevel) {
 
-    ValueChangeListener listener = new ValueChangeListener() {
-      /**
-         * 
-         */
-      private static final long serialVersionUID = 7925081983580407077L;
+		ValueChangeListener listener = new ValueChangeListener() {
+			/**
+			   * 
+			   */
+			private static final long serialVersionUID = 7925081983580407077L;
 
-      public void valueChange(ValueChangeEvent event) {
-        reloadConditionsPreviewTable(step, amount, previousLevel);
-      }
-    };
-    step.attachListener(listener);
-  }
+			public void valueChange(ValueChangeEvent event) {
+				reloadConditionsPreviewTable(step, amount, previousLevel);
+			}
+		};
+		step.attachListener(listener);
+	}
 
-  protected void reloadConditionsPreviewTable(ConditionInstanceStep step, String amount,
-      List<AOpenbisSample> previousLevel) {
-    if (step.validInput()) {
-      if (previousLevel.isEmpty())
-        step.buildTable(preparePreviewPermutations(step.getFactors()), amount);
-      else
-        step.buildTable(preparePreviewPermutations(step.getFactors(), previousLevel), amount);
-    } else {
-      step.destroyTable();
-    }
+	protected void reloadConditionsPreviewTable(ConditionInstanceStep step, String amount,
+			List<AOpenbisSample> previousLevel) {
+		if (step.validInput()) {
+			if (previousLevel.isEmpty())
+				step.buildTable(preparePreviewPermutations(step.getFactors()), amount);
+			else
+				step.buildTable(preparePreviewPermutations(step.getFactors(), previousLevel), amount);
+		} else {
+			step.destroyTable();
+		}
 
-  }
+	}
 
-  private void updateContextOptions(ProjectInformationComponent projSelection,
-      ProjectContextStep contextStep) {
-    // disable everything
-    contextStep.disableContextOptions();
+	private void updateContextOptions(ProjectInformationComponent projSelection, ProjectContextStep contextStep) {
+		// disable everything
+		contextStep.disableContextOptions();
 
-    // inputs to check
-    String space = (String) contextStep.getSpaceBox().getValue();
-    String existingProject = contextStep.getProjectCode();
-    // String existingProject = (String) projSelection.getProjectBox().getValue();
+		// inputs to check
+		String space = (String) contextStep.getSpaceBox().getValue();
+		String existingProject = contextStep.getProjectCode();
+		// String existingProject = (String) projSelection.getProjectBox().getValue();
 
-    if (space != null && !space.isEmpty()) {
-      // space is set
-      if (existingProject != null && !existingProject.isEmpty()) {
-        // known project selected, will deactivate generation
-        projSelection.tryEnableCustomProject("");
-        contextStep.enableNewContextOption(true);
-        contextStep.makeContextVisible();
-        boolean hasBioEntities = projectHasBioEntities(space, existingProject);
-        boolean hasExtracts = projectHasExtracts(space, existingProject);
-        contextStep.enableExtractContextOption(hasBioEntities);
-        contextStep.enableMeasureContextOption(hasExtracts);
-        contextStep.enableTSVWriteContextOption(hasBioEntities);
-        contextStep.enableCopyContextOption(hasBioEntities);
+		if (space != null && !space.isEmpty()) {
+			// space is set
+			if (existingProject != null && !existingProject.isEmpty()) {
+				// known project selected, will deactivate generation
+				projSelection.tryEnableCustomProject("");
+				contextStep.enableNewContextOption(true);
+				contextStep.makeContextVisible();
+				boolean hasBioEntities = projectHasBioEntities(space, existingProject);
+				boolean hasExtracts = projectHasExtracts(space, existingProject);
+				contextStep.enableExtractContextOption(hasBioEntities);
+				contextStep.enableMeasureContextOption(hasExtracts);
+				contextStep.enableTSVWriteContextOption(hasBioEntities);
+				contextStep.enableCopyContextOption(hasBioEntities);
 
-        List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
-        logger.debug("set design null");
-        dataAggregator.setExistingExpDesignExperiment(null);
-        for (Experiment e : openbis.getExperimentsOfProjectByCode(existingProject)) {
-          String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, existingProject);
-          String type = e.getExperimentTypeCode();
-          String id = e.getIdentifier();
-          if (id.equals(designExpID)) {
-            logger.info("setting design experiment");
-            dataAggregator.setExistingExpDesignExperiment(e);
-          }
-          if (designExperimentTypes.contains(type)) {
-            Date date = e.getRegistrationDetails().getRegistrationDate();
-            SimpleDateFormat dt1 = new SimpleDateFormat("yy-MM-dd");
-            String dt = "";
-            if (date != null)
-              dt = dt1.format(date);
-            boolean pilot = false;
-            if (e.getProperties().get("Q_IS_PILOT") != null)
-              pilot = Boolean.parseBoolean(e.getProperties().get("Q_IS_PILOT"));
-            int numOfSamples = openbis.getSamplesofExperiment(e.getIdentifier()).size();
-            beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(),
-                Integer.toString(numOfSamples), dt, pilot));
-          }
-        }
-        contextStep.setExperiments(beans);
-      } else {
-        // can create new project
-        projSelection.getProjectField().setEnabled(true);
-      }
-    }
-  }
+				List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
+				logger.debug("set design null");
+				dataAggregator.setExistingExpDesignExperiment(null);
+				for (Experiment e : openbis.getExperimentsOfProjectByCode(existingProject)) {
+					String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, existingProject);
+					String type = e.getExperimentTypeCode();
+					String id = e.getIdentifier();
+					if (id.equals(designExpID)) {
+						logger.info("setting design experiment");
+						dataAggregator.setExistingExpDesignExperiment(e);
+					}
+					if (designExperimentTypes.contains(type)) {
+						Date date = e.getRegistrationDetails().getRegistrationDate();
+						SimpleDateFormat dt1 = new SimpleDateFormat("yy-MM-dd");
+						String dt = "";
+						if (date != null)
+							dt = dt1.format(date);
+						boolean pilot = false;
+						if (e.getProperties().get("Q_IS_PILOT") != null)
+							pilot = Boolean.parseBoolean(e.getProperties().get("Q_IS_PILOT"));
+						int numOfSamples = openbis.getSamplesofExperiment(e.getIdentifier()).size();
+						beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(),
+								Integer.toString(numOfSamples), dt, pilot));
+					}
+				}
+				contextStep.setExperiments(beans);
+			} else {
+				// can create new project
+				projSelection.getProjectField().setEnabled(true);
+			}
+		}
+	}
 
-  /**
-   * Prepare all condition permutations for the user to set the amounts when conditions from a
-   * previous tier are included
-   * 
-   * @param factorLists
-   * @param previousTier Samples of the previous tier
-   * @return
-   */
-  public List<String> preparePreviewPermutations(List<List<Property>> factorLists,
-      List<AOpenbisSample> previousTier) {
-    List<String> permutations = new ArrayList<String>();
-    for (AOpenbisSample e : previousTier) {
-      List<List<String>> res = new ArrayList<List<String>>();
-      String secName = e.getQ_SECONDARY_NAME();
-      if (secName == null)
-        secName = "";
-      String condKey = "(" + e.getCode().split("-")[1] + ") " + secName;
-      res.add(new ArrayList<String>(Arrays.asList(condKey)));
-      for (List<Property> instances : factorLists) {
-        List<String> factorValues = new ArrayList<String>();
-        for (Property f : instances) {
-          String name = f.getValue();
-          if (f.hasUnit())
-            name = name + " " + f.getUnit().getValue();
-          factorValues.add(name);
-        }
-        res.add(factorValues);
-      }
-      permutations.addAll(dataAggregator.generatePermutations(res));
-    }
-    return permutations;
-  }
+	/**
+	 * Prepare all condition permutations for the user to set the amounts when
+	 * conditions from a previous tier are included
+	 * 
+	 * @param factorLists
+	 * @param previousTier Samples of the previous tier
+	 * @return
+	 */
+	public List<String> preparePreviewPermutations(List<List<Property>> factorLists,
+			List<AOpenbisSample> previousTier) {
+		List<String> permutations = new ArrayList<String>();
+		for (AOpenbisSample e : previousTier) {
+			List<List<String>> res = new ArrayList<List<String>>();
+			String secName = e.getQ_SECONDARY_NAME();
+			if (secName == null)
+				secName = "";
+			String condKey = "(" + e.getCode().split("-")[1] + ") " + secName;
+			res.add(new ArrayList<String>(Arrays.asList(condKey)));
+			for (List<Property> instances : factorLists) {
+				List<String> factorValues = new ArrayList<String>();
+				for (Property f : instances) {
+					String name = f.getValue();
+					if (f.hasUnit())
+						name = name + " " + f.getUnit().getValue();
+					factorValues.add(name);
+				}
+				res.add(factorValues);
+			}
+			permutations.addAll(dataAggregator.generatePermutations(res));
+		}
+		return permutations;
+	}
 
-  /**
-   * Prepare all condition permutations for the user to set the amounts
-   * 
-   * @param factorLists
-   * @return
-   */
-  public List<String> preparePreviewPermutations(List<List<Property>> factorLists) {
-    List<List<String>> res = new ArrayList<List<String>>();
-    for (List<Property> instances : factorLists) {
-      List<String> factorValues = new ArrayList<String>();
-      for (Property f : instances) {
-        String name = f.getValue();
-        if (f.hasUnit())
-          name = name + " " + f.getUnit().getValue();
-        factorValues.add(name);
-      }
-      res.add(factorValues);
-    }
-    List<String> permutations = dataAggregator.generatePermutations(res);
-    return permutations;
-  }
+	/**
+	 * Prepare all condition permutations for the user to set the amounts
+	 * 
+	 * @param factorLists
+	 * @return
+	 */
+	public List<String> preparePreviewPermutations(List<List<Property>> factorLists) {
+		List<List<String>> res = new ArrayList<List<String>>();
+		for (List<Property> instances : factorLists) {
+			List<String> factorValues = new ArrayList<String>();
+			for (Property f : instances) {
+				String name = f.getValue();
+				if (f.hasUnit())
+					name = name + " " + f.getUnit().getValue();
+				factorValues.add(name);
+			}
+			res.add(factorValues);
+		}
+		List<String> permutations = dataAggregator.generatePermutations(res);
+		return permutations;
+	}
 
-  protected void armDownloadButtons(Button tsv) {
-    StreamResource tsvStream =
-        getTSVStream(dataAggregator.getTSVContent(), dataAggregator.getTSVName());
-    if (tsvDL == null) {
-      tsvDL = new FileDownloader(tsvStream);
-      tsvDL.extend(tsv);
-    } else
-      tsvDL.setFileDownloadResource(tsvStream);
-  }
+	protected void armDownloadButtons(Button tsv) {
+		StreamResource tsvStream = getTSVStream(dataAggregator.getTSVContent(), dataAggregator.getTSVName());
+		if (tsvDL == null) {
+			tsvDL = new FileDownloader(tsvStream);
+			tsvDL.extend(tsv);
+		} else
+			tsvDL.setFileDownloadResource(tsvStream);
+	}
 
-  public StreamResource getGraphStream(final String content, String name) {
-    StreamResource resource = new StreamResource(new StreamResource.StreamSource() {
-      @Override
-      public InputStream getStream() {
-        try {
-          InputStream is = new ByteArrayInputStream(content.getBytes());
-          return is;
-        } catch (Exception e) {
-          e.printStackTrace();
-          return null;
-        }
-      }
-    }, String.format("%s.graphml", name));
-    return resource;
-  }
+	public StreamResource getGraphStream(final String content, String name) {
+		StreamResource resource = new StreamResource(new StreamResource.StreamSource() {
+			@Override
+			public InputStream getStream() {
+				try {
+					InputStream is = new ByteArrayInputStream(content.getBytes());
+					return is;
+				} catch (Exception e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+		}, String.format("%s.graphml", name));
+		return resource;
+	}
 
-  private void registerProjectOnly(String desc, String altTitle, String user,
-      SummaryRegisterStep regStep) {
-    ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
-    String space = context.getSpaceCode();
-    String code = context.getProjectCode();
+	private void registerProjectOnly(String desc, String altTitle, String user, SummaryRegisterStep regStep) {
+		ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
+		String space = context.getSpaceCode();
+		String code = context.getProjectCode();
 
-    //
-    boolean imgSupport = context.hasImagingSupport();
+		//
+		boolean imgSupport = context.hasImagingSupport();
 
-    logger.info("project: " + code + " xxxxxxx");
-    logger.info("desc: " + desc);
-    logger.info("img: " + imgSupport);
+		logger.info("project: " + code + " xxxxxxx");
+		logger.info("desc: " + desc);
+		logger.info("img: " + imgSupport);
 
-    if (imgSupport) {
+		if (imgSupport) {
 
-      BasicOMEROClient oc = new BasicOMEROClient(this.omero_usr, this.omero_pwd, this.omero_host, this.omero_port);
-      oc.connect();
-      oc.createProject(code, desc);
-      oc.disconnect();
-    }
-    //
+			BasicOMEROClient oc = new BasicOMEROClient(this.omero_usr, this.omero_pwd, this.omero_host,
+					this.omero_port);
+			oc.connect();
+			oc.createProject(code, desc);
+			oc.disconnect();
+		}
+		//
 
-    boolean success = false;
-    try {
-      success = openbisCreator.setupEmptyProject(space, code, desc);
-    } catch (JAXBException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
-    }
-    if (!success) {
-      Styles.notification("An error occured when trying to register the new project.",
-          openbisCreator.getErrors(), NotificationType.ERROR);
-      return;
-    }
-    // will register people to the db and send a success message
-    boolean sqlDown = false;
-    try {
-      performPostRegistrationTasks(success);
-    } catch (SQLException e) {
-      sqlDown = true;
-    }
-    regStep.registrationDone(sqlDown, getRegistrationError());
-    // Functions.notification("Success", "Project was registered!", NotificationType.SUCCESS);
-  }
+		boolean success = false;
+		try {
+			success = openbisCreator.setupEmptyProject(space, code, desc);
+		} catch (JAXBException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		if (!success) {
+			Styles.notification("An error occured when trying to register the new project.", openbisCreator.getErrors(),
+					NotificationType.ERROR);
+			return;
+		}
+		// will register people to the db and send a success message
+		boolean sqlDown = false;
+		try {
+			performPostRegistrationTasks(success);
+		} catch (SQLException e) {
+			sqlDown = true;
+		}
+		regStep.registrationDone(sqlDown, getRegistrationError());
+		// Functions.notification("Success", "Project was registered!",
+		// NotificationType.SUCCESS);
+	}
 
-  @Override
-  public String getRegistrationError() {
-    return openbisCreator.getErrors();
-  }
+	@Override
+	public String getRegistrationError() {
+		return openbisCreator.getErrors();
+	}
 
-  public StreamResource getTSVStream(final String content, String name) {
-    StreamResource resource = new StreamResource(new StreamResource.StreamSource() {
-      @Override
-      public InputStream getStream() {
-        try {
-          InputStream is = new ByteArrayInputStream(content.getBytes());
-          return is;
-        } catch (Exception e) {
-          e.printStackTrace();
-          return null;
-        }
-      }
-    }, String.format("%s.tsv", name));
-    return resource;
-  }
+	public StreamResource getTSVStream(final String content, String name) {
+		StreamResource resource = new StreamResource(new StreamResource.StreamSource() {
+			@Override
+			public InputStream getStream() {
+				try {
+					InputStream is = new ByteArrayInputStream(content.getBytes());
+					return is;
+				} catch (Exception e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+		}, String.format("%s.tsv", name));
+		return resource;
+	}
 
-  private void writeNoteToOpenbis(String id, Note note) {
-    Map<String, Object> params = new HashMap<String, Object>();
-    params.put("id", id);
-    params.put("user", note.getUsername());
-    params.put("comment", note.getComment());
-    params.put("time", note.getTime());
-    openbis.ingest("DSS1", "add-to-xml-note", params);
-  }
+	private void writeNoteToOpenbis(String id, Note note) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("id", id);
+		params.put("user", note.getUsername());
+		params.put("comment", note.getComment());
+		params.put("time", note.getTime());
+		openbis.ingest("DSS1", "add-to-xml-note", params);
+	}
 
-  @Override
-  public void performPostRegistrationTasks(boolean success) throws SQLException {
-    if (success) {
-      ProjectContextStep contextStep = (ProjectContextStep) steps.get(Steps.Project_Context);
-      String projectIdentifier =
-          "/" + contextStep.getSpaceCode() + "/" + contextStep.getProjectCode();
-      String projectName = contextStep.getExpSecondaryName();
-      List<OpenbisExperiment> exps = dataAggregator.getExperiments();
-      if (exps == null)
-        exps = new ArrayList<OpenbisExperiment>();
-      int investigatorID = -1;
-      int contactID = -1;
-      int managerID = -1;
-      if (!contextStep.getPerson(PersonType.Investigator).equals(""))
-        investigatorID =
-            vocabularies.getPeople().get(contextStep.getPerson(PersonType.Investigator));
-      if (!contextStep.getPerson(PersonType.Manager).equals(""))
-        managerID = vocabularies.getPeople().get(contextStep.getPerson(PersonType.Manager));
-      if (!contextStep.getPerson(PersonType.Contact).equals(""))
-        contactID = vocabularies.getPeople().get(contextStep.getPerson(PersonType.Contact));
+	@Override
+	public void performPostRegistrationTasks(boolean success) throws SQLException {
+		if (success) {
+			ProjectContextStep contextStep = (ProjectContextStep) steps.get(Steps.Project_Context);
+			String projectIdentifier = "/" + contextStep.getSpaceCode() + "/" + contextStep.getProjectCode();
+			String projectName = contextStep.getExpSecondaryName();
+			List<OpenbisExperiment> exps = dataAggregator.getExperiments();
+			if (exps == null)
+				exps = new ArrayList<OpenbisExperiment>();
+			int investigatorID = -1;
+			int contactID = -1;
+			int managerID = -1;
+			if (!contextStep.getPerson(PersonType.Investigator).equals(""))
+				investigatorID = vocabularies.getPeople().get(contextStep.getPerson(PersonType.Investigator));
+			if (!contextStep.getPerson(PersonType.Manager).equals(""))
+				managerID = vocabularies.getPeople().get(contextStep.getPerson(PersonType.Manager));
+			if (!contextStep.getPerson(PersonType.Contact).equals(""))
+				contactID = vocabularies.getPeople().get(contextStep.getPerson(PersonType.Contact));
 
-      logger.info("Registration complete!");
-      for (OpenbisExperiment e : exps) {
-        if (e.getType().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {
-          String id = projectIdentifier + "/" + e.getExperimentCode();
-          for (Note n : notes) {
-            writeNoteToOpenbis(id, n);
-          }
-        }
-      }
-      int projectID = dbm.addProjectToDB(projectIdentifier, projectName);
-      if (investigatorID != -1)
-        dbm.addPersonToProject(projectID, investigatorID, "PI");
-      if (contactID != -1)
-        dbm.addPersonToProject(projectID, contactID, "Contact");
-      if (managerID != -1)
-        dbm.addPersonToProject(projectID, managerID, "Manager");
-      for (OpenbisExperiment e : exps) {
-        String identifier = projectIdentifier + "/" + e.getExperimentCode();
-        int expID = dbm.addExperimentToDB(identifier);
-        if (e.getPersonID() > -1) {
-          int person = e.getPersonID();
-          dbm.addPersonToExperiment(expID, person, "Contact");
-        }
-      }
-    } else {
-      // nothing for now
-    }
-  }
+			logger.info("Registration complete!");
+			for (OpenbisExperiment e : exps) {
+				if (e.getType().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {
+					String id = projectIdentifier + "/" + e.getExperimentCode();
+					for (Note n : notes) {
+						writeNoteToOpenbis(id, n);
+					}
+				}
+			}
+			int projectID = dbm.addProjectToDB(projectIdentifier, projectName);
+			if (investigatorID != -1)
+				dbm.addPersonToProject(projectID, investigatorID, "PI");
+			if (contactID != -1)
+				dbm.addPersonToProject(projectID, contactID, "Contact");
+			if (managerID != -1)
+				dbm.addPersonToProject(projectID, managerID, "Manager");
+			for (OpenbisExperiment e : exps) {
+				String identifier = projectIdentifier + "/" + e.getExperimentCode();
+				int expID = dbm.addExperimentToDB(identifier);
+				if (e.getPersonID() > -1) {
+					int person = e.getPersonID();
+					dbm.addPersonToExperiment(expID, person, "Contact");
+				}
+			}
+		} else {
+			// nothing for now
+		}
+	}
 }

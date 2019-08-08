@@ -1112,7 +1112,8 @@ public class MetadataUploadView extends VerticalLayout {
 
     ComboBox unitSelect = new ComboBox("Unit");
     unitSelect.setNullSelectionAllowed(false);
-    unitSelect.addItems(life.qbic.xml.properties.Unit.values());
+    life.qbic.xml.properties.Unit[] vals = life.qbic.xml.properties.Unit.values();
+    unitSelect.addItems(Arrays.asList(vals));
     String nullItem = "[None]";
     unitSelect.addItem(nullItem);
     unitSelect.select(nullItem);

@@ -71,21 +71,6 @@ public class DBManager {
     return conn;
   }
 
-  private Connection login(String db) {
-    String DB_URL = "jdbc:mariadb://" + config.getHostname() + ":" + config.getPort() + "/" + db;
-
-    Connection conn = null;
-
-    try {
-      Class.forName("org.mariadb.jdbc.Driver");
-      conn = DriverManager.getConnection(DB_URL, config.getUsername(), config.getPassword());
-    } catch (Exception e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    return conn;
-  }
-
   public Person getPersonForProject(String projectIdentifier, String role) {
     String sql =
         "SELECT * FROM persons LEFT JOIN projects_persons ON persons.id = projects_persons.person_id "

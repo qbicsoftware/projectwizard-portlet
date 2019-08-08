@@ -46,7 +46,6 @@ import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 
 import com.vaadin.ui.Button.ClickEvent;
@@ -55,10 +54,8 @@ import com.vaadin.ui.Button.ClickListener;
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
-import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.processes.TSVReadyRunnable;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
-import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.projectwizard.registration.UpdateProgressBar;
 import life.qbic.projectwizard.uicomponents.UploadsPanel;
 import life.qbic.xml.manager.StudyXMLParser;

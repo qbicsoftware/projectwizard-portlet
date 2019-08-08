@@ -35,7 +35,6 @@ import life.qbic.portal.portlet.ProjectWizardUI;
  * @author Andreas Friedrich
  * 
  */
-@SuppressWarnings("serial")
 public class Uploader implements Upload.SucceededListener, Upload.FailedListener, Upload.Receiver {
 
   private File file; // File to write to.

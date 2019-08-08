@@ -23,11 +23,9 @@ import org.apache.logging.log4j.Logger;
 
 import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
-import life.qbic.projectwizard.adminviews.MCCView;
 import life.qbic.projectwizard.adminviews.MCCViewNew;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
-import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 

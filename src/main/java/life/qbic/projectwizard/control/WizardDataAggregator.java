@@ -970,57 +970,57 @@ public class WizardDataAggregator {
     }
   }
 
-  /**
-   * Copy a list of samples, used by the copy context function
-   * 
-   * @param samples
-   * @param copies
-   * @return
-   */
-  private List<AOpenbisSample> copySamples(List<AOpenbisSample> samples,
-      Map<String, String> copies) {
-    String newExp = buildExperimentName();
-    String type = samples.get(0).getValueMap().get("SAMPLE TYPE");
-    ExperimentType eType = ExperimentType.Q_EXPERIMENTAL_DESIGN;
-    if (type.equals("Q_BIOLOGICAL_ENTITY"))
-      eType = ExperimentType.Q_EXPERIMENTAL_DESIGN;
-    else if (type.equals("Q_BIOLOGICAL_SAMPLE"))
-      eType = ExperimentType.Q_SAMPLE_EXTRACTION;
-    else if (type.equals("Q_TEST_SAMPLE"))
-      eType = ExperimentType.Q_SAMPLE_PREPARATION;
-    else
-      logger.error("Unexpected type: " + type);
-    experiments.add(new OpenbisExperiment(newExp, eType, -1, null));// TODO secondary name?
-
-    for (AOpenbisSample s : samples) {
-      s.setExperiment(newExp);
-      String code = s.getCode();
-      String newCode = code;
-      if (s instanceof OpenbisBiologicalEntity) {
-        newCode = projectCode + "ENTITY-" + firstFreeEntityID;
-        firstFreeEntityID++;
-      } else {
-        if (nextBarcode == null) {
-          // classChar = 'A';
-          // nextBarcode =
-          // projectCode + Functions.createCountString(firstFreeBarcodeID, 3) + classChar;
-          // nextBarcode = nextBarcode + Functions.checksum(nextBarcode);
-          nextBarcode = firstFreeBarcode;
-        } else {
-          nextBarcode = SampleCodeFunctions.incrementSampleCode(nextBarcode);
-        }
-        newCode = nextBarcode;
-      }
-      copies.put(code, newCode);
-      s.setCode(newCode);
-      String p = s.getParent();
-      // change parent if parent was copied
-      if (p != null && p.length() > 0)
-        if (copies.containsKey(p))
-          s.setParent(copies.get(p));
-    }
-    return samples;
-  }
+//  /**
+//   * Copy a list of samples, used by the copy context function
+//   * 
+//   * @param samples
+//   * @param copies
+//   * @return
+//   */
+//  private List<AOpenbisSample> copySamples(List<AOpenbisSample> samples,
+//      Map<String, String> copies) {
+//    String newExp = buildExperimentName();
+//    String type = samples.get(0).getValueMap().get("SAMPLE TYPE");
+//    ExperimentType eType = ExperimentType.Q_EXPERIMENTAL_DESIGN;
+//    if (type.equals("Q_BIOLOGICAL_ENTITY"))
+//      eType = ExperimentType.Q_EXPERIMENTAL_DESIGN;
+//    else if (type.equals("Q_BIOLOGICAL_SAMPLE"))
+//      eType = ExperimentType.Q_SAMPLE_EXTRACTION;
+//    else if (type.equals("Q_TEST_SAMPLE"))
+//      eType = ExperimentType.Q_SAMPLE_PREPARATION;
+//    else
+//      logger.error("Unexpected type: " + type);
+//    experiments.add(new OpenbisExperiment(newExp, eType, -1, null));// TODO secondary name?
+//
+//    for (AOpenbisSample s : samples) {
+//      s.setExperiment(newExp);
+//      String code = s.getCode();
+//      String newCode = code;
+//      if (s instanceof OpenbisBiologicalEntity) {
+//        newCode = projectCode + "ENTITY-" + firstFreeEntityID;
+//        firstFreeEntityID++;
+//      } else {
+//        if (nextBarcode == null) {
+//          // classChar = 'A';
+//          // nextBarcode =
+//          // projectCode + Functions.createCountString(firstFreeBarcodeID, 3) + classChar;
+//          // nextBarcode = nextBarcode + Functions.checksum(nextBarcode);
+//          nextBarcode = firstFreeBarcode;
+//        } else {
+//          nextBarcode = SampleCodeFunctions.incrementSampleCode(nextBarcode);
+//        }
+//        newCode = nextBarcode;
+//      }
+//      copies.put(code, newCode);
+//      s.setCode(newCode);
+//      String p = s.getParent();
+//      // change parent if parent was copied
+//      if (p != null && p.length() > 0)
+//        if (copies.containsKey(p))
+//          s.setParent(copies.get(p));
+//    }
+//    return samples;
+//  }
 
   /**
    * Gets all samples that are one level higher in the sample hierarchy of an attached experiment
@@ -1039,22 +1039,22 @@ public class WizardDataAggregator {
     return null;
   }
 
-  /**
-   * Gets all samples that are one level lower in the sample hierarchy of an attached experiment
-   * than a given list of samples
-   * 
-   * @param originals
-   * @return
-   */
-  private List<Sample> getLowerSamples(List<Sample> originals) {
-    for (Sample s : originals) {
-      List<Sample> children = openbis.getChildrenSamples(s);
-      if (children.size() > 0) {
-        return openbis.getSamplesofExperiment(children.get(0).getExperimentIdentifierOrNull());
-      }
-    }
-    return null;
-  }
+//  /**
+//   * Gets all samples that are one level lower in the sample hierarchy of an attached experiment
+//   * than a given list of samples
+//   * 
+//   * @param originals
+//   * @return
+//   */
+//  private List<Sample> getLowerSamples(List<Sample> originals) {
+//    for (Sample s : originals) {
+//      List<Sample> children = openbis.getChildrenSamples(s);
+//      if (children.size() > 0) {
+//        return openbis.getSamplesofExperiment(children.get(0).getExperimentIdentifierOrNull());
+//      }
+//    }
+//    return null;
+//  }
 
   /**
    * Creates a tab separated values file of the context created by the wizard, given that samples

@@ -53,7 +53,6 @@ import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
 
 @Theme("mytheme")
-@SuppressWarnings("serial")
 @Widgetset("life.qbic.portlet.AppWidgetSet")
 public class ProjectWizardUI extends QBiCPortletUI {
 
@@ -236,7 +235,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
   // TODO group that might be used to delete metadata or even sample/experiment objects in the
   // future
-  private boolean canDelete() {
+//  private boolean canDelete() {
     // try {
     // User user = PortalUtils.getUser();
     // for (UserGroup grp : user.getUserGroups()) {
@@ -251,8 +250,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
     // e.printStackTrace();
     // logger.error("Could not fetch user groups. User won't be able to delete.");
     // }
-    return false;
-  }
+//    return false;
+//  }
 
   private boolean canOverwrite() {
     try {
