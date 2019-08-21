@@ -428,4 +428,8 @@ public class ProjectContextStep implements WizardStep {
     pilotBox.setValue(true);
   }
 
+  public void setSpaces(List<String> spaces) {
+    projectInfoComponent.setSpaces(spaces);
+  }
+
 }
