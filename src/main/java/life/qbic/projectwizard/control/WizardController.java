@@ -98,6 +98,7 @@ public class WizardController implements IRegistrationController {
 	private IOpenBisClient openbis;
 	private IOpenbisCreationController openbisCreator;
 	private Wizard w;
+	private String user;
 	private Map<Steps, WizardStep> steps;
 	private WizardDataAggregator dataAggregator;
 	private boolean bioFactorInstancesSet = false;
@@ -294,6 +295,7 @@ public class WizardController implements IRegistrationController {
    * Initialize all possible steps in the wizard and the listeners used
    */
   public void init(final String user) {
+    this.user = user;
     this.w = new Wizard();
     WizardController control = this;
     w.getFinishButton().setVisible(false);
@@ -654,7 +656,7 @@ public class WizardController implements IRegistrationController {
           }
           contextStep.setProjectCodes(projects);
           List<String> dontFilter = new ArrayList<String>(Arrays.asList("SPECIAL_METHOD"));
-          if (space.endsWith("PCT")) {
+          if (space.equals("PROTEOME_CENTER_TUEBINGEN")) {
             protFracStep.filterDictionariesByPrefix("PCT", dontFilter);
             pepFracStep.filterDictionariesByPrefix("PCT", dontFilter);
           } else if (space.endsWith("MPC")) {
@@ -1548,4 +1550,9 @@ public class WizardController implements IRegistrationController {
 			// nothing for now
 		}
 	}
+
+  public void resetSpaces() {
+    List<String> spaces = openbis.getUserSpaces(user);
+    ((ProjectContextStep) steps.get(Steps.Project_Context)).setSpaces(spaces);
+  }
 }

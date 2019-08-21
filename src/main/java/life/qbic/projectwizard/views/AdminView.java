@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.adminviews.MCCViewNew;
+import life.qbic.projectwizard.control.WizardController;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.portal.Styles;
@@ -50,6 +51,7 @@ public class AdminView extends VerticalLayout {
   String user;
 
   private TabSheet tabs;
+  private WizardController mainController;
   // space
   private TextField space;
   private TextArea users;
@@ -67,7 +69,9 @@ public class AdminView extends VerticalLayout {
   private Logger logger = LogManager.getLogger(AdminView.class);
   
   public AdminView(IOpenBisClient openbis, Vocabularies vocabularies,
-      IOpenbisCreationController creationController, String user) {
+      WizardController mainController, IOpenbisCreationController creationController, String user) {
+    this.mainController = mainController;
+    
     this.user = user;
     this.registrator = creationController;
     this.openbis = openbis;
@@ -157,7 +161,7 @@ public class AdminView extends VerticalLayout {
             if (openbis.spaceExists(space)) {
               Styles.notification("Space created", "The space " + space + " has been created!",
                   NotificationType.SUCCESS);
-              resetSpaceTab();
+              handleSpaceCreationSuccess();
             } else {
               Styles.notification("Problem creating space",
                   "There seems to have been a problem while creating the space. Do the specified users already exist in openbis? If not, create them.",
@@ -170,9 +174,10 @@ public class AdminView extends VerticalLayout {
     });
   }
 
-  protected void resetSpaceTab() {
+  protected void handleSpaceCreationSuccess() {
     users.setValue("");
     space.setValue("");
+    mainController.resetSpaces();
   }
 
   public String getSpace() {
