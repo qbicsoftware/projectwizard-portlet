@@ -6,18 +6,21 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
-
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.operation.IOperation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.id.DataSetPermId;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.update.DataSetUpdate;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.entitytype.id.EntityTypePermId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.create.CreateExperimentsOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.create.ExperimentCreation;
@@ -26,12 +29,14 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.update.ExperimentUpda
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.create.CreateProjectsOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.create.ProjectCreation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.id.ProjectIdentifier;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.update.ProjectUpdate;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.create.CreateSamplesOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.create.SampleCreation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.create.CreateSpacesOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.create.SpaceCreation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.id.SpacePermId;
+import ch.systemsx.cisd.openbis.generic.shared.dto.identifier.SpaceIdentifier;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
@@ -338,6 +343,18 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
     UI.getCurrent().setPollInterval(100);
   }
 
+  public void updateProjectSpace(List<String> projectCodes, String oldSpace, String newSpace) {
+    List<ProjectUpdate> updates = new ArrayList<>();
+    for (String code : projectCodes) {
+      ProjectUpdate p = new ProjectUpdate();
+      p.setProjectId(new ProjectIdentifier(oldSpace, code));
+      p.setSpaceId(new SpacePermId(newSpace));
+      updates.add(p);
+    }
+    logger.info("updating spaces of projects: "+projectCodes);
+    api.updateProjects(updates);
+  }
+
   @Override
   public void updateExperiment(String expID, Map<String, Object> map) {
     ExperimentUpdate exp = new ExperimentUpdate();
@@ -351,6 +368,46 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
     logger.info("updating " + expID);
     // api.updateExperiments(sessionToken, Arrays.asList(exp));
     api.updateExperiments(Arrays.asList(exp));
+  }
+
+  public Map<String, List<String>> getDatasetPermIDsOfSamples(Set<String> codes) {
+    Map<String, List<String>> res = new HashMap<>();
+    for (String code : codes) {
+      DataSetSearchCriteria criteria = new DataSetSearchCriteria();
+      criteria.withOrOperator();
+      criteria.withSample().withCode().thatEquals(code);
+      criteria.withType().withCode().thatEquals("MY_SAMPLE_TYPE_CODE");
+
+      DataSetFetchOptions fetchOptions = new DataSetFetchOptions();
+
+      SearchResult<DataSet> result = api.searchDatasets(criteria, fetchOptions);
+
+      List<String> permIds = new ArrayList<>();
+
+      for (DataSet d : result.getObjects()) {
+        permIds.add(d.getPermId().getPermId());
+      }
+      res.put(code, permIds);
+    }
+    return res;
+  }
+
+  public void updateDatasets(Map<String, Map<String, Object>> idsToProps) {
+    List<DataSetUpdate> updates = new ArrayList<>();
+    for (String permID : idsToProps.keySet()) {
+      DataSetUpdate dsUpdate = new DataSetUpdate();
+      dsUpdate.setDataSetId(new DataSetPermId(permID));
+      Map<String, String> props = new HashMap<>();
+      Map<String, Object> map = idsToProps.get(permID);
+      for (String key : map.keySet()) {
+        props.put(key, map.get(key).toString());
+      }
+      dsUpdate.setProperties(props);
+      updates.add(dsUpdate);
+    }
+    logger.info("updating dataset metadata for: " + idsToProps.keySet());
+
+    api.updateDataSets(updates);
   }
 
   @Override
@@ -428,8 +485,8 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
       logger.error(errors);
       return false;
     }
-    ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, SampleType.Q_ATTACHMENT_SAMPLE, "",
-        new ArrayList<String>(), new HashMap<String, Object>());
+    ISampleBean infoSample = new TSVSampleBean(code, exp, project, space,
+        SampleType.Q_ATTACHMENT_SAMPLE, "", new ArrayList<String>(), new HashMap<String, Object>());
     success = registerSampleBatch(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
     if (!success) {
       // experiments were not registered, break registration

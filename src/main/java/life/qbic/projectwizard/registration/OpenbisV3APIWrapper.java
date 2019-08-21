@@ -2,14 +2,18 @@ package life.qbic.projectwizard.registration;
 
 import java.util.Arrays;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.operation.IOperation;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.update.DataSetUpdate;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.update.ExperimentUpdate;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.operation.SynchronousOperationExecutionOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.update.ProjectUpdate;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 
 public class OpenbisV3APIWrapper {
@@ -36,10 +40,20 @@ public class OpenbisV3APIWrapper {
     this.adminUser = adminUser;
     this.pw = pw;
   }
+  
+  public void updateProjects(List<ProjectUpdate> p) {
+    checklogin();
+    API.updateProjects(userToken, p);
+  }
 
   public void updateExperiments(List<ExperimentUpdate> exps) {
     checklogin();
     API.updateExperiments(userToken, exps);
+  }
+
+  public void updateDataSets(List<DataSetUpdate> dSets) {
+    checklogin();
+    API.updateDataSets(userToken, dSets);
   }
 
   private void checklogin() {
@@ -93,5 +107,11 @@ public class OpenbisV3APIWrapper {
       }
       return false;
     }
+  }
+
+  public SearchResult<DataSet> searchDatasets(DataSetSearchCriteria criteria,
+      DataSetFetchOptions fetchOptions) {
+    checklogin();
+    return API.searchDataSets(userToken, criteria, fetchOptions);
   }
 }
