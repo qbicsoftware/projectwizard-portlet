@@ -71,7 +71,7 @@ public class ProjectInformationComponent extends VerticalLayout {
     setSizeUndefined();
 
     Collections.sort(spaces);
-    spaceBox = new ComboBox("Project", spaces);
+    spaceBox = new ComboBox("Project/Space", spaces);
     spaceBox.setStyleName(Styles.boxTheme);
     spaceBox.setNullSelectionAllowed(false);
     spaceBox.setImmediate(true);
@@ -339,5 +339,11 @@ public class ProjectInformationComponent extends VerticalLayout {
     return new ProjectInfo(getSpaceCode(), getSelectedProject(), projectDescription.getValue(),
         getProjectName(), false, getPerson(PersonType.Investigator), getPerson(PersonType.Contact),
         getPerson(PersonType.Manager));
+  }
+
+  public void setSpaces(List<String> spaces) {
+    Collections.sort(spaces);
+    spaceBox.removeAllItems();
+    spaceBox.addItems(spaces);
   }
 }
