@@ -19,17 +19,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
 import org.vaadin.teemu.wizards.WizardStep;
-
 import life.qbic.datamodel.experiments.ExperimentBean;
 import life.qbic.datamodel.persons.PersonType;
-import life.qbic.projectwizard.model.NewSampleModelBean;
+import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.components.CustomVisibilityComponent;
-
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -107,23 +104,20 @@ public class ProjectContextStep implements WizardStep {
     samples = new Table("Sample Overview");
     samples.setStyleName(ValoTheme.TABLE_SMALL);
     samples.setColumnHeader("code", "Code");
-    samples.setColumnHeader("secondary_Name", "Secondary Name");
+    samples.setColumnHeader("secondaryName", "Secondary Name");
     samples.setVisible(false);
     samples.setPageLength(1);
-    samples.setContainerDataSource(
-        new BeanItemContainer<NewSampleModelBean>(NewSampleModelBean.class));
+    samples.setContainerDataSource(new BeanItemContainer<ISampleBean>(ISampleBean.class));
 
     grid = new GridLayout(2, 4);
     grid.setSpacing(true);
     grid.setMargin(true);
     grid.addComponent(projectInfoComponent, 0, 0);
-    Component context = Styles.questionize(projectContext,
-        "If this experiment's organisms or "
-            + "tissue extracts are already registered at QBiC from an earlier experiment, you can chose the second "
-            + "option (new tissue extracts from old organism) or the third (new measurements from old tissue extracts). "
-            + "You can also create a preliminary sub-project and add samples later or "
-            + "download existing sample information by choosing the last option.",
-        "Project Context");
+    Component context = Styles.questionize(projectContext, "If this experiment's organisms or "
+        + "tissue extracts are already registered at QBiC from an earlier experiment, you can chose the second "
+        + "option (new tissue extracts from old organism) or the third (new measurements from old tissue extracts). "
+        + "You can also create a preliminary sub-project and add samples later or "
+        + "download existing sample information by choosing the last option.", "Project Context");
     grid.addComponent(context, 0, 1);
     grid.addComponent(experimentTable, 0, 2);
     grid.addComponent(samples, 1, 1, 1, 2);
@@ -177,7 +171,7 @@ public class ProjectContextStep implements WizardStep {
   }
 
   //
-  public boolean hasImagingSupport(){
+  public boolean hasImagingSupport() {
     return this.projectInfoComponent.hasImagingSupport();
   }
 
@@ -249,20 +243,19 @@ public class ProjectContextStep implements WizardStep {
     BeanItemContainer<ExperimentBean> c =
         new BeanItemContainer<ExperimentBean>(ExperimentBean.class);
     c.addAll(beans);
-    experimentTable.setContainerDataSource(c);
+    experimentTable.setContainerDataSource(c,
+        Arrays.asList("experiment_type", "samples", "date", "code"));
     if (c.size() == 1)
       experimentTable.select(c.getIdByIndex(0));
     experimentTable.setPageLength(Math.min(10, c.size()));
     experimentTable.setVisible(true);
-    experimentTable.setVisibleColumns("experiment_type", "samples", "date", "code");
   }
 
-  public void setSamples(List<NewSampleModelBean> beans) {
-    BeanItemContainer<NewSampleModelBean> c =
-        new BeanItemContainer<NewSampleModelBean>(NewSampleModelBean.class);
+  public void setSamples(List<ISampleBean> beans) {
+    BeanItemContainer<ISampleBean> c = new BeanItemContainer<ISampleBean>(ISampleBean.class);
     c.addAll(beans);
     samples.setPageLength(Math.min(beans.size(), 10));
-    samples.setContainerDataSource(c);
+    samples.setContainerDataSource(c, Arrays.asList("code", "secondaryName"));
     samples.setVisible(true);
   }
 
@@ -378,13 +371,12 @@ public class ProjectContextStep implements WizardStep {
     return (ExperimentBean) experimentTable.getValue();
   }
 
-  @SuppressWarnings("unchecked")
-  public List<NewSampleModelBean> getSamples() {
-    List<NewSampleModelBean> res = new ArrayList<NewSampleModelBean>();
+  public List<ISampleBean> getSamples() {
+    List<ISampleBean> res = new ArrayList<ISampleBean>();
     samples.setSelectable(true);
     samples.setMultiSelect(true);
     samples.setValue(samples.getItemIds());
-    res.addAll((Collection<? extends NewSampleModelBean>) samples.getValue());
+    res.addAll((Collection<? extends ISampleBean>) samples.getValue());
     samples.setMultiSelect(false);
     samples.setSelectable(false);
     return res;
