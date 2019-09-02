@@ -85,6 +85,7 @@ public class OpenbisV3APIWrapper {
       API.executeOperations(userToken, ops, options);
       return true;
     } catch (Exception e) {
+      e.printStackTrace();
       if (e.getCause() != null) {
         errors = e.getCause().getMessage();
         if (errors.startsWith("Access denied to object with ProjectIdentifier")) {

@@ -36,7 +36,6 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.create.CreateSpacesOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.create.SpaceCreation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.id.SpacePermId;
-import ch.systemsx.cisd.openbis.generic.shared.dto.identifier.SpaceIdentifier;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
@@ -351,7 +350,7 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
       p.setSpaceId(new SpacePermId(newSpace));
       updates.add(p);
     }
-    logger.info("updating spaces of projects: "+projectCodes);
+    logger.info("updating spaces of projects: " + projectCodes);
     api.updateProjects(updates);
   }
 
@@ -430,13 +429,16 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
 
         List<SampleIdentifier> parents = new ArrayList<>();
         for (String parent : sample.getParentIDs()) {
-          parents.add(new SampleIdentifier(space, null, parent));
+          if (!parent.isEmpty()) {
+            parents.add(new SampleIdentifier(space, null, parent));
+          }
         }
+        if(!parents.isEmpty()) {
         sampleCreation.setParentIds(parents);
+        }
         sampleCreation.setExperimentId(new ExperimentIdentifier(
             "/" + space + "/" + sample.getProject() + "/" + sample.getExperiment()));
         sampleCreation.setCode(sample.getCode());
-
 
         Map<String, String> props = new HashMap<>();
         if (!sample.getSecondaryName().isEmpty()) {
@@ -451,8 +453,6 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
       }
     }
     logger.info("Sending " + newSamples.size() + " new samples to V3 API.");
-    // List<SamplePermId> permIds4 = api.createSamples(sessionToken, newSamples);
-    // logger.info("created: " + permIds4);
 
     IOperation operation = new CreateSamplesOperation(newSamples);
     return api.handleOperations(operation);

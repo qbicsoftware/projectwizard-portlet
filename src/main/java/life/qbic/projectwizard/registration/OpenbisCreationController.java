@@ -475,7 +475,9 @@ public class OpenbisCreationController implements IOpenbisCreationController {
   }
 
   @Override
-  public void updateExperiment(String expID, Map<String, Object> params) {
+  public void updateExperiment(String expID, Map<String, Object> props) {
+    HashMap<String, Object> params = new HashMap<>();
+    params.put("properties", props);
     params.put("user", user);
     params.put("identifier", expID);
     openbis.triggerIngestionService("update-experiment-metadata", params);
