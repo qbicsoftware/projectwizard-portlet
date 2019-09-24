@@ -1,13 +1,11 @@
 package life.qbic.portal.portlet;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -23,18 +21,11 @@ import org.vaadin.teemu.wizards.event.WizardStepSetChangedEvent;
 
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserGroup;
-import com.liferay.portal.util.PortalUtil;
-import com.opencsv.CSVParser;
-import com.opencsv.CSVParserBuilder;
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
-import com.vaadin.shared.VaadinUriResolver;
 import com.vaadin.ui.themes.ValoTheme;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
@@ -44,14 +35,11 @@ import com.vaadin.ui.VerticalLayout;
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
-import life.qbic.portal.Styles;
-import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.portlet.QBiCPortletUI;
 import life.qbic.portal.samplegraph.GraphPage;
 import life.qbic.portal.utils.ConfigurationManager;
 import life.qbic.portal.utils.ConfigurationManagerFactory;
 import life.qbic.portal.utils.PortalUtils;
-import life.qbic.portal.utils.user.LiferayUserDummy;
 import life.qbic.projectwizard.control.ExperimentImportController;
 import life.qbic.projectwizard.control.WizardController;
 import life.qbic.projectwizard.io.DBConfig;
@@ -69,8 +57,8 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean testMode = false;// TODO
-  public static boolean development = true;
-  public static boolean v3API = true;
+  public static boolean development = false;
+  public static boolean v3API = false;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 

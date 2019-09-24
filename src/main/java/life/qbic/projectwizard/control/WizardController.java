@@ -80,7 +80,6 @@ import life.qbic.portal.Styles.NotificationType;
 import life.qbic.xml.notes.Note;
 import life.qbic.xml.properties.Property;
 import life.qbic.xml.study.TechnologyType;
-import life.qbic.omero.BasicOMEROClient;
 
 /**
  * Controller for the sample/experiment creation wizard
@@ -147,7 +146,11 @@ public class WizardController implements IRegistrationController {
     this.omero_usr = configManager.getOmeroUser();
     this.omero_pwd = configManager.getOmeroPassword();
     this.omero_host = configManager.getOmeroHostname();
-    this.omero_port = Integer.parseInt(configManager.getOmeroPort());
+    try {
+      this.omero_port = Integer.parseInt(configManager.getOmeroPort());
+    } catch (NumberFormatException | NullPointerException e) {
+      logger.warn("Omero port could not be parsed form the configuration file.");
+    }
   }
 
   // Functions to add steps to the wizard depending on context
@@ -511,60 +514,61 @@ public class WizardController implements IRegistrationController {
 
           boolean imgSupport = contextStep.hasImagingSupport();
           if (imgSupport) {
-
-            BasicOMEROClient oc =
-                new BasicOMEROClient(omero_usr, omero_pwd, omero_host, omero_port);
-            oc.connect();
-            HashMap<Long, String> projectMap = oc.loadProjects();
-            oc.disconnect();
-            Set<Map.Entry<Long, String>> set = projectMap.entrySet();
-            Iterator<Map.Entry<Long, String>> iterator = set.iterator();
-            long omeroProjectId = -1;
-            while (iterator.hasNext()) {
-              Map.Entry<Long, String> entry = iterator.next();
-
-              if (entry.getValue().equals(project)) {
-                omeroProjectId = (Long) entry.getKey();
-                break;
-              }
-            }
-
-            logger.info("omero project id: " + omeroProjectId);
-
-            if (omeroProjectId == -1) {
-              oc.connect();
-              omeroProjectId = oc.createProject(project, contextStep.getDescription());
-              oc.disconnect();
-            }
-
-            List<ISampleBean> omeroSamples = new ArrayList<>();
-            for (List<ISampleBean> level : samples) {
-
-              SampleType type = null;
-              if (!level.isEmpty()) {
-                type = level.get(0).getType();
-
-              }
-              if (type.equals(SampleType.Q_BIOLOGICAL_SAMPLE)) {
-                omeroSamples.addAll(level);
-              }
-
-            }
-
-            oc.connect();
-            logger.info("omero samples:");
-            for (ISampleBean omeroSample : omeroSamples) {
-
-
-              logger.info("sample: " + omeroSample.getCode() + " ----%%%%%%%%%");
-              logger.info("desc: " + omeroSample.getSecondaryName());
-
-              long dataset_id = oc.createDataset(omeroProjectId, omeroSample.getCode(),
-                  omeroSample.getSecondaryName());
-              logger.info("dataset id: " + dataset_id);
-            }
-
-            oc.disconnect();
+            // TODO include with omero production version
+            logger.warn("imaging support is activated. this should not be possible at this point.");
+            // BasicOMEROClient oc =
+            // new BasicOMEROClient(omero_usr, omero_pwd, omero_host, omero_port);
+            // oc.connect();
+            // HashMap<Long, String> projectMap = oc.loadProjects();
+            // oc.disconnect();
+            // Set<Map.Entry<Long, String>> set = projectMap.entrySet();
+            // Iterator<Map.Entry<Long, String>> iterator = set.iterator();
+            // long omeroProjectId = -1;
+            // while (iterator.hasNext()) {
+            // Map.Entry<Long, String> entry = iterator.next();
+            //
+            // if (entry.getValue().equals(project)) {
+            // omeroProjectId = (Long) entry.getKey();
+            // break;
+            // }
+            // }
+            //
+            // logger.info("omero project id: " + omeroProjectId);
+            //
+            // if (omeroProjectId == -1) {
+            // oc.connect();
+            // omeroProjectId = oc.createProject(project, contextStep.getDescription());
+            // oc.disconnect();
+            // }
+            //
+            // List<ISampleBean> omeroSamples = new ArrayList<>();
+            // for (List<ISampleBean> level : samples) {
+            //
+            // SampleType type = null;
+            // if (!level.isEmpty()) {
+            // type = level.get(0).getType();
+            //
+            // }
+            // if (type.equals(SampleType.Q_BIOLOGICAL_SAMPLE)) {
+            // omeroSamples.addAll(level);
+            // }
+            //
+            // }
+            //
+            // oc.connect();
+            // logger.info("omero samples:");
+            // for (ISampleBean omeroSample : omeroSamples) {
+            //
+            //
+            // logger.info("sample: " + omeroSample.getCode() + " ----%%%%%%%%%");
+            // logger.info("desc: " + omeroSample.getSecondaryName());
+            //
+            // long dataset_id = oc.createDataset(omeroProjectId, omeroSample.getCode(),
+            // omeroSample.getSecondaryName());
+            // logger.info("dataset id: " + dataset_id);
+            // }
+            //
+            // oc.disconnect();
 
           }
 
@@ -1442,12 +1446,12 @@ public class WizardController implements IRegistrationController {
     logger.info("img: " + imgSupport);
 
     if (imgSupport) {
-
-      BasicOMEROClient oc =
-          new BasicOMEROClient(this.omero_usr, this.omero_pwd, this.omero_host, this.omero_port);
-      oc.connect();
-      oc.createProject(code, desc);
-      oc.disconnect();
+//TODO include with production version of omero client
+//      BasicOMEROClient oc =
+//          new BasicOMEROClient(this.omero_usr, this.omero_pwd, this.omero_host, this.omero_port);
+//      oc.connect();
+//      oc.createProject(code, desc);
+//      oc.disconnect();
     }
     //
 

@@ -80,7 +80,7 @@ public class ProjectInformationComponent extends VerticalLayout {
 
     //
     imgCheck = new CheckBox("Imaging Support");
-    addComponent(imgCheck);
+//    addComponent(imgCheck);//TODO omero support
 
     ComboBox prBox = new ComboBox("Sub-Project");
     prBox.setStyleName(Styles.boxTheme);
