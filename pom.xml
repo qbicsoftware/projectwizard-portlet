@@ -61,7 +61,7 @@
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>experimental-design-lib</artifactId>
-			<version>0.16.0-SNAPSHOT</version>
+			<version>0.16.0</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
@@ -112,7 +112,7 @@
 			<version>5.8</version>
 		</dependency>
 		
-		<!--ask Luis K. :)-->
+		<!--ask Luis K. :)
         <dependency>
             <groupId>life.qbic</groupId>
             <artifactId>omero-client-lib</artifactId>
@@ -131,7 +131,7 @@
                     <artifactId>jcl-over-slf4j</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency>-->
 		<dependency>
 			<!-- Patched version 4.2-min does not bundle slf4j -->
 			<groupId>org.slf4j</groupId>
