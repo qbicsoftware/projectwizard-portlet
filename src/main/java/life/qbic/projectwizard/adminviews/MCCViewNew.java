@@ -583,11 +583,12 @@ public class MCCViewNew extends VerticalLayout
           }
         }
 
-        // IMAGING TODO
+        // IMAGING TODO should be tissue sample!
         // mrProps.put("Q_BMI_MODALITY", "MR");
         // elastProps.put("Q_BMI_MODALITY", "MR-ELASTOGRAPHY");
         // ctPerfProps.put("Q_BMI_MODALITY", "CT-PERFUSION");
         // ctPuncProps.put("Q_BMI_MODALITY", "CT-BIOPSY");
+        
         if (imagingWeeks.contains(timepoint)) {
           String imagingExt = extIDBase;
           String imaID = counter.getNewBarcode();
