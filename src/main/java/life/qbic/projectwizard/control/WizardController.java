@@ -22,18 +22,9 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-
+import java.util.*;
 import javax.xml.bind.JAXBException;
-
+import life.qbic.portal.utils.ConfigurationManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.teemu.wizards.Wizard;
@@ -43,7 +34,6 @@ import org.vaadin.teemu.wizards.event.WizardCompletedEvent;
 import org.vaadin.teemu.wizards.event.WizardProgressListener;
 import org.vaadin.teemu.wizards.event.WizardStepActivationEvent;
 import org.vaadin.teemu.wizards.event.WizardStepSetChangedEvent;
-
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.CompositeValidator;
@@ -57,7 +47,6 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
-
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
@@ -69,6 +58,7 @@ import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.samples.AOpenbisSample;
 import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.ParserHelpers;
 import life.qbic.expdesign.SamplePreparator;
@@ -78,12 +68,11 @@ import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.model.MSExperimentModel;
-import life.qbic.projectwizard.model.NewSampleModelBean;
 import life.qbic.projectwizard.model.TestSampleInformation;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
 import life.qbic.projectwizard.processes.RegistrationMode;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.steps.*;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.portal.Styles;
@@ -101,8 +90,9 @@ import life.qbic.xml.study.TechnologyType;
 public class WizardController implements IRegistrationController {
 
   private IOpenBisClient openbis;
-  private OpenbisCreationController openbisCreator;
+  private IOpenbisCreationController openbisCreator;
   private Wizard w;
+  private String user;
   private Map<Steps, WizardStep> steps;
   private WizardDataAggregator dataAggregator;
   private boolean bioFactorInstancesSet = false;
@@ -118,6 +108,12 @@ public class WizardController implements IRegistrationController {
   protected List<String> designExperimentTypes;
   private String newExperimentalDesignXML;
 
+  //
+  private String omero_usr;
+  private String omero_pwd;
+  private int omero_port;
+  private String omero_host;
+
   private Logger logger = LogManager.getLogger(WizardController.class);
 
   private AttachmentConfig attachConfig;
@@ -126,6 +122,7 @@ public class WizardController implements IRegistrationController {
   /**
    * 
    * @param openbis OpenBisClient API
+   * @param creationController
    * @param dbm
    * @param taxMap Map containing the NCBI taxonomy (labels and ids) taken from openBIS
    * @param tissueMap Map containing the tissue
@@ -134,14 +131,26 @@ public class WizardController implements IRegistrationController {
    * @param dataMoverFolder for attachment upload
    * @param uploadSize
    */
-  public WizardController(IOpenBisClient openbis, DBManager dbm, Vocabularies vocabularies,
-      AttachmentConfig attachmentConfig) {
+
+  public WizardController(IOpenBisClient openbis, IOpenbisCreationController creationController,
+      DBManager dbm, Vocabularies vocabularies, AttachmentConfig attachmentConfig,
+      ConfigurationManager configManager) {
+
     this.openbis = openbis;
     this.dbm = dbm;
-    this.openbisCreator = new OpenbisCreationController(openbis);// wont work if openbis is down
+    this.openbisCreator = creationController;
     this.vocabularies = vocabularies;
     this.attachConfig = attachmentConfig;
     this.designExperimentTypes = vocabularies.getExperimentTypes();
+
+    this.omero_usr = configManager.getOmeroUser();
+    this.omero_pwd = configManager.getOmeroPassword();
+    this.omero_host = configManager.getOmeroHostname();
+    try {
+      this.omero_port = Integer.parseInt(configManager.getOmeroPort());
+    } catch (NumberFormatException | NullPointerException e) {
+      logger.warn("Omero port could not be parsed form the configuration file.");
+    }
   }
 
   // Functions to add steps to the wizard depending on context
@@ -281,6 +290,7 @@ public class WizardController implements IRegistrationController {
    * Initialize all possible steps in the wizard and the listeners used
    */
   public void init(final String user) {
+    this.user = user;
     this.w = new Wizard();
     WizardController control = this;
     w.getFinishButton().setVisible(false);
@@ -304,7 +314,7 @@ public class WizardController implements IRegistrationController {
     final SummaryRegisterStep regStep = new SummaryRegisterStep();
     final PoolingStep poolStep1 = new PoolingStep(Steps.Extract_Pooling);
     final PoolingStep poolStep2 = new PoolingStep(Steps.Test_Sample_Pooling);
-    final FinishStep finishStep = new FinishStep(w, attachConfig);
+    final FinishStep finishStep = new FinishStep(w, attachConfig, openbisCreator);
 
     final MSAnalyteStep protFracStep = new MSAnalyteStep(vocabularies, "PROTEINS");
     final MSAnalyteStep pepFracStep = new MSAnalyteStep(vocabularies, "PEPTIDES");
@@ -468,14 +478,15 @@ public class WizardController implements IRegistrationController {
           }
           // TODO this needs work
           List<List<ISampleBean>> samples = regStep.getSamples();
+
           String space = contextStep.getSpaceCode();
           String project = contextStep.getProjectCode();
           String exp = project + "_INFO";
           String code = project + "000";
-          String sampleType = "Q_ATTACHMENT_SAMPLE";
           boolean pilot = contextStep.isPilot();
-          ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, sampleType, "",
-              new ArrayList<String>(), new HashMap<String, Object>());
+          ISampleBean infoSample =
+              new TSVSampleBean(code, exp, project, space, SampleType.Q_ATTACHMENT_SAMPLE, "",
+                  new ArrayList<String>(), new HashMap<String, Object>());
           samples.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
           List<OpenbisExperiment> informativeExperiments =
               dataAggregator.getExperimentsWithMetadata();
@@ -489,8 +500,111 @@ public class WizardController implements IRegistrationController {
           }
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, desc,
               informativeExperiments, regStep.getProgressBar(), regStep.getProgressLabel(),
-              new RegisteredSamplesReadyRunnable(regStep, control), user, entitiesToUpdate, pilot);
+              new RegisteredSamplesReadyRunnable(regStep, control), entitiesToUpdate, pilot);
           w.addStep(steps.get(Steps.Finish));
+
+          ///////////////
+          // OMERO Block
+          // add OMERO project and samples
+          // if they are only adding samples (datasets) check if there is a corresponding OMERO
+          /////////////// project and then add sample datasets
+
+          logger.info("OMERO sample block ---%%%%%%%%%");
+          logger.info("project:: " + project);
+
+          boolean imgSupport = contextStep.hasImagingSupport();
+          if (imgSupport) {
+            // TODO include with omero production version
+            logger.warn("imaging support is activated. this should not be possible at this point.");
+            // BasicOMEROClient oc =
+            // new BasicOMEROClient(omero_usr, omero_pwd, omero_host, omero_port);
+            // oc.connect();
+            // HashMap<Long, String> projectMap = oc.loadProjects();
+            // oc.disconnect();
+            // Set<Map.Entry<Long, String>> set = projectMap.entrySet();
+            // Iterator<Map.Entry<Long, String>> iterator = set.iterator();
+            // long omeroProjectId = -1;
+            // while (iterator.hasNext()) {
+            // Map.Entry<Long, String> entry = iterator.next();
+            //
+            // if (entry.getValue().equals(project)) {
+            // omeroProjectId = (Long) entry.getKey();
+            // break;
+            // }
+            // }
+            //
+            // logger.info("omero project id: " + omeroProjectId);
+            //
+            // if (omeroProjectId == -1) {
+            // oc.connect();
+            // omeroProjectId = oc.createProject(project, contextStep.getDescription());
+            // oc.disconnect();
+            // }
+            //
+            // List<ISampleBean> omeroSamples = new ArrayList<>();
+            // for (List<ISampleBean> level : samples) {
+            //
+            // SampleType type = null;
+            // if (!level.isEmpty()) {
+            // type = level.get(0).getType();
+            //
+            // }
+            // if (type.equals(SampleType.Q_BIOLOGICAL_SAMPLE)) {
+            // omeroSamples.addAll(level);
+            // }
+            //
+            // }
+            //
+            // oc.connect();
+            // logger.info("omero samples:");
+            // for (ISampleBean omeroSample : omeroSamples) {
+            //
+            //
+            // logger.info("sample: " + omeroSample.getCode() + " ----%%%%%%%%%");
+            // logger.info("desc: " + omeroSample.getSecondaryName());
+            //
+            // long dataset_id = oc.createDataset(omeroProjectId, omeroSample.getCode(),
+            // omeroSample.getSecondaryName());
+            // logger.info("dataset id: " + dataset_id);
+            // }
+            //
+            // oc.disconnect();
+
+          }
+
+
+          // List<ISampleBean> omeroSamples = new ArrayList<>();
+          // for(List<ISampleBean> level : samples) {
+          //
+          // //logger.info("level size: " + String.valueOf(level.size()) + " ----");
+          // //logger.info("level 0: " + level.get(0).getMetadata().toString() + " ----");
+          //
+          //
+          // String type = "";
+          // if(!level.isEmpty()) {
+          // type = level.get(0).getType();
+          // //logger.info("sample: " + level.toString() + " ----");
+          //
+          // }
+          // //if(type.equals(SampleType.Q_BIOLOGICAL_SAMPLE.toString())) {
+          // if(type.equals("Q_BIOLOGICAL_SAMPLE")) {
+          // omeroSamples.addAll(level);
+          // }
+          //
+          // logger.info("sample type: " + type + " ----");
+          //
+          // }
+          //
+          // for(ISampleBean omeroSample : omeroSamples) {
+          // omeroSample.getCode();
+          // omeroSample.getSecondaryName();
+          //
+          // logger.info("sample: " + omeroSample.getCode() + " ----%%%%%%%%%");
+          // logger.info("desc: " + omeroSample.getSecondaryName());
+          // }
+          // End of OMERO Block
+          ////////////////////////////////
+
         }
       }
 
@@ -542,7 +656,7 @@ public class WizardController implements IRegistrationController {
           }
           contextStep.setProjectCodes(projects);
           List<String> dontFilter = new ArrayList<String>(Arrays.asList("SPECIAL_METHOD"));
-          if (space.endsWith("PCT")) {
+          if (space.equals("PROTEOME_CENTER_TUEBINGEN")) {
             protFracStep.filterDictionariesByPrefix("PCT", dontFilter);
             pepFracStep.filterDictionariesByPrefix("PCT", dontFilter);
           } else if (space.endsWith("MPC")) {
@@ -601,10 +715,12 @@ public class WizardController implements IRegistrationController {
           if (exp.isPilot() && !contextOptions.get(4).equals(context)) {
             contextStep.selectPilot();
           }
-          List<NewSampleModelBean> beans = new ArrayList<NewSampleModelBean>();
+          List<ISampleBean> beans = new ArrayList<ISampleBean>();
           for (Sample s : openbis.getSamplesofExperiment(exp.getID())) {
-            beans.add(new NewSampleModelBean(s.getCode(), s.getProperties().get("Q_SECONDARY_NAME"),
-                s.getSampleTypeCode()));
+            Map<String, String> props = s.getProperties();
+            beans.add(new TSVSampleBean(s.getCode(), exp.getCode(), contextStep.getProjectCode(),
+                s.getSpaceCode(), SampleType.valueOf(s.getSampleTypeCode()),
+                props.get("Q_SECONDARY_NAME"), Arrays.asList(), new HashMap<>()));
           }
           contextStep.setSamples(beans);
         }
@@ -1023,8 +1139,8 @@ public class WizardController implements IRegistrationController {
             newExperimentalDesignXML = null;
             if (entitiesToUpdate.isEmpty()) {
               try {
-                newExperimentalDesignXML =
-                    ParserHelpers.createDesignXML(preliminaryDesign, techTypes, new HashSet<String>());
+                newExperimentalDesignXML = ParserHelpers.createDesignXML(preliminaryDesign,
+                    techTypes, new HashSet<String>());
               } catch (JAXBException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -1091,9 +1207,6 @@ public class WizardController implements IRegistrationController {
               samplesByExperiment.put(exp, lis);
             }
           }
-          String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, proj);
-          finishStep.setExperimentInfos(space, proj, designExpID, p.getDescription(),
-              samplesByExperiment, openbis);
         }
       }
 
@@ -1324,9 +1437,27 @@ public class WizardController implements IRegistrationController {
     ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
     String space = context.getSpaceCode();
     String code = context.getProjectCode();
+
+    //
+    boolean imgSupport = context.hasImagingSupport();
+
+    logger.info("project: " + code + " xxxxxxx");
+    logger.info("desc: " + desc);
+    logger.info("img: " + imgSupport);
+
+    if (imgSupport) {
+//TODO include with production version of omero client
+//      BasicOMEROClient oc =
+//          new BasicOMEROClient(this.omero_usr, this.omero_pwd, this.omero_host, this.omero_port);
+//      oc.connect();
+//      oc.createProject(code, desc);
+//      oc.disconnect();
+    }
+    //
+
     boolean success = false;
     try {
-      success = openbisCreator.setupEmptyProject(space, code, desc, user);
+      success = openbisCreator.setupEmptyProject(space, code, desc);
     } catch (JAXBException e1) {
       // TODO Auto-generated catch block
       e1.printStackTrace();
@@ -1344,7 +1475,8 @@ public class WizardController implements IRegistrationController {
       sqlDown = true;
     }
     regStep.registrationDone(sqlDown, getRegistrationError());
-    // Functions.notification("Success", "Project was registered!", NotificationType.SUCCESS);
+    // Functions.notification("Success", "Project was registered!",
+    // NotificationType.SUCCESS);
   }
 
   @Override
@@ -1425,5 +1557,10 @@ public class WizardController implements IRegistrationController {
     } else {
       // nothing for now
     }
+  }
+
+  public void resetSpaces() {
+    List<String> spaces = openbis.getUserSpaces(user);
+    ((ProjectContextStep) steps.get(Steps.Project_Context)).setSpaces(spaces);
   }
 }

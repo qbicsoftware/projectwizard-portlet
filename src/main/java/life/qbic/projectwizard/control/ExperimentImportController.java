@@ -63,6 +63,7 @@ import life.qbic.datamodel.identifiers.TooManySamplesException;
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.projects.ProjectInfo;
 import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.ParserHelpers;
 import life.qbic.expdesign.SamplePreparator;
@@ -84,7 +85,7 @@ import life.qbic.projectwizard.model.MHCTyping;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.ISAParseReady;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.projectwizard.views.ExperimentImportView;
@@ -98,7 +99,7 @@ public class ExperimentImportController implements IRegistrationController {
 
   private ExperimentImportView view;
   private final Uploader uploader = new Uploader();
-  private OpenbisCreationController openbisCreator;
+  private IOpenbisCreationController openbisCreator;
   private SamplePreparator prep;
   //
   private ProjectInfo projectInfo;
@@ -132,7 +133,7 @@ public class ExperimentImportController implements IRegistrationController {
   private Set<String> currentDesignTypes;
   protected ISAStudyInfos isaStudyInfos;
 
-  public ExperimentImportController(OpenbisCreationController creator, Vocabularies vocabularies,
+  public ExperimentImportController(IOpenbisCreationController creationController, Vocabularies vocabularies,
       IOpenBisClient openbis, DBManager dbm) {
     view = new ExperimentImportView();
     this.dbm = dbm;
@@ -150,7 +151,7 @@ public class ExperimentImportController implements IRegistrationController {
     for (Map.Entry<String, String> entry : tissueMap.entrySet()) {
       this.reverseTissueMap.put(entry.getValue(), entry.getKey());
     }
-    this.openbisCreator = creator;
+    this.openbisCreator = creationController;
   }
 
 
@@ -375,8 +376,7 @@ public class ExperimentImportController implements IRegistrationController {
           String project = projectInfo.getProjectCode();
           String infoExpCode = project + "_INFO";
           String code = project + "000";
-          String sampleType = "Q_ATTACHMENT_SAMPLE";
-          ISampleBean infoSample = new TSVSampleBean(code, infoExpCode, project, space, sampleType,
+          ISampleBean infoSample = new TSVSampleBean(code, infoExpCode, project, space, SampleType.Q_ATTACHMENT_SAMPLE,
               "", new ArrayList<String>(), new HashMap<String, Object>());
           samples.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
 
@@ -394,10 +394,6 @@ public class ExperimentImportController implements IRegistrationController {
             complexExperiments
                 .add(new OpenbisExperiment(infoExpCode, ExperimentType.Q_PROJECT_DETAILS, props));
           }
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
-              projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
-              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control), user,
-              entitiesToUpdate, projectInfo.isPilot());
           List<String> tsv = prep.getOriginalTSV();
           switch (getImportType()) {
             case Standard:
@@ -409,6 +405,12 @@ public class ExperimentImportController implements IRegistrationController {
             default:
               break;
           }
+          
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
+              projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
+              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control),
+              entitiesToUpdate, projectInfo.isPilot());
+
         }
       }
 
@@ -537,6 +539,8 @@ public class ExperimentImportController implements IRegistrationController {
 
   protected String addBarcodesToTSV(List<String> tsv, List<List<ISampleBean>> levels,
       ExperimentalDesignType designType) {
+    logger.info("adding barcodes to tsv");
+    logger.info("design type: " + designType);
     StringBuilder builder = new StringBuilder(5000);
     switch (designType) {
       case Standard:
@@ -561,7 +565,7 @@ public class ExperimentImportController implements IRegistrationController {
         Map<String, String> fileNameToBarcode = new HashMap<String, String>();
         for (List<ISampleBean> samples : levels) {
           for (ISampleBean s : samples) {
-            if (s.getType().equals("Q_MS_RUN")) {
+            if (s.getType().equals(SampleType.Q_MS_RUN)) {
               Map<String, Object> props = s.getMetadata();
               fileNameToBarcode.put(props.get("File").toString(), s.getCode());
               props.remove("File");
@@ -648,15 +652,17 @@ public class ExperimentImportController implements IRegistrationController {
           techTypes.addAll(prep.getTechnologyTypes());
 
           for (List<ISampleBean> level : processed) {
-            String type = level.get(0).getType();
+            SampleType type = level.get(0).getType();
             String exp = "";
-            if (!type.equals("Q_MS_RUN") && !type.equals("Q_MHC_LIGAND_EXTRACT"))
+            if (!type.equals(SampleType.Q_MS_RUN) && !type.equals(SampleType.Q_MHC_LIGAND_EXTRACT))
               exp = getNextExperiment(project);
             // list of existing samples to be removed before registration
             List<ISampleBean> existing = new ArrayList<ISampleBean>();
             for (ISampleBean b : level) {
               TSVSampleBean t = (TSVSampleBean) b;
+              
               String extID = (String) t.getMetadata().get("Q_EXTERNALDB_ID");
+              
               if (extIDToSample.containsKey(extID)) {
                 existing.add(t);
                 extCodeToBarcode.put(extID, extIDToSample.get(extID).getCode());
@@ -666,14 +672,14 @@ public class ExperimentImportController implements IRegistrationController {
                 String code = "";
                 Map<String, Object> props = t.getMetadata();
                 switch (t.getType()) {
-                  case "Q_BIOLOGICAL_ENTITY":
+                  case Q_BIOLOGICAL_ENTITY:
                     code = project + "ENTITY-" + entityNum;
                     String newVal = questionaire.getVocabularyLabelForValue("Species",
                         props.get("Q_NCBI_ORGANISM"));
                     props.put("Q_NCBI_ORGANISM", taxMap.get(newVal));
                     entityNum++;
                     break;
-                  case "Q_BIOLOGICAL_SAMPLE":
+                  case Q_BIOLOGICAL_SAMPLE:
                     try {
                       incrementOrCreateBarcode(project);
                     } catch (TooManySamplesException e) {
@@ -684,7 +690,7 @@ public class ExperimentImportController implements IRegistrationController {
                         props.get("Q_PRIMARY_TISSUE"));
                     props.put("Q_PRIMARY_TISSUE", tissueMap.get(newVal));
                     break;
-                  case "Q_TEST_SAMPLE":
+                  case Q_TEST_SAMPLE:
                     try {
                       incrementOrCreateBarcode(project);
                     } catch (TooManySamplesException e) {
@@ -709,7 +715,7 @@ public class ExperimentImportController implements IRegistrationController {
                       }
                     }
                     break;
-                  case "Q_MHC_LIGAND_EXTRACT":
+                  case Q_MHC_LIGAND_EXTRACT:
                     try {
                       incrementOrCreateBarcode(project);
                     } catch (TooManySamplesException e) {
@@ -721,7 +727,7 @@ public class ExperimentImportController implements IRegistrationController {
                     }
                     exp = specialExpToExpCode.get(t.getExperiment());
                     break;
-                  case "Q_MS_RUN":
+                  case Q_MS_RUN:
                     // get ms experiment to connect it correctly
                     if (!specialExpToExpCode.containsKey(t.getExperiment())) {
                       specialExpToExpCode.put(t.getExperiment(), getNextExperiment(project));
@@ -738,6 +744,78 @@ public class ExperimentImportController implements IRegistrationController {
                     }
                     msCodes.add(code);
                     break;
+				case Q_ATTACHMENT_SAMPLE:
+					break;
+				case Q_BMI_GENERIC_IMAGING_RUN:
+					break;
+				case Q_EDDA_BENCHMARK:
+					break;
+				case Q_EXT_MS_QUALITYCONTROL_RUN:
+					break;
+				case Q_EXT_NGS_QUALITYCONTROL_RUN:
+					break;
+				case Q_FASTA:
+					break;
+				case Q_HT_QPCR_RUN:
+					break;
+				case Q_MICROARRAY_RUN:
+					break;
+				case Q_NGS_EPITOPES:
+					break;
+				case Q_NGS_FLOWCELL_RUN:
+					break;
+				case Q_NGS_HLATYPING:
+					break;
+				case Q_NGS_IMMUNE_MONITORING:
+					break;
+				case Q_NGS_IONTORRENT_RUN:
+					break;
+				case Q_NGS_MAPPING:
+					break;
+				case Q_NGS_MTB_DIAGNOSIS_RUN:
+					break;
+				case Q_NGS_READ_MATCH_ALIGNMENT_RUN:
+					break;
+				case Q_NGS_SINGLE_SAMPLE_RUN:
+					break;
+				case Q_NGS_VARIANT_CALLING:
+					break;
+				case Q_VACCINE_CONSTRUCT:
+					break;
+				case Q_WF_MA_QUALITYCONTROL_RUN:
+					break;
+				case Q_WF_MS_INDIVIDUALIZED_PROTEOME_RUN:
+					break;
+				case Q_WF_MS_LIGANDOMICS_ID_RUN:
+					break;
+				case Q_WF_MS_LIGANDOMICS_QC_RUN:
+					break;
+				case Q_WF_MS_MAXQUANT_RUN:
+					break;
+				case Q_WF_MS_PEPTIDEID_RUN:
+					break;
+				case Q_WF_MS_QUALITYCONTROL_RUN:
+					break;
+				case Q_WF_NGS_16S_TAXONOMIC_PROFILING:
+					break;
+				case Q_WF_NGS_EPITOPE_PREDICTION_RUN:
+					break;
+				case Q_WF_NGS_HLATYPING_RUN:
+					break;
+				case Q_WF_NGS_MAPPING_RUN:
+					break;
+				case Q_WF_NGS_QUALITYCONTROL_RUN:
+					break;
+				case Q_WF_NGS_RNA_EXPRESSION_ANALYSIS_RUN:
+					break;
+				case Q_WF_NGS_SHRNA_COUNTING_RUN:
+					break;
+				case Q_WF_NGS_VARIANT_ANNOTATION_RUN:
+					break;
+				case Q_WF_NGS_VARIANT_CALLING_RUN:
+					break;
+				default:
+					break;
                 }
                 t.setExperiment(exp);
                 t.setCode(code);
@@ -935,9 +1013,11 @@ public class ExperimentImportController implements IRegistrationController {
       String code = s.getCode();
       // collect existing samples by their external id
       String extID = s.getProperties().get("Q_EXTERNALDB_ID");
-      if (extIDToSample.containsKey(extID))
+      boolean emptyID = extID == null || extID.isEmpty();
+      if (!emptyID && extIDToSample.containsKey(extID)) {
         logger.warn(extID + " was found as a secondary name for multiple samples. This might"
             + " lead to inconsistencies if new samples are to be attached to this secondary name.");
+      }
       extIDToSample.put(extID, s);
       if (SampleCodeFunctions.isQbicBarcode(code)) {
         if (SampleCodeFunctions.compareSampleCodes(firstFreeBarcode, code) <= 0) {

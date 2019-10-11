@@ -46,8 +46,7 @@ import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -55,8 +54,8 @@ import com.vaadin.ui.Button.ClickListener;
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
-import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.processes.TSVReadyRunnable;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.registration.UpdateProgressBar;
 import life.qbic.projectwizard.uicomponents.UploadsPanel;
 import life.qbic.xml.manager.StudyXMLParser;
@@ -90,10 +89,12 @@ public class FinishStep implements WizardStep {
 
   private static final Logger logger = LogManager.getLogger(FinishStep.class);
   private List<FileDownloader> downloaders = new ArrayList<FileDownloader>();
+  private IOpenbisCreationController creator;
 
-  public FinishStep(final Wizard w, AttachmentConfig attachmentConfig) {
+  public FinishStep(final Wizard w, AttachmentConfig attachmentConfig, IOpenbisCreationController openbisCreator) {
     this.w = w;
     this.attachConfig = attachmentConfig;
+    this.creator = openbisCreator;
 
     main = new VerticalLayout();
     main.setMargin(true);
@@ -183,9 +184,9 @@ public class FinishStep implements WizardStep {
     for (String exp : samplesByExperiment.keySet()) {
       List<Sample> samps = samplesByExperiment.get(exp);
       for (Sample s : samps)
-        ids.add(s.getIdentifier());
+        ids.add(s.getIdentifier().getIdentifier());
       int amount = samps.size();
-      String sampleType = samps.get(0).getSampleTypeCode();
+      String sampleType = samps.get(0).getType().getCode();
       switch (sampleType) {
         case "Q_BIOLOGICAL_ENTITY":
           entitieNum += amount;
@@ -246,13 +247,14 @@ public class FinishStep implements WizardStep {
           }
         }
         logger.debug("designexpID " + designExpID);
-        List<Experiment> exps = openbis.getExperimentById2(designExpID);
+        //List<Experiment> exps = openbis.getExperimentById2(designExpID);
+//        Experiment exp = openbis.getExperimentById(designExpID); TODO remove
         StudyXMLParser parser = new StudyXMLParser();
         Set<String> factors = new HashSet<>();
         Map<Pair<String, String>, Property> factorsForLabelsAndSamples = new HashMap<>();
 
-        if (!exps.isEmpty()) {
-          String xml = exps.get(0).getProperties().get("Q_EXPERIMENTAL_SETUP");
+//        if (!exps.isEmpty()) {
+          String xml = "";//exp.getProperties().get("Q_EXPERIMENTAL_SETUP"); TODO remove
           try {
             JAXBElement<Qexperiment> expDesign = parser.parseXMLString(xml);
             factors.addAll(parser.getFactorLabels(expDesign));
@@ -261,7 +263,7 @@ public class FinishStep implements WizardStep {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
-        }
+//        }
 
         Map<String, List<String>> tables = new HashMap<String, List<String>>();
         for (String type : sampleTypes) {
@@ -313,9 +315,9 @@ public class FinishStep implements WizardStep {
         logger.error("Could not contact Liferay for User screen name.");
       }
 
-    this.uploads = new UploadsPanel(ProjectWizardUI.tmpFolder, space, project,
+    this.uploads = new UploadsPanel(space, project,
         new ArrayList<String>(Arrays.asList("Experimental Design")), userID, attachConfig,
-        (OpenBisClient) openbis);// TODO this cast is not safe in dev mode when openbis is down
+        (OpenBisClient) openbis, creator);// TODO this cast is not safe in dev mode when openbis is down
     this.uploads.setVisible(false);
     main.addComponent(uploads);
   }

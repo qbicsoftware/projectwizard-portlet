@@ -1,5 +1,6 @@
 package life.qbic.portal.portlet;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -25,7 +26,6 @@ import com.vaadin.annotations.Widgetset;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.themes.ValoTheme;
-
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
@@ -35,7 +35,6 @@ import com.vaadin.ui.VerticalLayout;
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
-import life.qbic.openbis.openbisclient.OpenBisClientMock;
 import life.qbic.portal.portlet.QBiCPortletUI;
 import life.qbic.portal.samplegraph.GraphPage;
 import life.qbic.portal.utils.ConfigurationManager;
@@ -46,24 +45,26 @@ import life.qbic.projectwizard.control.WizardController;
 import life.qbic.projectwizard.io.DBConfig;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.model.Vocabularies;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.OpenbisV3APIWrapper;
+import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
 
 @Theme("mytheme")
-@SuppressWarnings("serial")
 @Widgetset("life.qbic.portlet.AppWidgetSet")
 public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean testMode = false;// TODO
   public static boolean development = false;
+  public static boolean v3API = false;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 
   // hardcoded stuff (main experiment types used in the wizard)
   List<String> expTypes = new ArrayList<String>(
       Arrays.asList("Q_EXPERIMENTAL_DESIGN", "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION"));
-
 
   private Logger logger = LogManager.getLogger(ProjectWizardUI.class);
 
@@ -78,17 +79,14 @@ public class ProjectWizardUI extends QBiCPortletUI {
   protected Layout getPortletContent(final VaadinRequest request) {
     tabs.addStyleName(ValoTheme.TABSHEET_FRAMED);
     final VerticalLayout layout = new VerticalLayout();
-
-    // read in the configuration file
-    config = ConfigurationManagerFactory.getInstance();
-    tmpFolder = config.getTmpFolder();
-    MSLabelingMethods = config.getVocabularyMSLabeling();
-
     layout.setMargin(true);
     setContent(layout);
+
     String userID = "";
+    config = ConfigurationManagerFactory.getInstance();
     boolean success = true;
     if (PortalUtils.isLiferayPortlet()) {
+      // read in the configuration file
       logger.info("Wizard is running on Liferay and user is logged in.");
       userID = PortalUtils.getUser().getScreenName();
     } else {
@@ -96,6 +94,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
         logger.warn("Checks for local dev version successful. User is granted admin status.");
         userID = "admin";
         isAdmin = true;
+        logger.warn("User is connected to: "+config.getDataSourceUrl());
       } else {
         success = false;
         logger.info(
@@ -103,6 +102,11 @@ public class ProjectWizardUI extends QBiCPortletUI {
         layout.addComponent(new Label("User not found. Are you logged in?"));
       }
     }
+    File tmpFolder = new File(config.getTmpFolder());
+    if (!tmpFolder.exists()) {
+      tmpFolder.mkdirs();
+    }
+    MSLabelingMethods = config.getVocabularyMSLabeling();
     // establish connection to the OpenBIS API
     if (!development || !testMode) {
       try {
@@ -120,8 +124,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
     }
     if (development && testMode) {
       logger.error("No connection to openBIS. Trying mock version for testing.");
-      this.openbis = new OpenBisClientMock(config.getDataSourceUser(),
-          config.getDataSourcePassword(), config.getDataSourceUrl());
+      // this.openbis = new OpenBisClientMock(config.getDataSourceUser(),
+      // config.getDataSourcePassword(), config.getDataSourceUrl());
       layout.addComponent(new Label(
           "openBIS could not be reached. Resuming with mock version. Some options might be non-functional. Reload to retry."));
     }
@@ -164,12 +168,23 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
   private void initView(final DBManager dbm, final Vocabularies vocabularies, final String user) {
     tabs.removeAllComponents();
+
+    IOpenbisCreationController creationController = new OpenbisCreationController(openbis, user);
+    if (v3API) {
+      OpenbisV3APIWrapper v3 = new OpenbisV3APIWrapper(config.getDataSourceUrl(),
+          config.getDataSourceUser(), config.getDataSourcePassword(), user);
+      creationController = new OpenbisV3CreationController(openbis, user, v3);
+    }
+
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
-    WizardController c = new WizardController(openbis, dbm, vocabularies, attachConfig);
-    c.init(user);
-    Wizard w = c.getWizard();
+
+    WizardController mainController =
+        new WizardController(openbis, creationController, dbm, vocabularies, attachConfig, config);
+
+    mainController.init(user);
+    Wizard w = mainController.getWizard();
     WizardProgressListener wl = new WizardProgressListener() {
 
       @Override
@@ -200,26 +215,20 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
 
-    OpenbisCreationController creationController = new OpenbisCreationController(openbis);// will
-                                                                                          // not
-                                                                                          // work
-                                                                                          // when
-                                                                                          // openbis
-                                                                                          // is down
     ExperimentImportController uc =
         new ExperimentImportController(creationController, vocabularies, openbis, dbm);
     uc.init(user, config.getISAConfigPath());
     tabs.addTab(uc.getView(), "Import Project").setIcon(FontAwesome.FILE);
 
     boolean overwriteAllowed = isAdmin || canOverwrite();
-    tabs.addTab(new MetadataUploadView(openbis, vocabularies, overwriteAllowed), "Update Metadata")
-        .setIcon(FontAwesome.PENCIL);;
+    tabs.addTab(new MetadataUploadView(openbis, vocabularies, overwriteAllowed, user),
+        "Update Metadata").setIcon(FontAwesome.PENCIL);;
     if (isAdmin) {
       logger.info("User is " + user + " and can see admin panel.");
-      VerticalLayout padding = new VerticalLayout();
-      padding.setMargin(true);
-      padding.addComponent(new AdminView(openbis, vocabularies, creationController, user));
-      tabs.addTab(padding, "Admin Functions").setIcon(FontAwesome.WRENCH);
+      VerticalLayout adminTab = new VerticalLayout();
+      adminTab.setMargin(true);
+      adminTab.addComponent(new AdminView(openbis, vocabularies, mainController, creationController, user));
+      tabs.addTab(adminTab, "Admin Functions").setIcon(FontAwesome.WRENCH);
     }
     if (overwriteAllowed)
       logger.info("User can overwrite existing metadata for their project.");
@@ -227,23 +236,23 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
   // TODO group that might be used to delete metadata or even sample/experiment objects in the
   // future
-  private boolean canDelete() {
-//    try {
-//      User user = PortalUtils.getUser();
-//      for (UserGroup grp : user.getUserGroups()) {
-//        String group = grp.getName();
-//        if (config.getDeletionGrp().contains(group)) {
-//          logger.info(
-//              "User " + user.getScreenName() + " can delete because they are part of " + group);
-//          return true;
-////        }
-//      }
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//      logger.error("Could not fetch user groups. User won't be able to delete.");
-//    }
-    return false;
-  }
+//  private boolean canDelete() {
+    // try {
+    // User user = PortalUtils.getUser();
+    // for (UserGroup grp : user.getUserGroups()) {
+    // String group = grp.getName();
+    // if (config.getDeletionGrp().contains(group)) {
+    // logger.info(
+    // "User " + user.getScreenName() + " can delete because they are part of " + group);
+    // return true;
+    //// }
+    // }
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // logger.error("Could not fetch user groups. User won't be able to delete.");
+    // }
+//    return false;
+//  }
 
   private boolean canOverwrite() {
     try {

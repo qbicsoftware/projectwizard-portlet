@@ -26,3 +26,6 @@ logs/
 
 # compiled Vaadin widgetsets
 src/main/webapp/VAADIN/widgetsets
+
+src/main/resources/local.properties
+src/main/resources/developer.properties

@@ -7,17 +7,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import com.vaadin.data.Item;
-import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.UI;
@@ -27,15 +23,17 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.themes.ValoTheme;
-
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
+import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
+import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.ParserHelpers;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.registration.UpdateProgressBar;
 import life.qbic.xml.manager.StudyXMLParser;
 import life.qbic.xml.manager.XMLParser;
@@ -51,15 +49,20 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
   private IOpenBisClient openbis;
   private Table projectTable;
   private Set<String> projectInfoExpsWithDesignXML;
+  private Set<String> projectInfoSampsWithDesignXML;
   private Map<String, Set<String>> spaceToProjects;
   private Button convert = new Button("Convert");
   private ProgressBar bar = new ProgressBar();
   private Label info = new Label();
+  private IOpenbisCreationController creator;
 
-  public ExperimentalDesignConversionView(IOpenBisClient openbis) {
+  public ExperimentalDesignConversionView(IOpenBisClient openbis,
+      IOpenbisCreationController registrator) {
     this.openbis = openbis;
+    this.creator = registrator;
     spaceToProjects = new HashMap<>();
     projectInfoExpsWithDesignXML = new HashSet<>();
+    projectInfoSampsWithDesignXML = new HashSet<>();
 
     setSpacing(true);
     setMargin(true);
@@ -73,11 +76,11 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     projectTable.setColumnWidth("Converted projects", 140);
     projectTable.setSelectable(true);
     projectTable.setMultiSelect(true);
-    
+
     Button loadProjects = new Button("Load Existing Projects");
     addComponent(loadProjects);
     loadProjects.addClickListener(new ClickListener() {
-      
+
       @Override
       public void buttonClick(ClickEvent event) {
         initTable();
@@ -88,12 +91,16 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
   protected void initTable() {
     List<Experiment> infoExps =
         openbis.getExperimentsOfType(ExperimentType.Q_PROJECT_DETAILS.name());
+    List<Sample> infoSamps = openbis.getSamplesOfType(SampleType.Q_ATTACHMENT_SAMPLE.name());
     List<Project> projects = openbis.listProjects();
 
     for (Experiment exp : infoExps) {
       if (exp.getProperties().containsKey("Q_EXPERIMENTAL_SETUP")) {
         projectInfoExpsWithDesignXML.add(exp.getIdentifier());
       }
+    }
+    for (Sample s : infoSamps) {
+      projectInfoSampsWithDesignXML.add(s.getCode());
     }
 
     for (Project project : projects) {
@@ -112,7 +119,8 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
       int convertedProjects = 0;
       for (String p : codes) {
         String id = ExperimentCodeFunctions.getInfoExperimentID(space, p);
-        if (projectInfoExpsWithDesignXML.contains(id)) {
+        if (projectInfoExpsWithDesignXML.contains(id)
+            && projectInfoSampsWithDesignXML.contains(p + "000")) {
           convertedProjects++;
         }
       }
@@ -141,7 +149,8 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
             Set<String> existing = new HashSet<>();
             for (String project : spaceToProjects.get(space)) {
               String id = ExperimentCodeFunctions.getInfoExperimentID(space, project);
-              if (projectInfoExpsWithDesignXML.contains(id)) {
+              if (projectInfoExpsWithDesignXML.contains(id)
+                  && projectInfoSampsWithDesignXML.contains(project + "000")) {
                 existing.add(project);
               }
             }
@@ -232,10 +241,10 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
       throws IllegalArgumentException, JAXBException, InterruptedException {
     Set<String> types = new HashSet<>(Arrays.asList("Q_BIOLOGICAL_SAMPLE", "Q_BIOLOGICAL_ENTITY",
         "Q_TEST_SAMPLE", "Q_MHC_LIGAND_EXTRACT"));
-    OpenbisCreationController creator = new OpenbisCreationController(openbis);
     Map<String, Map<Pair<String, String>, List<String>>> expDesign = new HashMap<>();
     Map<String, List<Qproperty>> otherProps = new HashMap<>();
     String TARGET_EXPERIMENT = ExperimentCodeFunctions.getInfoExperimentID(space, project);
+    String INFO_SAMPLE_CODE = project + "000";
 
     List<Sample> samples = openbis.getSamplesOfProject("/" + space + "/" + project);
     Set<TechnologyType> techs = new HashSet<>();
@@ -245,14 +254,16 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     logger.info("target experiment: " + TARGET_EXPERIMENT);
     List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment> exps =
         openbis.getExperimentById2(TARGET_EXPERIMENT);
-    
+
     boolean exists = false;
+    boolean sampleExists = openbis.sampleExists(INFO_SAMPLE_CODE);
     for (Experiment e : exps) {
-      if(e.getIdentifier().equals(TARGET_EXPERIMENT)) {
+      if (e.getIdentifier().equals(TARGET_EXPERIMENT)) {
         exists = true;
       }
     }
-    logger.info("exists: " + exists);
+    logger.info("experiment exists: " + exists);
+    logger.info("sample exists: " + sampleExists);
 
     for (Sample s : samples) {
       String type = s.getSampleTypeCode();
@@ -307,21 +318,27 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     }
     StudyXMLParser p = new StudyXMLParser();
     List<TechnologyType> techTypes = new ArrayList<>(techs);
-    JAXBElement<Qexperiment> res = p.createNewDesign(new HashSet<>(), techTypes, expDesign, otherProps);
+    JAXBElement<Qexperiment> res =
+        p.createNewDesign(new HashSet<>(), techTypes, expDesign, otherProps);
     String xml = p.toString(res);
     Map<String, Object> props = new HashMap<>();
+    String infoCode = project + "_INFO";
     props.put("Q_EXPERIMENTAL_SETUP", xml);
     if (!exists) {
       logger.info("creating new experiment");
       creator.registerExperiment(space, project, ExperimentType.Q_PROJECT_DETAILS,
-          project + "_INFO", props, "iisfr01");
+          infoCode, props);
     } else {
       logger.info("updating existing experiment");
-      HashMap<String, Object> params = new HashMap<>();
-      params.put("user", "iisfr01");
-      params.put("identifier", TARGET_EXPERIMENT);
-      params.put("properties", props);
-      creator.openbisGenericIngest("update-experiment-metadata", params);
+
+      creator.updateExperiment(TARGET_EXPERIMENT, props);
+    }
+    if (!sampleExists) {
+      logger.info("registering info sample");
+      ISampleBean infoSample = new TSVSampleBean(INFO_SAMPLE_CODE, infoCode, project,
+          space, SampleType.Q_ATTACHMENT_SAMPLE, "", new ArrayList<String>(),
+          new HashMap<String, Object>());
+      creator.registerSampleBatch(new ArrayList<>(Arrays.asList(infoSample)));
     }
     logger.info(project + " done");
   }

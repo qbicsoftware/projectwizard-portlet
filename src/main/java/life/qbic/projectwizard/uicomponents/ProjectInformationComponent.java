@@ -32,6 +32,9 @@ import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+//
+import com.vaadin.ui.CheckBox;
+
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.projects.ProjectInfo;
 import life.qbic.portal.Styles;
@@ -56,6 +59,9 @@ public class ProjectInformationComponent extends VerticalLayout {
   private ComboBox managerBox;
   private Button reloadPeople;
 
+  //
+  private CheckBox imgCheck;
+
   private TextArea projectDescription;
 
   private ValueChangeListener projectSelectListener;
@@ -65,12 +71,16 @@ public class ProjectInformationComponent extends VerticalLayout {
     setSizeUndefined();
 
     Collections.sort(spaces);
-    spaceBox = new ComboBox("Project", spaces);
+    spaceBox = new ComboBox("Project/Space", spaces);
     spaceBox.setStyleName(Styles.boxTheme);
     spaceBox.setNullSelectionAllowed(false);
     spaceBox.setImmediate(true);
     spaceBox.setFilteringMode(FilteringMode.CONTAINS);
     addComponent(Styles.questionize(spaceBox, "Name of the project", "Project Name"));
+
+    //
+    imgCheck = new CheckBox("Imaging Support");
+//    addComponent(imgCheck);//TODO omero support
 
     ComboBox prBox = new ComboBox("Sub-Project");
     prBox.setStyleName(Styles.boxTheme);
@@ -224,6 +234,12 @@ public class ProjectInformationComponent extends VerticalLayout {
     }
   }
 
+  public boolean hasImagingSupport(){
+
+    return this.imgCheck.getValue();
+
+  }
+
   public String getProjectDescription() {
     return projectDescription.getValue();
   }
@@ -323,5 +339,11 @@ public class ProjectInformationComponent extends VerticalLayout {
     return new ProjectInfo(getSpaceCode(), getSelectedProject(), projectDescription.getValue(),
         getProjectName(), false, getPerson(PersonType.Investigator), getPerson(PersonType.Contact),
         getPerson(PersonType.Manager));
+  }
+
+  public void setSpaces(List<String> spaces) {
+    Collections.sort(spaces);
+    spaceBox.removeAllItems();
+    spaceBox.addItems(spaces);
   }
 }

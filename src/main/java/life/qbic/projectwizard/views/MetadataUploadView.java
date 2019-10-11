@@ -28,20 +28,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
-import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
@@ -56,7 +49,6 @@ import life.qbic.xml.manager.StudyXMLParser;
 import life.qbic.xml.properties.Property;
 import life.qbic.xml.study.Qexperiment;
 import life.qbic.xml.study.Qproperty;
-
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
@@ -86,6 +78,12 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Upload.FinishedListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+// import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+// import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
 import com.vaadin.ui.Upload.FinishedEvent;
 
 
@@ -98,6 +96,9 @@ public class MetadataUploadView extends VerticalLayout {
 
   private OptionGroup typeOfData =
       new OptionGroup("Type of Metadata", new ArrayList<String>(Arrays.asList("Samples")));
+
+  private OptionGroup separatorSelection =
+      new OptionGroup("Separator", new ArrayList<String>(Arrays.asList("Tab", ",", ";")));
 
   private TabSheet sheet;
   private UploadComponent upload;
@@ -133,7 +134,7 @@ public class MetadataUploadView extends VerticalLayout {
   private final int BATCH_SIZE = 50;
 
   public MetadataUploadView(IOpenBisClient openbis, Vocabularies vocabularies,
-      boolean overWriteAllowed) {
+      boolean overWriteAllowed, String user) {
     allowedSpaces = new HashSet<String>(vocabularies.getSpaces());
     this.overWriteAllowed = overWriteAllowed;
     sheet = new TabSheet();
@@ -169,8 +170,11 @@ public class MetadataUploadView extends VerticalLayout {
     setSpacing(true);
     setMargin(true);
     addComponent(typeOfData);
+    addComponent(separatorSelection);
+    separatorSelection.select("Tab");
+    separatorSelection.setVisible(false);
     upload = new UploadComponent("Upload Metadata (tab-separated)", "Upload",
-        ProjectWizardUI.tmpFolder, "meta_", 200000);
+        ProjectWizardUI.tmpFolder, user, 200000);
     upload.setVisible(false);
     addComponent(upload);
     reload = new Button("Reset columns");
@@ -208,6 +212,7 @@ public class MetadataUploadView extends VerticalLayout {
     typeOfData.addValueChangeListener(new ValueChangeListener() {
       @Override
       public void valueChange(ValueChangeEvent event) {
+        separatorSelection.setVisible(true);
         upload.setVisible(true);
       }
     });
@@ -393,8 +398,8 @@ public class MetadataUploadView extends VerticalLayout {
     }
     // technologies used can't be changed, so we add an empty list
     if (updateNecessary) {
-      JAXBElement<Qexperiment> updatedDesign =
-          studyXMLParser.mergeDesigns(expDesign, new HashSet<>(), new ArrayList<>(), newDesign, newProperties);
+      JAXBElement<Qexperiment> updatedDesign = studyXMLParser.mergeDesigns(expDesign,
+          new HashSet<>(), new ArrayList<>(), newDesign, newProperties);
       return studyXMLParser.toString(updatedDesign);
     } else {
       return null;
@@ -492,8 +497,8 @@ public class MetadataUploadView extends VerticalLayout {
     });
 
     sampleTables.clear();
-    CSVParser parser =
-        new CSVParserBuilder().withIgnoreQuotations(true).withSeparator('\t').build();
+    CSVParser parser = new CSVParserBuilder().withIgnoreQuotations(true)
+        .withSeparator(translateSeparatorSelection(separatorSelection)).build();
     CSVReader reader = new CSVReaderBuilder(new FileReader(file)).withCSVParser(parser).build();
 
     String error = "";
@@ -703,7 +708,7 @@ public class MetadataUploadView extends VerticalLayout {
       String tType = translateType.get(type);
       if (tType == null)
         tType = type;
-      sampleTable.setCaption(tType + " (" + sampleTable.size() + ")");
+      sampleTable.setCaption(tType + " (" + Integer.toString(sampleTable.size() - 1) + ")");
       sheet.addTab(sampleTable);
       sampleTables.add(sampleTable);
       sampleTable.setPageLength(Math.min(20, sampleTable.size()));
@@ -713,6 +718,16 @@ public class MetadataUploadView extends VerticalLayout {
     addComponent(send);
     addComponent(progressBar);
     return true;
+  }
+
+  private char translateSeparatorSelection(OptionGroup option) {
+    String val = option.getValue().toString();
+    switch (val) {
+      case "Tab":
+        return '\t';
+      default:
+        return val.charAt(0);
+    }
   }
 
   protected List<Label> collectLabelsInCol(String headline) {
@@ -1108,7 +1123,8 @@ public class MetadataUploadView extends VerticalLayout {
 
     ComboBox unitSelect = new ComboBox("Unit");
     unitSelect.setNullSelectionAllowed(false);
-    unitSelect.addItems(life.qbic.xml.properties.Unit.values());
+    life.qbic.xml.properties.Unit[] vals = life.qbic.xml.properties.Unit.values();
+    unitSelect.addItems(Arrays.asList(vals));
     String nullItem = "[None]";
     unitSelect.addItem(nullItem);
     unitSelect.select(nullItem);

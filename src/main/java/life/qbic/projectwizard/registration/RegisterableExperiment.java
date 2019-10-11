@@ -1,5 +1,6 @@
 package life.qbic.projectwizard.registration;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ public class RegisterableExperiment {
     this.samples = samples;
     this.properties = properties;
   }
+
   public String getType() {
     return type;
   }
@@ -34,6 +36,14 @@ public class RegisterableExperiment {
 
   public Map<String, Object> getProperties() {
     return properties;
+  }
+
+  public Map<String, String> getStringProperties() {
+    Map<String, String> res = new HashMap<>();
+    for (String key : properties.keySet()) {
+      res.put(key, properties.get(key).toString());
+    }
+    return res;
   }
 
   public void addSample(ISampleBean s) {

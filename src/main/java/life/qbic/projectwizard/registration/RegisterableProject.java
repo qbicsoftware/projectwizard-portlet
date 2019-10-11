@@ -20,8 +20,8 @@ public class RegisterableProject {
 
   // these experiment types can't be flagged as "pilot experiments" (i.e. since they are
   // project-wide)
-  private final List<String> notPilotable =
-      new ArrayList<String>(Arrays.asList("Q_PROJECT_DETAILS"));
+  private final List<ExperimentType> notPilotable =
+      new ArrayList<>(Arrays.asList(ExperimentType.Q_PROJECT_DETAILS));
 
   public RegisterableProject(List<List<ISampleBean>> tsvSampleHierarchy, String description,
       List<OpenbisExperiment> informativeExperiments, boolean isPilot) {
@@ -43,15 +43,21 @@ public class RegisterableProject {
           String expCode = s.getExperiment();
           // we know this experiment, add the current sample
           if (expMap.containsKey(expCode)) {
-            expMap.get(expCode).addSample(s);
+            RegisterableExperiment exp = expMap.get(expCode);
+            exp.addSample(s);
           } else {
-            // experiment is new, get the metadata, create it and put it into the map
-            ExperimentType expType = SampleCodeFunctions.sampleTypesToExpTypes.get(s.getType());
+            ExperimentType expType = null;
             Map<String, Object> metadata = new HashMap<String, Object>();
             if (knownExperiments.containsKey(expCode)) {
-              metadata = knownExperiments.get(expCode).getMetadata();
+              OpenbisExperiment exp = knownExperiments.get(expCode);
+              expType = exp.getType();
+              metadata = exp.getMetadata();
+            } else {
+              // experiment is new, get the metadata, create it and put it into the map
+              expType = SampleCodeFunctions.sampleTypesToExpTypes.get(s.getType());
             }
-            if (!notPilotable.contains(expType.toString())) {
+
+            if (!notPilotable.contains(expType)) {
               metadata.put("Q_IS_PILOT", isPilot);
             }
             RegisterableExperiment e = new RegisterableExperiment(s.getExperiment(), expType,

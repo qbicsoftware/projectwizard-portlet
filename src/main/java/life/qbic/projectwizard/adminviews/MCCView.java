@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -52,6 +51,7 @@ import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.samples.ISampleBean;
+import life.qbic.datamodel.samples.SampleType;
 import life.qbic.datamodel.samples.TSVSampleBean;
 import life.qbic.expdesign.ParserHelpers;
 import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
@@ -60,16 +60,14 @@ import life.qbic.projectwizard.control.IRegistrationController;
 import life.qbic.projectwizard.control.SampleCounter;
 import life.qbic.projectwizard.model.MCCPatient;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
-import life.qbic.projectwizard.registration.OpenbisCreationController;
+import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.views.IRegistrationView;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.portal.components.StandardTextField;
 import life.qbic.xml.manager.StudyXMLParser;
-// import life.qbic.xml.manager.XMLParser;
 import life.qbic.xml.properties.Property;
 import life.qbic.xml.study.Qexperiment;
-import life.qbic.xml.study.Qproperty;
 import life.qbic.xml.study.TechnologyType;
 
 public class MCCView extends VerticalLayout implements IRegistrationView, IRegistrationController {
@@ -81,12 +79,11 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
   private Logger logger = LogManager.getLogger(MCCView.class);
 
   private IOpenBisClient openbis;
-  private OpenbisCreationController creator;
+  private IOpenbisCreationController creator;
   // private XMLParser p = new XMLParser();
   final private StudyXMLParser xmlParser = new StudyXMLParser();
   private Experiment designExperiment;
   private JAXBElement<Qexperiment> expDesign;
-  private String user;
   // view
   private final String mccSpace = "MULTISCALEHCC";
   private List<TechnologyType> techTypes;
@@ -112,7 +109,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
 
   private String project;
 
-  public MCCView(IOpenBisClient openbis, OpenbisCreationController creationController,
+  public MCCView(IOpenBisClient openbis, IOpenbisCreationController creationController,
       String user) {
     techTypes = new ArrayList<TechnologyType>();
     techTypes.add(new TechnologyType("Transcriptomics"));
@@ -121,7 +118,6 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
 
     this.openbis = openbis;
     this.creator = creationController;
-    this.user = user;
 
     this.cases = new HashSet<String>();
     this.patients = new ArrayList<String>();
@@ -315,15 +311,17 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
           props.put("Q_EXPERIMENTAL_SETUP", newDesignXML);
           infoExperiments.add(new OpenbisExperiment(exp, ExperimentType.Q_PROJECT_DETAILS, props));
           String code = project + "000";
-          String sampleType = "Q_ATTACHMENT_SAMPLE";
-          ISampleBean infoSample = new TSVSampleBean(code, exp, project, mccSpace, sampleType, "",
+          ISampleBean infoSample = new TSVSampleBean(code, exp, project, mccSpace, SampleType.Q_ATTACHMENT_SAMPLE, "",
               new ArrayList<String>(), new HashMap<String, Object>());
           samps.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
         }
         logger.debug("exps " + infoExperiments);
         logger.debug("update " + entitiesToUpdate);
+//        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
+//            registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
+//            entitiesToUpdate, false);
         creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
-            registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
+            registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()),
             entitiesToUpdate, false);
       }
     });
@@ -433,7 +431,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
       metadata.put("Q_EXTERNALDB_ID", patientExtID);
       metadata.put("Q_NCBI_ORGANISM", "9606");
       patients.add(new TSVSampleBean(patientID, project + "E1", project, mccSpace,
-          "Q_BIOLOGICAL_ENTITY", "patient #" + patient, new ArrayList<String>(), metadata));
+          SampleType.Q_BIOLOGICAL_ENTITY, "patient #" + patient, new ArrayList<String>(), metadata));
     }
     String extIDBase = patientExtID + ":" + timepoint + ":";
 
@@ -445,13 +443,13 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
     metadata.put("Q_EXTERNALDB_ID", urineExtIDBase);
     String urineID = counter.getNewBarcode();// parent
     List<String> patientIDs = new ArrayList<String>(Arrays.asList(patientID));
-    urine.add(new TSVSampleBean(urineID, project + "E2", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
+    urine.add(new TSVSampleBean(urineID, project + "E2", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
         "urine sample", patientIDs, (HashMap<String, Object>) metadata.clone()));
     for (int i = 1; i < 6; i++) {
       char lower = (char) ('a' + i - 1);
       String ID = counter.getNewBarcode();
       metadata.put("Q_EXTERNALDB_ID", urineExtIDBase + lower);
-      uAliquots.add(new TSVSampleBean(ID, project + "E3", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
+      uAliquots.add(new TSVSampleBean(ID, project + "E3", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
           "aliquot #" + i, new ArrayList<String>(Arrays.asList(urineID)),
           (HashMap<String, Object>) metadata.clone()));
     }
@@ -462,7 +460,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
       metadata.put("Q_EXTERNALDB_ID", plasmaExtID);
       metadata.put("Q_PRIMARY_TISSUE", "BLOOD_PLASMA");
       plasma
-          .add(new TSVSampleBean(plasmaID, project + "E4", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
+          .add(new TSVSampleBean(plasmaID, project + "E4", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
               "EDTA plasma #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
       if (i == 1) {
         for (int j = 1; j < 3; j++) {
@@ -470,7 +468,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
           String ID = counter.getNewBarcode();
           metadata.put("Q_EXTERNALDB_ID", plasmaExtID + lower);
           pAliquots
-              .add(new TSVSampleBean(ID, project + "E4", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
+              .add(new TSVSampleBean(ID, project + "E4", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
                   "plasma aliquot #" + j, plasmaIDs, (HashMap<String, Object>) metadata.clone()));
         }
       }
@@ -481,7 +479,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
           String ID = counter.getNewBarcode();
           metadata.put("Q_EXTERNALDB_ID", plasmaExtID + lower);
           metadata.put("Q_SAMPLE_TYPE", "SMALLMOLECULES");
-          molecules.add(new TSVSampleBean(ID, project + "E5", project, mccSpace, "Q_TEST_SAMPLE",
+          molecules.add(new TSVSampleBean(ID, project + "E5", project, mccSpace, SampleType.Q_TEST_SAMPLE,
               "cryovial #" + j, plasmaIDs, (HashMap<String, Object>) metadata.clone()));
         }
         metadata.remove("Q_SAMPLE_TYPE");
@@ -492,7 +490,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
       String ID = counter.getNewBarcode();
       metadata.put("Q_EXTERNALDB_ID", tumorExtBase + i);
       metadata.put("Q_PRIMARY_TISSUE", "HEPATOCELLULAR_CARCINOMA");
-      liver.add(new TSVSampleBean(ID, project + "E6", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
+      liver.add(new TSVSampleBean(ID, project + "E6", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
           "tumor biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
     }
     String liverExtBase = extIDBase + "L";
@@ -500,7 +498,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
       String ID = counter.getNewBarcode();
       metadata.put("Q_EXTERNALDB_ID", liverExtBase + i);
       metadata.put("Q_PRIMARY_TISSUE", "LIVER");
-      liver.add(new TSVSampleBean(ID, project + "E6", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
+      liver.add(new TSVSampleBean(ID, project + "E6", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
           "liver biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
     }
     List<List<ISampleBean>> dummy = new ArrayList<List<ISampleBean>>(

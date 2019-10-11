@@ -874,7 +874,6 @@ public class MSAnalyteStep implements WizardStep {
 
       ComboBox selection = parseBoxRow(baseAnalyteSampleTable, i, "Process");
       String option = selection.getValue().toString();
-      Property x;
       if (option.equals("Both") || option.equals("Measure")) {
 
         // new ms sample from existing proteins (no fractions/enrichments) or peptides
