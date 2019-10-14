@@ -22,15 +22,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItemContainer;
@@ -44,7 +41,6 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
-
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
@@ -90,7 +86,7 @@ public class MCCViewNew extends VerticalLayout
   // view
   private final String mccSpace = "MULTISCALEHCC";
   private final List<String> weeks = new ArrayList<>(
-      Arrays.asList("W00", "W02", "W04", "W10", "W18", "W26", "W32", "W40", "W48", "WXX"));
+      Arrays.asList("W00", "W02", "W04", "W10", "W18", "W26", "W34", "W42", "W50", "WXX"));
 
   private final Set<String> imagingWeeks = new HashSet<>(Arrays.asList("W00", "W04", "WXX"));
   private List<TechnologyType> techTypes;
@@ -515,6 +511,14 @@ public class MCCViewNew extends VerticalLayout
 
         String extIDBase = patientExtID + ":" + timepoint + ":";
 
+        String imagingExtIDBase = extIDBase + "I";
+
+        String abdomenID = counter.getNewBarcode();
+
+        imaging.add(createSample(abdomenID, "E22", t2, "abdomen (for imaging)", abdomenID,
+            "ABDOMEN", patientIDs));
+        sampleIDsThisWeek.add(abdomenID);
+
         String urineExtIDBase = extIDBase + "U";
         // TODO
         // metadata.put("XML_FACTORS",
@@ -588,62 +592,78 @@ public class MCCViewNew extends VerticalLayout
         // elastProps.put("Q_BMI_MODALITY", "MR-ELASTOGRAPHY");
         // ctPerfProps.put("Q_BMI_MODALITY", "CT-PERFUSION");
         // ctPuncProps.put("Q_BMI_MODALITY", "CT-BIOPSY");
-        
-        if (imagingWeeks.contains(timepoint)) {
-          String imagingExt = extIDBase;
-          String imaID = counter.getNewBarcode();
-          imaging
-              .add(createSample(imaID, MR.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
-                  "MR imaging", imagingExt + "I1", "N/A", patientIDs));
-          sampleIDsThisWeek.add(imaID);
-          imaID = counter.getNewBarcode();
-          imaging.add(
-              createSample(imaID, elast.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
-                  "MR Elastography", imagingExt + "I2", "N/A", patientIDs));
-          sampleIDsThisWeek.add(imaID);
-          imaID = counter.getNewBarcode();
-          imaging.add(
-              createSample(imaID, ctPerf.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
-                  "CT perfusion", imagingExt + "I3", "N/A", patientIDs));
-          sampleIDsThisWeek.add(imaID);
-          imaID = counter.getNewBarcode();
-          imaging.add(
-              createSample(imaID, ctPunc.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
-                  "CT punction", imagingExt + "I4", "N/A", patientIDs));
-          sampleIDsThisWeek.add(imaID);
-        }
+
+        // if (imagingWeeks.contains(timepoint)) {
+        // String imagingExt = extIDBase;
+        // String imaID = counter.getNewBarcode();
+        // imaging
+        // .add(createSample(imaID, MR.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+        // "MR imaging", imagingExt + "I1", "N/A", patientIDs));
+        // sampleIDsThisWeek.add(imaID);
+        // imaID = counter.getNewBarcode();
+        // imaging.add(
+        // createSample(imaID, elast.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+        // "MR Elastography", imagingExt + "I2", "N/A", patientIDs));
+        // sampleIDsThisWeek.add(imaID);
+        // imaID = counter.getNewBarcode();
+        // imaging.add(
+        // createSample(imaID, ctPerf.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+        // "CT perfusion", imagingExt + "I3", "N/A", patientIDs));
+        // sampleIDsThisWeek.add(imaID);
+        // imaID = counter.getNewBarcode();
+        // imaging.add(
+        // createSample(imaID, ctPunc.getExperimentCode(), SampleType.Q_BMI_GENERIC_IMAGING_RUN,
+        // "CT punction", imagingExt + "I4", "N/A", patientIDs));
+        // sampleIDsThisWeek.add(imaID);
+        // }
 
         String bloodExtBase = extIDBase + "B";
-        for (int i = 1; i < 3; i++) {
+        // week 00 and XX:
+        // B0, B1 -> attached to cfDNA
+        // B2 -> DNA
+        //
+        // other weeks:
+        // B0, B1 -> attached to cfDNA
+        //
+
+        // 2x blood to cfDNA
+        for (int i = 0; i < 2; i++) {
           String ID = counter.getNewBarcode();
           blood.add(createSample(ID, "E12", t2, "blood sample #" + i, bloodExtBase + i,
               "WHOLE_BLOOD", patientIDs));
           sampleIDsThisWeek.add(ID);
           List<String> parentID = new ArrayList<>(Arrays.asList(ID));
-          // DNA and cfDNA molecules
+          // cfDNA molecules
           String cfID = counter.getNewBarcode();
           cfDNA.add(createSample(cfID, "E17", t3, "blood #" + i + " cfDNA",
               bloodExtBase + i + ":cfDNA", "CF_DNA", parentID));
-          String dnaID = counter.getNewBarcode();
-          DNA.add(createSample(dnaID, "E18", t3, "blood #" + i + " DNA", bloodExtBase + i + ":DNA",
-              "DNA", parentID));
           sampleIDsThisWeek.add(cfID);
-          sampleIDsThisWeek.add(dnaID);
         }
-
+        // tumor and liver only in 00 and xx
+        // blood: B2 -> DNA
         if (timepoint.equals("W00") || timepoint.equals("WXX")) {
+          String ID = counter.getNewBarcode();
+          blood.add(createSample(ID, "E12", t2, "blood sample #2", bloodExtBase + "2",
+              "WHOLE_BLOOD", patientIDs));
+          sampleIDsThisWeek.add(ID);
+          List<String> parentID = new ArrayList<>(Arrays.asList(ID));
+          String dnaID = counter.getNewBarcode();
+          DNA.add(createSample(dnaID, "E18", t3, "blood #2 DNA", bloodExtBase + "2:DNA", "DNA",
+              parentID));
+          sampleIDsThisWeek.add(dnaID);
+
           String tumorExtBase = extIDBase + "T";
           for (int i = 1; i < 5; i++) {
-            String ID = counter.getNewBarcode();
+            ID = counter.getNewBarcode();
             tumor.add(createSample(ID, "E13", t2, "tumor biopsy #" + i, tumorExtBase + i,
                 "HEPATOCELLULAR_CARCINOMA", patientIDs));
             sampleIDsThisWeek.add(ID);
-            List<String> parentID = new ArrayList<>(Arrays.asList(ID));
+            parentID = new ArrayList<>(Arrays.asList(ID));
             // DNA and RNA molecules
             String rnaID = counter.getNewBarcode();
             RNA.add(createSample(rnaID, "E19", t3, "tumor #" + i + " RNA",
                 tumorExtBase + i + ":RNA", "RNA", parentID));
-            String dnaID = counter.getNewBarcode();
+            dnaID = counter.getNewBarcode();
             DNA.add(createSample(dnaID, "E20", t3, "tumor #" + i + " DNA",
                 tumorExtBase + i + ":DNA", "DNA", parentID));
             sampleIDsThisWeek.add(rnaID);
@@ -651,16 +671,16 @@ public class MCCViewNew extends VerticalLayout
           }
           String liverExtBase = extIDBase + "L";
           for (int i = 1; i < 3; i++) {
-            String ID = counter.getNewBarcode();
+            ID = counter.getNewBarcode();
             liver.add(createSample(ID, "E21", t2, "liver biopsy #" + i, liverExtBase + i, "LIVER",
                 patientIDs));
             sampleIDsThisWeek.add(ID);
-            List<String> parentID = new ArrayList<>(Arrays.asList(ID));
+            parentID = new ArrayList<>(Arrays.asList(ID));
             // DNA and RNA molecules
             String rnaID = counter.getNewBarcode();
             RNA.add(createSample(rnaID, "E19", t3, "liver #" + i + " RNA",
                 liverExtBase + i + ":RNA", "RNA", parentID));
-            String dnaID = counter.getNewBarcode();
+            dnaID = counter.getNewBarcode();
             DNA.add(createSample(dnaID, "E20", t3, "liver #" + i + " DNA",
                 liverExtBase + i + ":DNA", "DNA", parentID));
             sampleIDsThisWeek.add(rnaID);
