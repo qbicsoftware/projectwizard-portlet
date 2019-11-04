@@ -27,17 +27,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.teemu.wizards.WizardStep;
-
 import life.qbic.datamodel.experiments.ExperimentModel;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
@@ -137,12 +134,13 @@ public class WizardDataAggregator {
   private MSExperimentModel fractionationProperties;
   private List<ExperimentType> informativeExpTypes = new ArrayList<ExperimentType>(
       Arrays.asList(ExperimentType.Q_MHC_LIGAND_EXTRACTION, ExperimentType.Q_MS_MEASUREMENT));
-  private Experiment expDesignExperiment;
+  private String expDesignExperimentCode;
   // private String designExperimentID;
   final private StudyXMLParser parser = new StudyXMLParser();
   private JAXBElement<Qexperiment> oldExpDesign;
   private Set<String> oldFactors;
   private Map<Pair<String, String>, Property> oldFactorsForSamples;
+  private Map<String, String> expDesignExperimentProperties;
 
   /**
    * Creates a new WizardDataAggregator
@@ -970,57 +968,57 @@ public class WizardDataAggregator {
     }
   }
 
-//  /**
-//   * Copy a list of samples, used by the copy context function
-//   * 
-//   * @param samples
-//   * @param copies
-//   * @return
-//   */
-//  private List<AOpenbisSample> copySamples(List<AOpenbisSample> samples,
-//      Map<String, String> copies) {
-//    String newExp = buildExperimentName();
-//    String type = samples.get(0).getValueMap().get("SAMPLE TYPE");
-//    ExperimentType eType = ExperimentType.Q_EXPERIMENTAL_DESIGN;
-//    if (type.equals("Q_BIOLOGICAL_ENTITY"))
-//      eType = ExperimentType.Q_EXPERIMENTAL_DESIGN;
-//    else if (type.equals("Q_BIOLOGICAL_SAMPLE"))
-//      eType = ExperimentType.Q_SAMPLE_EXTRACTION;
-//    else if (type.equals("Q_TEST_SAMPLE"))
-//      eType = ExperimentType.Q_SAMPLE_PREPARATION;
-//    else
-//      logger.error("Unexpected type: " + type);
-//    experiments.add(new OpenbisExperiment(newExp, eType, -1, null));// TODO secondary name?
-//
-//    for (AOpenbisSample s : samples) {
-//      s.setExperiment(newExp);
-//      String code = s.getCode();
-//      String newCode = code;
-//      if (s instanceof OpenbisBiologicalEntity) {
-//        newCode = projectCode + "ENTITY-" + firstFreeEntityID;
-//        firstFreeEntityID++;
-//      } else {
-//        if (nextBarcode == null) {
-//          // classChar = 'A';
-//          // nextBarcode =
-//          // projectCode + Functions.createCountString(firstFreeBarcodeID, 3) + classChar;
-//          // nextBarcode = nextBarcode + Functions.checksum(nextBarcode);
-//          nextBarcode = firstFreeBarcode;
-//        } else {
-//          nextBarcode = SampleCodeFunctions.incrementSampleCode(nextBarcode);
-//        }
-//        newCode = nextBarcode;
-//      }
-//      copies.put(code, newCode);
-//      s.setCode(newCode);
-//      String p = s.getParent();
-//      // change parent if parent was copied
-//      if (p != null && p.length() > 0)
-//        if (copies.containsKey(p))
-//          s.setParent(copies.get(p));
-//    }
-//    return samples;
-//  }
+  // /**
+  // * Copy a list of samples, used by the copy context function
+  // *
+  // * @param samples
+  // * @param copies
+  // * @return
+  // */
+  // private List<AOpenbisSample> copySamples(List<AOpenbisSample> samples,
+  // Map<String, String> copies) {
+  // String newExp = buildExperimentName();
+  // String type = samples.get(0).getValueMap().get("SAMPLE TYPE");
+  // ExperimentType eType = ExperimentType.Q_EXPERIMENTAL_DESIGN;
+  // if (type.equals("Q_BIOLOGICAL_ENTITY"))
+  // eType = ExperimentType.Q_EXPERIMENTAL_DESIGN;
+  // else if (type.equals("Q_BIOLOGICAL_SAMPLE"))
+  // eType = ExperimentType.Q_SAMPLE_EXTRACTION;
+  // else if (type.equals("Q_TEST_SAMPLE"))
+  // eType = ExperimentType.Q_SAMPLE_PREPARATION;
+  // else
+  // logger.error("Unexpected type: " + type);
+  // experiments.add(new OpenbisExperiment(newExp, eType, -1, null));// TODO secondary name?
+  //
+  // for (AOpenbisSample s : samples) {
+  // s.setExperiment(newExp);
+  // String code = s.getCode();
+  // String newCode = code;
+  // if (s instanceof OpenbisBiologicalEntity) {
+  // newCode = projectCode + "ENTITY-" + firstFreeEntityID;
+  // firstFreeEntityID++;
+  // } else {
+  // if (nextBarcode == null) {
+  // // classChar = 'A';
+  // // nextBarcode =
+  // // projectCode + Functions.createCountString(firstFreeBarcodeID, 3) + classChar;
+  // // nextBarcode = nextBarcode + Functions.checksum(nextBarcode);
+  // nextBarcode = firstFreeBarcode;
+  // } else {
+  // nextBarcode = SampleCodeFunctions.incrementSampleCode(nextBarcode);
+  // }
+  // newCode = nextBarcode;
+  // }
+  // copies.put(code, newCode);
+  // s.setCode(newCode);
+  // String p = s.getParent();
+  // // change parent if parent was copied
+  // if (p != null && p.length() > 0)
+  // if (copies.containsKey(p))
+  // s.setParent(copies.get(p));
+  // }
+  // return samples;
+  // }
 
   /**
    * Gets all samples that are one level higher in the sample hierarchy of an attached experiment
@@ -1039,22 +1037,22 @@ public class WizardDataAggregator {
     return null;
   }
 
-//  /**
-//   * Gets all samples that are one level lower in the sample hierarchy of an attached experiment
-//   * than a given list of samples
-//   * 
-//   * @param originals
-//   * @return
-//   */
-//  private List<Sample> getLowerSamples(List<Sample> originals) {
-//    for (Sample s : originals) {
-//      List<Sample> children = openbis.getChildrenSamples(s);
-//      if (children.size() > 0) {
-//        return openbis.getSamplesofExperiment(children.get(0).getExperimentIdentifierOrNull());
-//      }
-//    }
-//    return null;
-//  }
+  // /**
+  // * Gets all samples that are one level lower in the sample hierarchy of an attached experiment
+  // * than a given list of samples
+  // *
+  // * @param originals
+  // * @return
+  // */
+  // private List<Sample> getLowerSamples(List<Sample> originals) {
+  // for (Sample s : originals) {
+  // List<Sample> children = openbis.getChildrenSamples(s);
+  // if (children.size() > 0) {
+  // return openbis.getSamplesofExperiment(children.get(0).getExperimentIdentifierOrNull());
+  // }
+  // }
+  // return null;
+  // }
 
   /**
    * Creates a tab separated values file of the context created by the wizard, given that samples
@@ -1431,15 +1429,16 @@ public class WizardDataAggregator {
     return res;
   }
 
-  public void setExistingExpDesignExperiment(Experiment e) {
-    expDesignExperiment = e;
-    if (e == null) {
+  public void setExistingExpDesignExperiment(String expCode, Map<String, String> props) {
+    expDesignExperimentCode = expCode;
+    expDesignExperimentProperties = props;
+    if (props == null) {
       oldExpDesign = null;
       oldFactors = null;
       oldFactorsForSamples = null;
     } else {
       try {
-        oldExpDesign = parser.parseXMLString(e.getProperties().get("Q_EXPERIMENTAL_SETUP"));
+        oldExpDesign = parser.parseXMLString(props.get("Q_EXPERIMENTAL_SETUP"));
         oldFactors = parser.getFactorLabels(oldExpDesign);
         oldFactorsForSamples = parser.getFactorsForLabelsAndSamples(oldExpDesign);
       } catch (JAXBException e1) {
@@ -1452,15 +1451,15 @@ public class WizardDataAggregator {
   public Map<String, Map<String, Object>> getEntitiesToUpdate(
       ExperimentalDesignPropertyWrapper importedDesignProperties, List<TechnologyType> techTypes) {
     Map<String, Map<String, Object>> res = new HashMap<>();
-    if (expDesignExperiment != null) {
-      Map<String, String> currentProps = expDesignExperiment.getProperties();
-      Map<String, Object> map =
-          ParserHelpers.getExperimentalDesignMap(currentProps, importedDesignProperties, techTypes, new HashSet<>());
+    if (expDesignExperimentProperties != null) {
+      Map<String, String> currentProps = expDesignExperimentProperties;
+      Map<String, Object> map = ParserHelpers.getExperimentalDesignMap(currentProps,
+          importedDesignProperties, techTypes, new HashSet<>());
       final String SETUP_PROPERTY_CODE = "Q_EXPERIMENTAL_SETUP";
       String oldXML = currentProps.get(SETUP_PROPERTY_CODE);
       if (!map.get(SETUP_PROPERTY_CODE).equals(oldXML)) {
         logger.info("update of experimental design needed");
-        res.put(expDesignExperiment.getCode(), map);
+        res.put(expDesignExperimentCode, map);
       } else {
         logger.info("no update of existing experimental design needed");
       }

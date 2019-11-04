@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.teemu.wizards.Wizard;
@@ -18,7 +17,6 @@ import org.vaadin.teemu.wizards.event.WizardCompletedEvent;
 import org.vaadin.teemu.wizards.event.WizardProgressListener;
 import org.vaadin.teemu.wizards.event.WizardStepActivationEvent;
 import org.vaadin.teemu.wizards.event.WizardStepSetChangedEvent;
-
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserGroup;
 import com.vaadin.annotations.Theme;
@@ -31,7 +29,6 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
@@ -58,7 +55,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean testMode = false;// TODO
   public static boolean development = false;
-  public static boolean v3API = false;
+  public static boolean v3RegistrationAPI = false;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 
@@ -74,6 +71,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
   private final TabSheet tabs = new TabSheet();
   private boolean isAdmin = false;
+  private OpenbisV3APIWrapper v3;
 
   @Override
   protected Layout getPortletContent(final VaadinRequest request) {
@@ -94,7 +92,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
         logger.warn("Checks for local dev version successful. User is granted admin status.");
         userID = "admin";
         isAdmin = true;
-        logger.warn("User is connected to: "+config.getDataSourceUrl());
+        logger.warn("User is connected to: " + config.getDataSourceUrl());
       } else {
         success = false;
         logger.info(
@@ -114,6 +112,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
         this.openbis = new OpenBisClient(config.getDataSourceUser(), config.getDataSourcePassword(),
             config.getDataSourceUrl());
         this.openbis.login();
+        v3 = new OpenbisV3APIWrapper(config.getDataSourceUrl(), config.getDataSourceUser(),
+            config.getDataSourcePassword(), userID);
       } catch (Exception e) {
         success = false;
         logger.error(
@@ -131,25 +131,40 @@ public class ProjectWizardUI extends QBiCPortletUI {
     }
     if (success) {
       // stuff from openbis
-      Map<String, String> taxMap = openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
-      Map<String, String> tissueMap = openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
-      Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
-      Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
-      Map<String, String> enzymeMap =
-          openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES");
-      Map<String, String> chromTypes =
-          openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
-      List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
+//      OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
+
+      Map<String, String> taxMap = v3.getVocabLabelToCode("Q_NCBI_TAXONOMY");
+      Map<String, String> tissueMap = v3.getVocabLabelToCode("Q_PRIMARY_TISSUES");
+      Map<String, String> deviceMap = v3.getVocabLabelToCode("Q_MS_DEVICES");
+      Map<String, String> cellLinesMap = v3.getVocabLabelToCode("Q_CELL_LINES");
+      Map<String, String> enzymeMap = v3.getVocabLabelToCode("Q_DIGESTION_PROTEASES");
+      Map<String, String> chromTypes = v3.getVocabLabelToCode("Q_CHROMATOGRAPHY_TYPES");
+      Map<String, String> antibodiesWithLabels = v3.getVocabLabelToCode("Q_ANTIBODY");
       Map<String, String> purificationMethods =
-          openbis.getVocabCodesAndLabelsForVocab("Q_PROTEIN_PURIFICATION_METHODS");
+          v3.getVocabLabelToCode("Q_PROTEIN_PURIFICATION_METHODS");
+      // Map<String, String> taxMap = openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
+      // Map<String, String> tissueMap =
+      // openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
+      // Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
+      // Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
+      // Map<String, String> enzymeMap =
+      // openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES");
+      // Map<String, String> chromTypes =
+      // openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
+      // Map<String, String> purificationMethods =
+      // openbis.getVocabCodesAndLabelsForVocab("Q_PROTEIN_PURIFICATION_METHODS");
+      // Map<String, String> antibodiesWithLabels =
+      // openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY");
+
+      List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
       List<String> fractionationTypes =
           openbis.getVocabCodesForVocab("Q_MS_FRACTIONATION_PROTOCOLS");
       List<String> enrichmentTypes = openbis.getVocabCodesForVocab("Q_MS_ENRICHMENT_PROTOCOLS");
-      Map<String, String> antibodiesWithLabels =
-          openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY");
       List<String> msProtocols = openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS");
       List<String> lcmsMethods = openbis.getVocabCodesForVocab("Q_MS_LCMS_METHODS");
       final List<String> spaces = openbis.getUserSpaces(userID);
+
+
       isAdmin = openbis.isUserAdmin(userID);
       // stuff from mysql database
       DBConfig mysqlConfig = new DBConfig(config.getMysqlHost(), config.getMysqlPort(),
@@ -170,18 +185,16 @@ public class ProjectWizardUI extends QBiCPortletUI {
     tabs.removeAllComponents();
 
     IOpenbisCreationController creationController = new OpenbisCreationController(openbis, user);
-    if (v3API) {
-      OpenbisV3APIWrapper v3 = new OpenbisV3APIWrapper(config.getDataSourceUrl(),
-          config.getDataSourceUser(), config.getDataSourcePassword(), user);
+
+    if (v3RegistrationAPI) {
       creationController = new OpenbisV3CreationController(openbis, user, v3);
     }
-
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
 
     WizardController mainController =
-        new WizardController(openbis, creationController, dbm, vocabularies, attachConfig, config);
+        new WizardController(openbis, v3, creationController, dbm, vocabularies, attachConfig, config);
 
     mainController.init(user);
     Wizard w = mainController.getWizard();
@@ -227,7 +240,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
       logger.info("User is " + user + " and can see admin panel.");
       VerticalLayout adminTab = new VerticalLayout();
       adminTab.setMargin(true);
-      adminTab.addComponent(new AdminView(openbis, vocabularies, mainController, creationController, user));
+      adminTab.addComponent(
+          new AdminView(openbis, vocabularies, mainController, creationController, user));
       tabs.addTab(adminTab, "Admin Functions").setIcon(FontAwesome.WRENCH);
     }
     if (overwriteAllowed)
@@ -236,23 +250,23 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
   // TODO group that might be used to delete metadata or even sample/experiment objects in the
   // future
-//  private boolean canDelete() {
-    // try {
-    // User user = PortalUtils.getUser();
-    // for (UserGroup grp : user.getUserGroups()) {
-    // String group = grp.getName();
-    // if (config.getDeletionGrp().contains(group)) {
-    // logger.info(
-    // "User " + user.getScreenName() + " can delete because they are part of " + group);
-    // return true;
-    //// }
-    // }
-    // } catch (Exception e) {
-    // e.printStackTrace();
-    // logger.error("Could not fetch user groups. User won't be able to delete.");
-    // }
-//    return false;
-//  }
+  // private boolean canDelete() {
+  // try {
+  // User user = PortalUtils.getUser();
+  // for (UserGroup grp : user.getUserGroups()) {
+  // String group = grp.getName();
+  // if (config.getDeletionGrp().contains(group)) {
+  // logger.info(
+  // "User " + user.getScreenName() + " can delete because they are part of " + group);
+  // return true;
+  //// }
+  // }
+  // } catch (Exception e) {
+  // e.printStackTrace();
+  // logger.error("Could not fetch user groups. User won't be able to delete.");
+  // }
+  // return false;
+  // }
 
   private boolean canOverwrite() {
     try {

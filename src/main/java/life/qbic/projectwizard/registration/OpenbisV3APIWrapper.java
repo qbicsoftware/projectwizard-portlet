@@ -1,7 +1,9 @@
 package life.qbic.projectwizard.registration;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
@@ -11,9 +13,28 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.update.DataSetUpdate;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentIdentifier;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.IExperimentId;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.search.ExperimentSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.update.ExperimentUpdate;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.operation.SynchronousOperationExecutionOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.fetchoptions.ProjectFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.search.ProjectSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.update.ProjectUpdate;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.Space;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.fetchoptions.SpaceFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.search.SpaceSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.VocabularyTerm;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.fetchoptions.VocabularyTermFetchOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.id.IVocabularyTermId;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.id.VocabularyTermPermId;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.vocabulary.search.VocabularyTermSearchCriteria;
 import ch.systemsx.cisd.common.spring.HttpInvokerUtils;
 
 public class OpenbisV3APIWrapper {
@@ -40,7 +61,22 @@ public class OpenbisV3APIWrapper {
     this.adminUser = adminUser;
     this.pw = pw;
   }
-  
+
+
+  public SearchResult<Project> getProject(String code) {
+    checklogin();
+    ProjectSearchCriteria sc = new ProjectSearchCriteria();
+    sc.withCode().thatEquals(code);
+    return API.searchProjects(userToken, sc, new ProjectFetchOptions());
+  }
+
+  public SearchResult<Space> getSpacesForUser() {
+    //TODO "make sure user is set correctly"
+    logger.warn("make sure user is logged in correctly");
+    checklogin();
+    return API.searchSpaces(userToken, new SpaceSearchCriteria(), new SpaceFetchOptions());
+  }
+
   public void updateProjects(List<ProjectUpdate> p) {
     checklogin();
     API.updateProjects(userToken, p);
@@ -114,5 +150,136 @@ public class OpenbisV3APIWrapper {
       DataSetFetchOptions fetchOptions) {
     checklogin();
     return API.searchDataSets(userToken, criteria, fetchOptions);
+  }
+
+  public SearchResult<Space> getSpace(String name) {
+    checklogin();
+    SpaceSearchCriteria sc = new SpaceSearchCriteria();
+    sc.withCode().thatEquals(name);
+    return API.searchSpaces(userToken, sc, new SpaceFetchOptions());
+  }
+
+  public SearchResult<Project> getProjectsOfSpace(String space) {
+    checklogin();
+    ProjectSearchCriteria sc = new ProjectSearchCriteria();
+    sc.withSpace().withCode().thatEquals(space);
+    return API.searchProjects(userToken, sc, new ProjectFetchOptions());
+  }
+
+  public Experiment getExperimentByID(String expID) {
+    checklogin();
+    ExperimentIdentifier id = new ExperimentIdentifier(expID);
+
+    ExperimentFetchOptions options = new ExperimentFetchOptions();
+    options.withType();
+    options.withProperties();
+
+    Map<IExperimentId, Experiment> map = API.getExperiments(userToken, Arrays.asList(id), options);
+    return map.get(id);
+  }
+
+  public SearchResult<Sample> searchSampleWithCode(String code) {
+    checklogin();
+    SampleSearchCriteria sc = new SampleSearchCriteria();
+    sc.withCode().thatEquals(code);
+    SampleFetchOptions options = new SampleFetchOptions();
+    options.withExperiment();
+    return API.searchSamples(userToken, sc, options);
+  }
+
+  public Experiment getExperimentWithSamplesByID(String expID) {
+    checklogin();
+    ExperimentIdentifier id = new ExperimentIdentifier(expID);
+
+    ExperimentFetchOptions options = new ExperimentFetchOptions();
+    options.withType();
+    options.withProperties();
+    options.withSamples().withProperties();
+    options.withSamples().withType();
+    options.withRegistrator();
+
+    Map<IExperimentId, Experiment> map = API.getExperiments(userToken, Arrays.asList(id), options);
+    return map.get(id);
+  }
+
+  public List<Experiment> getExperimentsWithSamplesOfProject(String projectCode) {
+    checklogin();
+    ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
+    sc.withProject().withCode().thatEquals(projectCode);
+
+    ExperimentFetchOptions options = new ExperimentFetchOptions();
+    options.withType();
+    options.withProperties();
+    options.withSamples().withProperties();
+    options.withSamples().withType();
+    options.withRegistrator();
+
+    SearchResult<Experiment> res = API.searchExperiments(userToken, sc, options);
+
+    return res.getObjects();
+  }
+
+  public String translateVocabCode(String code, String vocabulary) {
+    checklogin();
+    IVocabularyTermId x = new VocabularyTermPermId(code, vocabulary);
+    VocabularyTermFetchOptions options = new VocabularyTermFetchOptions();
+
+    Map<IVocabularyTermId, VocabularyTerm> res =
+        API.getVocabularyTerms(userToken, Arrays.asList(x), options);
+    return res.get(x).getLabel();
+  }
+
+  public Map<String, String> getVocabLabelToCode(String vocabulary) {
+    checklogin();
+
+    VocabularyTermSearchCriteria vc = new VocabularyTermSearchCriteria();
+    vc.withVocabulary().withCode().thatEquals(vocabulary);
+
+    VocabularyTermFetchOptions options = new VocabularyTermFetchOptions();
+    SearchResult<VocabularyTerm> searchResult = API.searchVocabularyTerms(userToken, vc, options);
+
+    Map<String, String> res = new HashMap<String, String>();
+    for (VocabularyTerm t : searchResult.getObjects()) {
+      if (t.getLabel() != null && !t.getLabel().isEmpty()) {
+        res.put(t.getLabel(), t.getCode());
+      } else {
+        res.put(t.getCode(), t.getCode());
+      }
+    }
+
+    return res;
+  }
+
+  public List<Sample> getSamplesOfProjectOfTypes(String projectCode, List<String> typeCodes) {
+    checklogin();
+    SampleSearchCriteria sc = new SampleSearchCriteria();
+    sc.withProject().withCode().thatEquals(projectCode);
+    for (String type : typeCodes) {
+      sc.withType().withCode().thatEquals(type);
+    }
+
+    SampleFetchOptions options = new SampleFetchOptions();
+    options.withType();
+    options.withProperties();
+    options.withRegistrator();
+
+    SearchResult<Sample> res = API.searchSamples(userToken, sc, options);
+
+    return res.getObjects();
+  }
+
+  public List<Experiment> getExperimentsOfProject(String projectCode) {
+    checklogin();
+    ExperimentSearchCriteria sc = new ExperimentSearchCriteria();
+    sc.withProject().withCode().thatEquals(projectCode);
+
+    ExperimentFetchOptions options = new ExperimentFetchOptions();
+    options.withType();
+    options.withProperties();
+    options.withRegistrator();
+
+    SearchResult<Experiment> res = API.searchExperiments(userToken, sc, options);
+
+    return res.getObjects();
   }
 }
