@@ -165,7 +165,7 @@ public class OpenbisCreationController implements IOpenbisCreationController {
           Thread.sleep(step);
           max -= step;
         } catch (InterruptedException e) {
-          logger.error("thread sleep waiting for experiment creation interruped.");
+          logger.error("thread sleep waiting for project creation interruped.");
           e.printStackTrace();
         }
       }
