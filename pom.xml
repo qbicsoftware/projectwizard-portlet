@@ -15,7 +15,7 @@
 	<repositories>
 		<repository>
 			<releases>
-				<enabled>false</enabled>
+			<enabled>false</enabled>
 			</releases>
 			<snapshots>
 				<enabled>true</enabled>
