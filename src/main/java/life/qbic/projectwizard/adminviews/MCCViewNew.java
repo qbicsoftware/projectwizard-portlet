@@ -88,7 +88,7 @@ public class MCCViewNew extends VerticalLayout
   private final List<String> weeks = new ArrayList<>(
       Arrays.asList("W00", "W02", "W04", "W10", "W18", "W26", "W34", "W42", "W50", "WXX"));
 
-//  private final Set<String> imagingWeeks = new HashSet<>(Arrays.asList("W00", "W04", "WXX"));
+  // private final Set<String> imagingWeeks = new HashSet<>(Arrays.asList("W00", "W04", "WXX"));
   private List<TechnologyType> techTypes;
   private ComboBox mccProjects;
   private StandardTextField newProject;
@@ -327,6 +327,7 @@ public class MCCViewNew extends VerticalLayout
   }
 
   protected void projectBoxChanged() {
+    existingPatientIDs.clear();
     treatment.setEnabled(true);
     treatment.setValue("");
     addSamples.setEnabled(true);
@@ -473,20 +474,20 @@ public class MCCViewNew extends VerticalLayout
 
     String prefix = treatInput.substring(0, 1).toUpperCase();
 
-//    ExperimentType imExp = ExperimentType.Q_BMI_GENERIC_IMAGING;
+    // ExperimentType imExp = ExperimentType.Q_BMI_GENERIC_IMAGING;
 
-//    Map<String, Object> mrProps = new HashMap<>();
-//    mrProps.put("Q_BMI_MODALITY", "MR");
-//    Map<String, Object> elastProps = new HashMap<>();
-//    elastProps.put("Q_BMI_MODALITY", "MR-ELASTOGRAPHY");
-//    Map<String, Object> ctPerfProps = new HashMap<>();
-//    ctPerfProps.put("Q_BMI_MODALITY", "CT-PERFUSION");
-//    Map<String, Object> ctPuncProps = new HashMap<>();
-//    ctPuncProps.put("Q_BMI_MODALITY", "CT-BIOPSY");
-//    OpenbisExperiment MR = new OpenbisExperiment(project + "E8", imExp, mrProps);
-//    OpenbisExperiment elast = new OpenbisExperiment(project + "E9", imExp, elastProps);
-//    OpenbisExperiment ctPerf = new OpenbisExperiment(project + "E10", imExp, ctPerfProps);
-//    OpenbisExperiment ctPunc = new OpenbisExperiment(project + "E11", imExp, ctPuncProps);
+    // Map<String, Object> mrProps = new HashMap<>();
+    // mrProps.put("Q_BMI_MODALITY", "MR");
+    // Map<String, Object> elastProps = new HashMap<>();
+    // elastProps.put("Q_BMI_MODALITY", "MR-ELASTOGRAPHY");
+    // Map<String, Object> ctPerfProps = new HashMap<>();
+    // ctPerfProps.put("Q_BMI_MODALITY", "CT-PERFUSION");
+    // Map<String, Object> ctPuncProps = new HashMap<>();
+    // ctPuncProps.put("Q_BMI_MODALITY", "CT-BIOPSY");
+    // OpenbisExperiment MR = new OpenbisExperiment(project + "E8", imExp, mrProps);
+    // OpenbisExperiment elast = new OpenbisExperiment(project + "E9", imExp, elastProps);
+    // OpenbisExperiment ctPerf = new OpenbisExperiment(project + "E10", imExp, ctPerfProps);
+    // OpenbisExperiment ctPunc = new OpenbisExperiment(project + "E11", imExp, ctPuncProps);
 
     infoExperiments = new ArrayList<>(Arrays.asList());
 
@@ -643,8 +644,8 @@ public class MCCViewNew extends VerticalLayout
         // blood: B2 -> DNA
         if (timepoint.equals("W00") || timepoint.equals("WXX")) {
           String ID = counter.getNewBarcode();
-          blood.add(createSample(ID, "E9", t2, "blood sample #2", bloodExtBase + "2",
-              "WHOLE_BLOOD", patientIDs));
+          blood.add(createSample(ID, "E9", t2, "blood sample #2", bloodExtBase + "2", "WHOLE_BLOOD",
+              patientIDs));
           sampleIDsThisWeek.add(ID);
           List<String> parentID = new ArrayList<>(Arrays.asList(ID));
           String dnaID = counter.getNewBarcode();
