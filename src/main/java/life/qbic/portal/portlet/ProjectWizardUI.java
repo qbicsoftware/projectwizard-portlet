@@ -53,7 +53,6 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 @Widgetset("life.qbic.portlet.AppWidgetSet")
 public class ProjectWizardUI extends QBiCPortletUI {
 
-  public static boolean testMode = false;// TODO
   public static boolean development = false;
   public static boolean v3RegistrationAPI = false;
   public static String MSLabelingMethods;
@@ -100,38 +99,30 @@ public class ProjectWizardUI extends QBiCPortletUI {
         layout.addComponent(new Label("User not found. Are you logged in?"));
       }
     }
-    File tmpFolder = new File(config.getTmpFolder());
-    if (!tmpFolder.exists()) {
-      tmpFolder.mkdirs();
+    tmpFolder = config.getTmpFolder();
+    File folder = new File(tmpFolder);
+    if (!folder.exists()) {
+      folder.mkdirs();
     }
     MSLabelingMethods = config.getVocabularyMSLabeling();
     // establish connection to the OpenBIS API
-    if (!development || !testMode) {
-      try {
-        logger.debug("trying to connect to openbis");
-        this.openbis = new OpenBisClient(config.getDataSourceUser(), config.getDataSourcePassword(),
-            config.getDataSourceUrl());
-        this.openbis.login();
-        v3 = new OpenbisV3APIWrapper(config.getDataSourceUrl(), config.getDataSourceUser(),
-            config.getDataSourcePassword(), userID);
-      } catch (Exception e) {
-        success = false;
-        logger.error(
-            "User \"" + userID + "\" could not connect to openBIS and has been informed of this.");
-        layout.addComponent(new Label(
-            "Data Management System could not be reached. Please try again later or contact us."));
-      }
-    }
-    if (development && testMode) {
-      logger.error("No connection to openBIS. Trying mock version for testing.");
-      // this.openbis = new OpenBisClientMock(config.getDataSourceUser(),
-      // config.getDataSourcePassword(), config.getDataSourceUrl());
+    try {
+      logger.debug("trying to connect to openbis");
+      this.openbis = new OpenBisClient(config.getDataSourceUser(), config.getDataSourcePassword(),
+          config.getDataSourceUrl());
+      this.openbis.login();
+      v3 = new OpenbisV3APIWrapper(config.getDataSourceUrl(), config.getDataSourceUser(),
+          config.getDataSourcePassword(), userID);
+    } catch (Exception e) {
+      success = false;
+      logger.error(
+          "User \"" + userID + "\" could not connect to openBIS and has been informed of this.");
       layout.addComponent(new Label(
-          "openBIS could not be reached. Resuming with mock version. Some options might be non-functional. Reload to retry."));
+          "Data Management System could not be reached. Please try again later or contact us."));
     }
     if (success) {
       // stuff from openbis
-//      OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
+      // OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
 
       Map<String, String> taxMap = v3.getVocabLabelToCode("Q_NCBI_TAXONOMY");
       Map<String, String> tissueMap = v3.getVocabLabelToCode("Q_PRIMARY_TISSUES");
@@ -193,8 +184,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
 
-    WizardController mainController =
-        new WizardController(openbis, v3, creationController, dbm, vocabularies, attachConfig, config);
+    WizardController mainController = new WizardController(openbis, v3, creationController, dbm,
+        vocabularies, attachConfig, config);
 
     mainController.init(user);
     Wizard w = mainController.getWizard();
