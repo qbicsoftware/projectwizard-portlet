@@ -1212,6 +1212,9 @@ public class WizardController implements IRegistrationController {
               samplesByExperiment.put(exp, lis);
             }
           }
+          String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, proj);
+          finishStep.setExperimentInfos(space, proj, designExpID, p.getDescription(),
+              samplesByExperiment, openbis);
         }
       }
 
@@ -1327,13 +1330,13 @@ public class WizardController implements IRegistrationController {
         logger.debug("set design null");
         dataAggregator.setExistingExpDesignExperiment(null, null);
 
-//        long start = System.currentTimeMillis();
+        // long start = System.currentTimeMillis();
 
         List<ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment> experiments =
             v3API.getExperimentsWithSamplesOfProject(existingProject);
         String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, existingProject);
 
-//        TimeUtils.logElapsedTime(start);
+        // TimeUtils.logElapsedTime(start);
 
         for (ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment e : experiments) {
           String type = e.getType().getCode();
@@ -1378,7 +1381,7 @@ public class WizardController implements IRegistrationController {
         // Integer.toString(numOfSamples), dt, pilot));
         // }
         // }
-//        TimeUtils.logElapsedTime(start);
+        // TimeUtils.logElapsedTime(start);
         contextStep.setExperiments(beans);
       } else {
         // can create new project
