@@ -22,7 +22,8 @@ import java.util.Set;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import com.vaadin.server.StreamResource;
 
 import life.qbic.projectwizard.control.Functions;
@@ -36,6 +37,9 @@ public class TSVReadyRunnable implements Runnable {
   private String project;
   private Set<String> factors;
   private Map<Pair<String, String>, Property> factorsForLabelsAndSamples;
+  
+  private static final Logger logger = LogManager.getLogger(TSVReadyRunnable.class);
+
 
   public TSVReadyRunnable(FinishStep layout, Map<String, List<String>> tables, String project,
       Set<String> factors, Map<Pair<String, String>, Property> factorsForLabelsAndSamples) {
@@ -72,47 +76,13 @@ public class TSVReadyRunnable implements Runnable {
     for(String l : labels) {
     header.append("\tCondition: " + l);
     }
-    
-//    for (String row : table) {
-//      String[] lineSplit = row.split("\t", -1);// doesn't remove trailing whitespaces
-//      String xml = "";
-//      for (String cell : lineSplit) {
-//        if (cell.startsWith(xmlStart))
-//          xml = cell;
-//      }
-//      List<Property> properties = new ArrayList<Property>();
-//      if (!xml.equals(xmlStart)) {
-//        try {
-//          properties = p.getPropertiesFromXML(xml);
-//        } catch (JAXBException e) {
-//          // TODO Auto-generated catch block
-//          e.printStackTrace();
-//        }
-//        for (Property prop : properties) {
-//          String label = prop.getLabel();
-//          if (!factorLabels.contains(label)) {
-//            factorLabels.add(label);
-//            switch (prop.getType()) {
-//              case Factor:
-//                header.append("\tCondition: " + label);
-//                break;
-//              case Property:
-//                header.append("\tProperty: " + label);
-//                break;
-//              default:
-//                break;
-//            }
-//          }
-//        }
-//      }
-//    }
 
     // data
     for (String row : table) {
       String[] lineSplit = row.split("\t", -1);// doesn't remove trailing whitespaces
       String xml = "";
       String code = lineSplit[0];
-      System.out.println("debug: code- "+code);
+      logger.warn("debug: code- "+code);
       for (String cell : lineSplit) {
         if (cell.startsWith(xmlStart))
           xml = cell;
@@ -131,34 +101,6 @@ public class TSVReadyRunnable implements Runnable {
         }
       }
       
-//      List<Property> props = new ArrayList<Property>();
-//      if (!xml.equals(xmlStart)) {
-//        try {
-//          props = p.getPropertiesFromXML(xml);
-//        } catch (JAXBException e) {
-//          // TODO Auto-generated catch block
-//          e.printStackTrace();
-//        }
-//        Map<Integer, Property> order = new HashMap<Integer, Property>();
-//        for (Property f : props) {
-//          String label = f.getLabel();
-//          order.put(factorLabels.indexOf(label), f);
-//        }
-//        for (int i = 0; i < factorLabels.size(); i++) {
-//          if (order.containsKey(i)) {
-//            Property f = order.get(i);
-//            line.append("\t" + f.getValue());
-//            if (f.hasUnit())
-//              line.append(f.getUnit());
-//          } else {
-//            line.append("\t");
-//          }
-//        }
-//      } else {
-//        for (int i = 0; i < factorLabels.size() - 1; i++) {
-//          line.append("\t");
-//        }
-//      }
       tsv.append(line);
     }
     return header.append(tsv).toString();
