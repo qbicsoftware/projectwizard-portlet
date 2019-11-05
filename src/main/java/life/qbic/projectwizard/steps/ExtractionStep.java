@@ -105,8 +105,7 @@ public class ExtractionStep implements WizardStep {
     tissue.setRequired(true);
     tissue.setStyleName(Styles.boxTheme);
     tissue.setFilteringMode(FilteringMode.CONTAINS);
-    if (ProjectWizardUI.testMode)
-      tissue.setValue("Blood");
+
     tissueNum = new OpenbisInfoTextField(
         "How many different tissue types are there in this sample extraction?", "", "50px", "2");
     tissueNum.getInnerComponent().setVisible(false);
