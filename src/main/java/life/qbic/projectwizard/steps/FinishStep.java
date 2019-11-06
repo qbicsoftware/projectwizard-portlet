@@ -165,10 +165,14 @@ public class FinishStep implements WizardStep {
 
       @Override
       public void buttonClick(ClickEvent event) {
+        logger.info("Trying to create qnavigator URL for created project.");
         String host = UI.getCurrent().getPage().getLocation().getHost();
+        logger.info("Host: " + host);
         String path =
             UI.getCurrent().getPage().getLocation().getPath().replace("creator", "browser");
-        String url = "http://" + host + "/" + path + "#!project//" + space + "/" + proj;
+        logger.info("Path: " + path);
+        String url = "https://" + host + path + "#!project//" + space + "/" + proj;
+        logger.info("Complete URL: " + url);
         UI.getCurrent().getPage().setLocation(url);
       }
     });
