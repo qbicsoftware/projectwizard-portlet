@@ -73,8 +73,10 @@ import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
 import life.qbic.projectwizard.processes.RegistrationMode;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OpenbisV3APIWrapper;
 import life.qbic.projectwizard.steps.*;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
+import life.qbic.utils.TimeUtils;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.xml.notes.Note;
@@ -118,10 +120,12 @@ public class WizardController implements IRegistrationController {
 
   private AttachmentConfig attachConfig;
   protected Map<String, Map<String, Object>> entitiesToUpdate;
+  private OpenbisV3APIWrapper v3API;
 
   /**
    * 
    * @param openbis OpenBisClient API
+   * @param v3
    * @param creationController
    * @param dbm
    * @param taxMap Map containing the NCBI taxonomy (labels and ids) taken from openBIS
@@ -132,11 +136,12 @@ public class WizardController implements IRegistrationController {
    * @param uploadSize
    */
 
-  public WizardController(IOpenBisClient openbis, IOpenbisCreationController creationController,
-      DBManager dbm, Vocabularies vocabularies, AttachmentConfig attachmentConfig,
-      ConfigurationManager configManager) {
+  public WizardController(IOpenBisClient openbis, OpenbisV3APIWrapper v3,
+      IOpenbisCreationController creationController, DBManager dbm, Vocabularies vocabularies,
+      AttachmentConfig attachmentConfig, ConfigurationManager configManager) {
 
     this.openbis = openbis;
+    this.v3API = v3;
     this.dbm = dbm;
     this.openbisCreator = creationController;
     this.vocabularies = vocabularies;
@@ -1207,6 +1212,9 @@ public class WizardController implements IRegistrationController {
               samplesByExperiment.put(exp, lis);
             }
           }
+          String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, proj);
+          finishStep.setExperimentInfos(space, proj, designExpID, p.getDescription(),
+              samplesByExperiment, openbis);
         }
       }
 
@@ -1320,17 +1328,25 @@ public class WizardController implements IRegistrationController {
 
         List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
         logger.debug("set design null");
-        dataAggregator.setExistingExpDesignExperiment(null);
-        for (Experiment e : openbis.getExperimentsOfProjectByCode(existingProject)) {
-          String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, existingProject);
-          String type = e.getExperimentTypeCode();
-          String id = e.getIdentifier();
+        dataAggregator.setExistingExpDesignExperiment(null, null);
+
+        // long start = System.currentTimeMillis();
+
+        List<ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment> experiments =
+            v3API.getExperimentsWithSamplesOfProject(existingProject);
+        String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, existingProject);
+
+        // TimeUtils.logElapsedTime(start);
+
+        for (ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment e : experiments) {
+          String type = e.getType().getCode();
+          String id = e.getIdentifier().getIdentifier();
           if (id.equals(designExpID)) {
             logger.info("setting design experiment");
-            dataAggregator.setExistingExpDesignExperiment(e);
+            dataAggregator.setExistingExpDesignExperiment(e.getCode(), e.getProperties());
           }
           if (designExperimentTypes.contains(type)) {
-            Date date = e.getRegistrationDetails().getRegistrationDate();
+            Date date = e.getRegistrationDate();
             SimpleDateFormat dt1 = new SimpleDateFormat("yy-MM-dd");
             String dt = "";
             if (date != null)
@@ -1338,11 +1354,34 @@ public class WizardController implements IRegistrationController {
             boolean pilot = false;
             if (e.getProperties().get("Q_IS_PILOT") != null)
               pilot = Boolean.parseBoolean(e.getProperties().get("Q_IS_PILOT"));
-            int numOfSamples = openbis.getSamplesofExperiment(e.getIdentifier()).size();
-            beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(),
-                Integer.toString(numOfSamples), dt, pilot));
+            int numOfSamples = e.getSamples().size();
+            beans.add(new ExperimentBean(id, type, Integer.toString(numOfSamples), dt, pilot));
           }
         }
+        // old
+        // for (Experiment e : openbis.getExperimentsOfProjectByCode(existingProject)) {
+        // String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, existingProject);
+        // String type = e.getExperimentTypeCode();
+        // String id = e.getIdentifier();
+        // if (id.equals(designExpID)) {
+        // logger.info("setting design experiment");
+        // dataAggregator.setExistingExpDesignExperiment(e);
+        // }
+        // if (designExperimentTypes.contains(type)) {
+        // Date date = e.getRegistrationDetails().getRegistrationDate();
+        // SimpleDateFormat dt1 = new SimpleDateFormat("yy-MM-dd");
+        // String dt = "";
+        // if (date != null)
+        // dt = dt1.format(date);
+        // boolean pilot = false;
+        // if (e.getProperties().get("Q_IS_PILOT") != null)
+        // pilot = Boolean.parseBoolean(e.getProperties().get("Q_IS_PILOT"));
+        // int numOfSamples = openbis.getSamplesofExperiment(e.getIdentifier()).size();
+        // beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(),
+        // Integer.toString(numOfSamples), dt, pilot));
+        // }
+        // }
+        // TimeUtils.logElapsedTime(start);
         contextStep.setExperiments(beans);
       } else {
         // can create new project
@@ -1446,12 +1485,12 @@ public class WizardController implements IRegistrationController {
     logger.info("img: " + imgSupport);
 
     if (imgSupport) {
-//TODO include with production version of omero client
-//      BasicOMEROClient oc =
-//          new BasicOMEROClient(this.omero_usr, this.omero_pwd, this.omero_host, this.omero_port);
-//      oc.connect();
-//      oc.createProject(code, desc);
-//      oc.disconnect();
+      // TODO include with production version of omero client
+      // BasicOMEROClient oc =
+      // new BasicOMEROClient(this.omero_usr, this.omero_pwd, this.omero_host, this.omero_port);
+      // oc.connect();
+      // oc.createProject(code, desc);
+      // oc.disconnect();
     }
     //
 

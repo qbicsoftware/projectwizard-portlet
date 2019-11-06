@@ -165,7 +165,7 @@ public class OpenbisCreationController implements IOpenbisCreationController {
           Thread.sleep(step);
           max -= step;
         } catch (InterruptedException e) {
-          logger.error("thread sleep waiting for experiment creation interruped.");
+          logger.error("thread sleep waiting for project creation interruped.");
           e.printStackTrace();
         }
       }
@@ -231,10 +231,7 @@ public class OpenbisCreationController implements IOpenbisCreationController {
       long modificationTime = openbis.getExperimentById2(expID).get(0).getRegistrationDetails()
           .getModificationDate().getTime();
 
-      HashMap<String, Object> parameters = new HashMap<String, Object>();
-      parameters.put("properties", entitiesToUpdate.get(experiment));
-
-      updateExperiment(expID, parameters);
+      updateExperiment(expID, entitiesToUpdate.get(experiment));
 
       long newModificationTime = modificationTime;
       double TIMEOUT = 10000;

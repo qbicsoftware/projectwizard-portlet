@@ -101,8 +101,6 @@ public class EntityStep implements WizardStep {
     species.setStyleName(Styles.boxTheme);
     species.setRequired(true);
     species.setFilteringMode(FilteringMode.CONTAINS);
-    if (ProjectWizardUI.testMode)
-      species.setValue("Homo Sapiens");
     speciesNum = new OpenbisInfoTextField("How many different species are there in this project?",
         "", "50px", "2");
     speciesNum.getInnerComponent().setVisible(false);

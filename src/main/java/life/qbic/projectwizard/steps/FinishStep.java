@@ -22,16 +22,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.WizardStep;
-
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.FileDownloader;
@@ -45,12 +42,10 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
-
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
@@ -91,7 +86,8 @@ public class FinishStep implements WizardStep {
   private List<FileDownloader> downloaders = new ArrayList<FileDownloader>();
   private IOpenbisCreationController creator;
 
-  public FinishStep(final Wizard w, AttachmentConfig attachmentConfig, IOpenbisCreationController openbisCreator) {
+  public FinishStep(final Wizard w, AttachmentConfig attachmentConfig,
+      IOpenbisCreationController openbisCreator) {
     this.w = w;
     this.attachConfig = attachmentConfig;
     this.creator = openbisCreator;
@@ -153,11 +149,10 @@ public class FinishStep implements WizardStep {
   public void fileCommitDone() {
     uploads.commitDone();
     logger.info("Moving of files to Datamover folder complete!");
-    Styles
-        .notification("Upload complete",
-            "Registration of files complete. It might take a few minutes for your files to show up in the navigator. \n"
-                + "You can end the project creation by clicking 'Finish'.",
-            NotificationType.SUCCESS);
+    Styles.notification("Upload complete",
+        "Registration of files complete. It might take a few minutes for your files to show up in the navigator. \n"
+            + "You can end the project creation by clicking 'Finish'.",
+        NotificationType.SUCCESS);
     w.getFinishButton().setVisible(true);
   }
 
@@ -170,10 +165,14 @@ public class FinishStep implements WizardStep {
 
       @Override
       public void buttonClick(ClickEvent event) {
+        logger.info("Trying to create qnavigator URL for created project.");
         String host = UI.getCurrent().getPage().getLocation().getHost();
+        logger.info("Host: " + host);
         String path =
             UI.getCurrent().getPage().getLocation().getPath().replace("creator", "browser");
-        String url = "http://" + host + "/" + path + "#!project//" + space + "/" + proj;
+        logger.info("Path: " + path);
+        String url = "https://" + host + path + "#!project//" + space + "/" + proj;
+        logger.info("Complete URL: " + url);
         UI.getCurrent().getPage().setLocation(url);
       }
     });
@@ -184,9 +183,9 @@ public class FinishStep implements WizardStep {
     for (String exp : samplesByExperiment.keySet()) {
       List<Sample> samps = samplesByExperiment.get(exp);
       for (Sample s : samps)
-        ids.add(s.getIdentifier().getIdentifier());
+        ids.add(s.getIdentifier());
       int amount = samps.size();
-      String sampleType = samps.get(0).getType().getCode();
+      String sampleType = samps.get(0).getSampleTypeCode();
       switch (sampleType) {
         case "Q_BIOLOGICAL_ENTITY":
           entitieNum += amount;
@@ -247,23 +246,23 @@ public class FinishStep implements WizardStep {
           }
         }
         logger.debug("designexpID " + designExpID);
-        //List<Experiment> exps = openbis.getExperimentById2(designExpID);
-//        Experiment exp = openbis.getExperimentById(designExpID); TODO remove
+        List<Experiment> exps = openbis.getExperimentById2(designExpID);
         StudyXMLParser parser = new StudyXMLParser();
         Set<String> factors = new HashSet<>();
         Map<Pair<String, String>, Property> factorsForLabelsAndSamples = new HashMap<>();
-
-//        if (!exps.isEmpty()) {
-          String xml = "";//exp.getProperties().get("Q_EXPERIMENTAL_SETUP"); TODO remove
-          try {
-            JAXBElement<Qexperiment> expDesign = parser.parseXMLString(xml);
-            factors.addAll(parser.getFactorLabels(expDesign));
-            factorsForLabelsAndSamples = parser.getFactorsForLabelsAndSamples(expDesign);
-          } catch (JAXBException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-//        }
+        String xml = "";
+        if (!exps.isEmpty()) {
+          xml = exps.get(0).getProperties().get("Q_EXPERIMENTAL_SETUP");
+        }
+        try {
+          JAXBElement<Qexperiment> expDesign = parser.parseXMLString(xml);
+          factors.addAll(parser.getFactorLabels(expDesign));
+          factorsForLabelsAndSamples = parser.getFactorsForLabelsAndSamples(expDesign);
+        } catch (JAXBException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        // }
 
         Map<String, List<String>> tables = new HashMap<String, List<String>>();
         for (String type : sampleTypes) {
@@ -317,7 +316,8 @@ public class FinishStep implements WizardStep {
 
     this.uploads = new UploadsPanel(space, project,
         new ArrayList<String>(Arrays.asList("Experimental Design")), userID, attachConfig,
-        (OpenBisClient) openbis, creator);// TODO this cast is not safe in dev mode when openbis is down
+        (OpenBisClient) openbis, creator);// TODO this cast is not safe in dev mode when openbis is
+                                          // down
     this.uploads.setVisible(false);
     main.addComponent(uploads);
   }
