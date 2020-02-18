@@ -37,32 +37,32 @@ public class OpenbisV3ReadController {
     return res;
   }
 
-//  public OpenbisExperiment getExperimentByID(String id) {
-//    Experiment e = v3Wrapper.getExperimentByID(id);
-//    if (e != null) {
-//      return apiExperimentToQBiCAdaptor(e);
-//    }
-//    return null;
-//  }
-//
-//  public ExtendedOpenbisExperiment getExperimentWithSamplesByID(String id) {
-//    Experiment e = v3Wrapper.getExperimentWIthSamplesByID(id);
-//    if (e != null) {
-//      return (ExtendedOpenbisExperiment) apiExperimentToQBiCAdaptor(e);
-//    }
-//    return null;
-//  }
+  // public OpenbisExperiment getExperimentByID(String id) {
+  // Experiment e = v3Wrapper.getExperimentByID(id);
+  // if (e != null) {
+  // return apiExperimentToQBiCAdaptor(e);
+  // }
+  // return null;
+  // }
+  //
+  // public ExtendedOpenbisExperiment getExperimentWithSamplesByID(String id) {
+  // Experiment e = v3Wrapper.getExperimentWIthSamplesByID(id);
+  // if (e != null) {
+  // return (ExtendedOpenbisExperiment) apiExperimentToQBiCAdaptor(e);
+  // }
+  // return null;
+  // }
 
-//  public List<OpenbisExperiment> getExperimentsOfProject(String projectCode) {
-//    List<Experiment> exps = v3Wrapper.getExperimentsOfProject(projectCode);
-//    List<OpenbisExperiment> res = new ArrayList<>();
-//    for (Experiment e : exps) {
-//      OpenbisExperiment ex = apiExperimentToQBiCAdaptor(e);
-//      if (ex != null)
-//        res.add(ex);
-//    }
-//    return res;
-//  }
+  // public List<OpenbisExperiment> getExperimentsOfProject(String projectCode) {
+  // List<Experiment> exps = v3Wrapper.getExperimentsOfProject(projectCode);
+  // List<OpenbisExperiment> res = new ArrayList<>();
+  // for (Experiment e : exps) {
+  // OpenbisExperiment ex = apiExperimentToQBiCAdaptor(e);
+  // if (ex != null)
+  // res.add(ex);
+  // }
+  // return res;
+  // }
 
   public Date getExperimentModificationDate(String experimentID) {
     try {
@@ -71,45 +71,46 @@ public class OpenbisV3ReadController {
       return null;
     }
   }
-//  
-//  private OpenbisExperiment apiExperimentToQBiCAdaptor(Experiment e) {
-//
-//    Map<String, Object> props = new HashMap<>();
-//    for (String key : e.getProperties().keySet()) {
-//      props.put(key, e.getProperties().get(key));
-//    }
-//    String type = e.getType().getCode();
-//    try {
-//      ExperimentType.valueOf(type);
-//    } catch (IllegalArgumentException ex) {
-//      logger.warn(type
-//          + " experiment type is unknown. Consider adding it to the data model. Ignoring this experiment.");
-//      return null;
-//    }
-//    try {
-//      Person registrator = e.getRegistrator();
-//      String person = registrator.getFirstName() + " " + registrator.getLastName();
-//      person = person.trim();
-//      if (person.isEmpty()) {
-//        person = registrator.getUserId();
-//      }
-//      return new ExtendedOpenbisExperiment(e.getCode(), ExperimentType.valueOf(type), props,
-//          e.getSamples(), e.getRegistrationDate(), person);
-//    } catch (NotFetchedException ex) {
-//      return new OpenbisExperiment(e.getCode(), ExperimentType.valueOf(type), props);
-//    }
-//  }
+  //
+  // private OpenbisExperiment apiExperimentToQBiCAdaptor(Experiment e) {
+  //
+  // Map<String, Object> props = new HashMap<>();
+  // for (String key : e.getProperties().keySet()) {
+  // props.put(key, e.getProperties().get(key));
+  // }
+  // String type = e.getType().getCode();
+  // try {
+  // ExperimentType.valueOf(type);
+  // } catch (IllegalArgumentException ex) {
+  // logger.warn(type
+  // + " experiment type is unknown. Consider adding it to the data model. Ignoring this
+  // experiment.");
+  // return null;
+  // }
+  // try {
+  // Person registrator = e.getRegistrator();
+  // String person = registrator.getFirstName() + " " + registrator.getLastName();
+  // person = person.trim();
+  // if (person.isEmpty()) {
+  // person = registrator.getUserId();
+  // }
+  // return new ExtendedOpenbisExperiment(e.getCode(), ExperimentType.valueOf(type), props,
+  // e.getSamples(), e.getRegistrationDate(), person);
+  // } catch (NotFetchedException ex) {
+  // return new OpenbisExperiment(e.getCode(), ExperimentType.valueOf(type), props);
+  // }
+  // }
 
-//  public List<ExtendedOpenbisExperiment> getExperimentsWithSamplesOfProject(String projectCode) {
-//    List<Experiment> exps = v3Wrapper.getExperimentsWithSamplesOfProject(projectCode);
-//    List<ExtendedOpenbisExperiment> res = new ArrayList<>();
-//    for (Experiment e : exps) {
-//      ExtendedOpenbisExperiment ex = (ExtendedOpenbisExperiment) apiExperimentToQBiCAdaptor(e);
-//      if (ex != null)
-//        res.add(ex);
-//    }
-//    return res;
-//  }
+  // public List<ExtendedOpenbisExperiment> getExperimentsWithSamplesOfProject(String projectCode) {
+  // List<Experiment> exps = v3Wrapper.getExperimentsWithSamplesOfProject(projectCode);
+  // List<ExtendedOpenbisExperiment> res = new ArrayList<>();
+  // for (Experiment e : exps) {
+  // ExtendedOpenbisExperiment ex = (ExtendedOpenbisExperiment) apiExperimentToQBiCAdaptor(e);
+  // if (ex != null)
+  // res.add(ex);
+  // }
+  // return res;
+  // }
 
   public boolean spaceExists(String space) {
     return !v3Wrapper.getSpace(space).getObjects().isEmpty();
@@ -125,6 +126,13 @@ public class OpenbisV3ReadController {
 
   public boolean sampleExists(String sampleCode) {
     return !v3Wrapper.searchSampleWithCode(sampleCode).getObjects().isEmpty();
+  }
+
+  public Sample findSampleWithDescendantsByCode(String code) {
+    for (Sample s : v3Wrapper.searchSampleWithCodeAndDescendants(code).getObjects()) {
+      return s;
+    }
+    return null;
   }
 
   public Sample findSampleByCode(String code) {

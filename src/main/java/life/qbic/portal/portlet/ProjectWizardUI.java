@@ -46,6 +46,7 @@ import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.registration.OpenbisV3APIWrapper;
 import life.qbic.projectwizard.registration.OpenbisV3CreationController;
+import life.qbic.projectwizard.registration.OpenbisV3ReadController;
 import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
 
@@ -111,8 +112,10 @@ public class ProjectWizardUI extends QBiCPortletUI {
       this.openbis = new OpenBisClient(config.getDataSourceUser(), config.getDataSourcePassword(),
           config.getDataSourceUrl());
       this.openbis.login();
+
       v3 = new OpenbisV3APIWrapper(config.getDataSourceUrl(), config.getDataSourceUser(),
           config.getDataSourcePassword(), userID);
+
     } catch (Exception e) {
       success = false;
       logger.error(
@@ -122,7 +125,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
     }
     if (success) {
       // stuff from openbis
-      // OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
+      OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
+      // findDuplicateData(readController);
 
       Map<String, String> taxMap = v3.getVocabLabelToCode("Q_NCBI_TAXONOMY");
       Map<String, String> tissueMap = v3.getVocabLabelToCode("Q_PRIMARY_TISSUES");
@@ -140,8 +144,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
       // Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
       // Map<String, String> enzymeMap =
       // openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES");
-      // Map<String, String> chromTypes =
-      // openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
+//      Map<String, String> chromTypes2 =
+//          openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
       // Map<String, String> purificationMethods =
       // openbis.getVocabCodesAndLabelsForVocab("Q_PROTEIN_PURIFICATION_METHODS");
       // Map<String, String> antibodiesWithLabels =
@@ -238,26 +242,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
     if (overwriteAllowed)
       logger.info("User can overwrite existing metadata for their project.");
   }
-
-  // TODO group that might be used to delete metadata or even sample/experiment objects in the
-  // future
-  // private boolean canDelete() {
-  // try {
-  // User user = PortalUtils.getUser();
-  // for (UserGroup grp : user.getUserGroups()) {
-  // String group = grp.getName();
-  // if (config.getDeletionGrp().contains(group)) {
-  // logger.info(
-  // "User " + user.getScreenName() + " can delete because they are part of " + group);
-  // return true;
-  //// }
-  // }
-  // } catch (Exception e) {
-  // e.printStackTrace();
-  // logger.error("Could not fetch user groups. User won't be able to delete.");
-  // }
-  // return false;
-  // }
 
   private boolean canOverwrite() {
     try {
