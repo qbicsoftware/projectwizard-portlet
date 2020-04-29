@@ -21,14 +21,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.vaadin.teemu.wizards.WizardStep;
-
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -36,7 +35,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-
 import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.uicomponents.ConditionsPanel;
 import life.qbic.portal.Styles;
@@ -59,7 +57,8 @@ public class EntityStep implements WizardStep {
   private TextField expName;
   private ComboBox species;
   private TextField specialSpecies;
-  private ConditionsPanel c;
+  private ConditionsPanel cPanel;
+  private CheckBox infectionBox;
 
   private String emptyFactor = "Other (please specify)";
   private List<String> suggestions = new ArrayList<String>(Arrays.asList("Age", "Genotype",
@@ -72,7 +71,7 @@ public class EntityStep implements WizardStep {
   private OpenbisInfoTextField bioReps;
 
   public ConditionsPanel getCondPanel() {
-    return c;
+    return cPanel;
   }
 
   public OptionGroup isConditionsSet() {
@@ -101,17 +100,36 @@ public class EntityStep implements WizardStep {
     species.setStyleName(Styles.boxTheme);
     species.setRequired(true);
     species.setFilteringMode(FilteringMode.CONTAINS);
+
     speciesNum = new OpenbisInfoTextField("How many different species are there in this project?",
         "", "50px", "2");
-    speciesNum.getInnerComponent().setVisible(false);
-    speciesNum.getInnerComponent().setEnabled(false);
-    c = new ConditionsPanel(suggestions, emptyFactor, "Species", species, true, conditionsSet,
-        (TextField) speciesNum.getInnerComponent());
+
+    // new
+    VerticalLayout innerBox = new VerticalLayout();
+
+    HorizontalLayout specialSpeciesOptions = Styles.questionize(innerBox,
+        "In an infection study one or more samples contain material from a different species. Please input the number of different organisms including the infecting species.",
+        "Number of Species");
+
+    innerBox.setSpacing(true);
+    // specialSpeciesOptions.setMargin(true);
+    innerBox.addComponent(speciesNum.getInnerComponent());
+    infectionBox = new CheckBox("Infection Study");
+    innerBox.addComponent(infectionBox);
+    main.addComponent(specialSpeciesOptions);
+    // speciesNum.getInnerComponent().setVisible(false);
+    // speciesNum.getInnerComponent().setEnabled(false);
+    specialSpeciesOptions.setVisible(false);
+
+    cPanel = new ConditionsPanel(suggestions, emptyFactor, "Species", species, true, conditionsSet,
+        specialSpeciesOptions);
+    main.addComponent(cPanel);
+
     expName = new TextField("Experimental Step Name");
     expName.setStyleName(Styles.fieldTheme);
     main.addComponent(expName);
-    main.addComponent(c);
-    main.addComponent(speciesNum.getInnerComponent());
+
+    main.addComponent(specialSpeciesOptions);
     main.addComponent(species);
 
     species.addValueChangeListener(new ValueChangeListener() {
@@ -171,7 +189,7 @@ public class EntityStep implements WizardStep {
 
   @Override
   public boolean onAdvance() {
-    if (skip || speciesReady() && replicatesReady() && c.isValid())
+    if (skip || speciesReady() && replicatesReady() && cPanel.isValid())
       return true;
     else {
       Styles.notification("Missing information", "Please fill in the required fields.",
@@ -195,7 +213,6 @@ public class EntityStep implements WizardStep {
   }
 
   public boolean speciesIsFactor() {
-    // TODO was: isEnabld
     return !species.isVisible();
   }
 
@@ -207,7 +224,7 @@ public class EntityStep implements WizardStep {
   }
 
   public List<String> getFactors() {
-    return c.getConditions();
+    return cPanel.getConditions();
   }
 
   public int getBioRepAmount() {
@@ -231,6 +248,10 @@ public class EntityStep implements WizardStep {
 
   public int getSpeciesAmount() {
     return Integer.parseInt(speciesNum.getValue());
+  }
+
+  public boolean isInfectionStudy() {
+    return infectionBox.getValue();
   }
 
   public void setSkipStep(boolean b) {

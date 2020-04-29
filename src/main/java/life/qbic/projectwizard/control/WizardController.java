@@ -65,6 +65,7 @@ import life.qbic.expdesign.SamplePreparator;
 import life.qbic.expdesign.io.QBiCDesignReader;
 import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
 import life.qbic.expdesign.model.SampleSummaryBean;
+import life.qbic.omero.BasicOMEROClient;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.model.MSExperimentModel;
@@ -76,7 +77,6 @@ import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.registration.OpenbisV3APIWrapper;
 import life.qbic.projectwizard.steps.*;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
-import life.qbic.utils.TimeUtils;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
 import life.qbic.xml.notes.Note;
@@ -111,10 +111,10 @@ public class WizardController implements IRegistrationController {
   private String newExperimentalDesignXML;
 
   //
-  private String omero_usr;
-  private String omero_pwd;
-  private int omero_port;
-  private String omero_host;
+  private String omeroUser;
+  private String omeroPassword;
+  private int omeroPort;
+  private String omeroHost;
 
   private Logger logger = LogManager.getLogger(WizardController.class);
 
@@ -148,11 +148,11 @@ public class WizardController implements IRegistrationController {
     this.attachConfig = attachmentConfig;
     this.designExperimentTypes = vocabularies.getExperimentTypes();
 
-    this.omero_usr = configManager.getOmeroUser();
-    this.omero_pwd = configManager.getOmeroPassword();
-    this.omero_host = configManager.getOmeroHostname();
+    this.omeroUser = configManager.getOmeroUser();
+    this.omeroPassword = configManager.getOmeroPassword();
+    this.omeroHost = configManager.getOmeroHostname();
     try {
-      this.omero_port = Integer.parseInt(configManager.getOmeroPort());
+      this.omeroPort = Integer.parseInt(configManager.getOmeroPort());
     } catch (NumberFormatException | NullPointerException e) {
       logger.warn("Omero port could not be parsed form the configuration file.");
     }
@@ -519,94 +519,90 @@ public class WizardController implements IRegistrationController {
 
           boolean imgSupport = contextStep.hasImagingSupport();
           if (imgSupport) {
-            // TODO include with omero production version
-            logger.warn("imaging support is activated. this should not be possible at this point.");
-            // BasicOMEROClient oc =
-            // new BasicOMEROClient(omero_usr, omero_pwd, omero_host, omero_port);
-            // oc.connect();
-            // HashMap<Long, String> projectMap = oc.loadProjects();
-            // oc.disconnect();
-            // Set<Map.Entry<Long, String>> set = projectMap.entrySet();
-            // Iterator<Map.Entry<Long, String>> iterator = set.iterator();
-            // long omeroProjectId = -1;
-            // while (iterator.hasNext()) {
-            // Map.Entry<Long, String> entry = iterator.next();
-            //
-            // if (entry.getValue().equals(project)) {
-            // omeroProjectId = (Long) entry.getKey();
-            // break;
-            // }
-            // }
-            //
-            // logger.info("omero project id: " + omeroProjectId);
-            //
-            // if (omeroProjectId == -1) {
-            // oc.connect();
-            // omeroProjectId = oc.createProject(project, contextStep.getDescription());
-            // oc.disconnect();
-            // }
-            //
-            // List<ISampleBean> omeroSamples = new ArrayList<>();
-            // for (List<ISampleBean> level : samples) {
-            //
-            // SampleType type = null;
-            // if (!level.isEmpty()) {
-            // type = level.get(0).getType();
-            //
-            // }
-            // if (type.equals(SampleType.Q_BIOLOGICAL_SAMPLE)) {
-            // omeroSamples.addAll(level);
-            // }
-            //
-            // }
-            //
-            // oc.connect();
-            // logger.info("omero samples:");
-            // for (ISampleBean omeroSample : omeroSamples) {
-            //
-            //
-            // logger.info("sample: " + omeroSample.getCode() + " ----%%%%%%%%%");
-            // logger.info("desc: " + omeroSample.getSecondaryName());
-            //
-            // long dataset_id = oc.createDataset(omeroProjectId, omeroSample.getCode(),
-            // omeroSample.getSecondaryName());
-            // logger.info("dataset id: " + dataset_id);
-            // }
-            //
-            // oc.disconnect();
+            BasicOMEROClient oc =
+                new BasicOMEROClient(omeroUser, omeroPassword, omeroHost, omeroPort);
+            oc.connect();
+            HashMap<Long, String> projectMap = oc.loadProjects();
+            oc.disconnect();
+            Set<Map.Entry<Long, String>> set = projectMap.entrySet();
+            Iterator<Map.Entry<Long, String>> iterator = set.iterator();
+            long omeroProjectId = -1;
+            while (iterator.hasNext()) {
+              Map.Entry<Long, String> entry = iterator.next();
+
+              if (entry.getValue().equals(project)) {
+                omeroProjectId = (Long) entry.getKey();
+                break;
+              }
+            }
+
+            logger.info("omero project id: " + omeroProjectId);
+
+            if (omeroProjectId == -1) {
+              oc.connect();
+              omeroProjectId = oc.createProject(project, contextStep.getDescription());
+              oc.disconnect();
+            }
+
+            List<ISampleBean> omeroSamples = new ArrayList<>();
+            for (List<ISampleBean> level : samples) {
+
+              SampleType type = null;
+              if (!level.isEmpty()) {
+                type = level.get(0).getType();
+
+              }
+              if (type.equals(SampleType.Q_BIOLOGICAL_SAMPLE)) {
+                omeroSamples.addAll(level);
+              }
+
+            }
+
+            oc.connect();
+            logger.info("omero samples:");
+            for (ISampleBean omeroSample : omeroSamples) {
+
+
+              logger.info("sample: " + omeroSample.getCode() + " ----%%%%%%%%%");
+              logger.info("desc: " + omeroSample.getSecondaryName());
+
+              long dataset_id = oc.createDataset(omeroProjectId, omeroSample.getCode(),
+                  omeroSample.getSecondaryName());
+              logger.info("dataset id: " + dataset_id);
+            }
+
+            oc.disconnect();
 
           }
 
 
-          // List<ISampleBean> omeroSamples = new ArrayList<>();
-          // for(List<ISampleBean> level : samples) {
-          //
-          // //logger.info("level size: " + String.valueOf(level.size()) + " ----");
-          // //logger.info("level 0: " + level.get(0).getMetadata().toString() + " ----");
-          //
-          //
-          // String type = "";
-          // if(!level.isEmpty()) {
-          // type = level.get(0).getType();
-          // //logger.info("sample: " + level.toString() + " ----");
-          //
-          // }
-          // //if(type.equals(SampleType.Q_BIOLOGICAL_SAMPLE.toString())) {
-          // if(type.equals("Q_BIOLOGICAL_SAMPLE")) {
-          // omeroSamples.addAll(level);
-          // }
-          //
-          // logger.info("sample type: " + type + " ----");
-          //
-          // }
-          //
-          // for(ISampleBean omeroSample : omeroSamples) {
-          // omeroSample.getCode();
-          // omeroSample.getSecondaryName();
-          //
-          // logger.info("sample: " + omeroSample.getCode() + " ----%%%%%%%%%");
-          // logger.info("desc: " + omeroSample.getSecondaryName());
-          // }
+          List<ISampleBean> omeroSamples = new ArrayList<>();
+          for (List<ISampleBean> level : samples) {
+
+            // logger.info("level size: " + String.valueOf(level.size()) + " ----");
+            // logger.info("level 0: " + level.get(0).getMetadata().toString() + " ----");
+
+
+            String type = "";
+            if (!level.isEmpty()) {
+              type = level.get(0).getType().toString();
+              // logger.info("sample: " + level.toString() + " ----");
+            }
+            if (type.equals(SampleType.Q_BIOLOGICAL_SAMPLE.toString())) {
+              omeroSamples.addAll(level);
+            }
+
+            logger.info("sample type: " + type + " ----");
+
+          }
+
+          for (ISampleBean omeroSample : omeroSamples) {
+            omeroSample.getCode();
+            omeroSample.getSecondaryName();
+
+            logger.info("sample: " + omeroSample.getCode() + " ----%%%%%%%%%");
+            logger.info("desc: " + omeroSample.getSecondaryName());
+          }
           // End of OMERO Block
           ////////////////////////////////
 
@@ -976,9 +972,10 @@ public class WizardController implements IRegistrationController {
           reloadConditionsPreviewTable(entCondInstStep, Integer.toString(entStep.getBioRepAmount()),
               new ArrayList<AOpenbisSample>());
           if (!bioFactorInstancesSet) {
-            if (entStep.speciesIsFactor())
+            if (entStep.speciesIsFactor()) {
               entCondInstStep.initOptionsFactorComponent(entStep.getSpeciesAmount(),
-                  new HashSet<String>(), "N/A", "N/A", "N/A", "N/A");
+                  entStep.isInfectionStudy(), new HashSet<String>(), "N/A", "N/A", "N/A", "N/A");
+            }
             entCondInstStep.initFactorFields(entStep.getFactors());
             initConditionListener(entCondInstStep, Integer.toString(entStep.getBioRepAmount()),
                 new ArrayList<AOpenbisSample>());
@@ -988,8 +985,8 @@ public class WizardController implements IRegistrationController {
         // Negative Selection of Entities
         if (event.getActivatedStep().equals(tailoringStep1)) {
           try {
-            tailoringStep1.setSamples(
-                dataAggregator.prepareEntities(entCondInstStep.getPreSelection(), copyMode), null);
+            tailoringStep1.setSamples(dataAggregator.prepareEntities(
+                entCondInstStep.getPreSelection(), copyMode, entStep.isInfectionStudy()), null);
           } catch (JAXBException e) {
             e.printStackTrace();
           }
@@ -1004,10 +1001,11 @@ public class WizardController implements IRegistrationController {
           reloadConditionsPreviewTable(extrCondInstStep,
               Integer.toString(extrStep.getExtractRepAmount()), dataAggregator.getEntities());
           if (!extractFactorInstancesSet) {
-            if (extrStep.isTissueFactor())// TODO mapping and keywords
-              extrCondInstStep.initOptionsFactorComponent(extrStep.getTissueAmount(),
+            if (extrStep.isTissueFactor()) {
+              extrCondInstStep.initOptionsFactorComponent(extrStep.getTissueAmount(), false,
                   vocabularies.getCellLinesMap().keySet(), "Cell Line", "Other", "Cell Line",
                   "Other");
+            }
             extrCondInstStep.initFactorFields(extrStep.getFactors());
             initConditionListener(extrCondInstStep,
                 Integer.toString(extrStep.getExtractRepAmount()), dataAggregator.getEntities());
@@ -1292,10 +1290,13 @@ public class WizardController implements IRegistrationController {
   protected void reloadConditionsPreviewTable(ConditionInstanceStep step, String amount,
       List<AOpenbisSample> previousLevel) {
     if (step.validInput()) {
-      if (previousLevel.isEmpty())
-        step.buildTable(preparePreviewPermutations(step.getFactors()), amount);
-      else
+      if (previousLevel.isEmpty()) {
+        EntityStep entStep = (EntityStep) steps.get(Steps.Entities);
+        step.buildTable(preparePreviewPermutations(step.getFactors(), entStep.isInfectionStudy()),
+            amount);
+      } else {
         step.buildTable(preparePreviewPermutations(step.getFactors(), previousLevel), amount);
+      }
     } else {
       step.destroyTable();
     }
@@ -1418,7 +1419,7 @@ public class WizardController implements IRegistrationController {
         }
         res.add(factorValues);
       }
-      permutations.addAll(dataAggregator.generatePermutations(res));
+      permutations.addAll(dataAggregator.generatePermutations(res, false));
     }
     return permutations;
   }
@@ -1429,7 +1430,8 @@ public class WizardController implements IRegistrationController {
    * @param factorLists
    * @return
    */
-  public List<String> preparePreviewPermutations(List<List<Property>> factorLists) {
+  public List<String> preparePreviewPermutations(List<List<Property>> factorLists,
+      boolean infectionStudy) {
     List<List<String>> res = new ArrayList<List<String>>();
     for (List<Property> instances : factorLists) {
       List<String> factorValues = new ArrayList<String>();
@@ -1441,7 +1443,7 @@ public class WizardController implements IRegistrationController {
       }
       res.add(factorValues);
     }
-    List<String> permutations = dataAggregator.generatePermutations(res);
+    List<String> permutations = dataAggregator.generatePermutations(res, infectionStudy);
     return permutations;
   }
 
@@ -1485,12 +1487,11 @@ public class WizardController implements IRegistrationController {
     logger.info("img: " + imgSupport);
 
     if (imgSupport) {
-      // TODO include with production version of omero client
-      // BasicOMEROClient oc =
-      // new BasicOMEROClient(this.omero_usr, this.omero_pwd, this.omero_host, this.omero_port);
-      // oc.connect();
-      // oc.createProject(code, desc);
-      // oc.disconnect();
+      BasicOMEROClient oc =
+          new BasicOMEROClient(this.omeroUser, this.omeroPassword, this.omeroHost, this.omeroPort);
+      oc.connect();
+      oc.createProject(code, desc);
+      oc.disconnect();
     }
     //
 
