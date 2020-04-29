@@ -112,7 +112,7 @@
 			<version>5.8</version>
 		</dependency>
 		
-		<!--ask Luis K. :)
+		<!--ask Luis K. :) -->
         <dependency>
             <groupId>life.qbic</groupId>
             <artifactId>omero-client-lib</artifactId>
@@ -131,7 +131,7 @@
                     <artifactId>jcl-over-slf4j</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>-->
+        </dependency>
 		<dependency>
 			<!-- Patched version 4.2-min does not bundle slf4j -->
 			<groupId>org.slf4j</groupId>
