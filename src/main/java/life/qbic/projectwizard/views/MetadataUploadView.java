@@ -262,20 +262,24 @@ public class MetadataUploadView extends VerticalLayout {
 
         int last = ids.size() - 1;
         int steps = Math.max(1, (last / BATCH_SIZE) + 1);
-        String xmlToUpdate = null;
-        try {
-          xmlToUpdate = collectPropsForExperimentXML(ids);
-        } catch (JAXBException e1) {
-          // TODO Auto-generated catch block
-          e1.printStackTrace();
-        }
-        if (xmlToUpdate != null) {
-          steps++;
-          current++;
-          double frac = current * 1.0 / steps;
-          UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
 
-          updateExperimentalDesignXML(xmlToUpdate);
+        boolean hasSampleLevelProps = tableContainsSampleLevelProps();
+        String xmlToUpdate = null;
+        if (tableContainsExperimentXMLProps()) {
+          try {
+            xmlToUpdate = collectPropsForExperimentXML(ids);
+          } catch (JAXBException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+          }
+          if (xmlToUpdate != null) {
+            steps++;
+            current++;
+            double frac = current * 1.0 / steps;
+            UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+
+            updateExperimentalDesignXML(xmlToUpdate);
+          }
         }
         int start = 0;
         int end = -1;
@@ -284,19 +288,20 @@ public class MetadataUploadView extends VerticalLayout {
           end += Math.min(BATCH_SIZE, last - end);
           List<Integer> batch = ids.subList(start, end + 1);
 
-          logger.debug("sending metadata of samples " + start + "-" + end + " to openBIS.");
-          start = end + 1;
-
           double frac = current * 1.0 / steps;
           UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-          try {
-            ingestRows(batch);
-          } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          } catch (JAXBException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+          if (hasSampleLevelProps) {
+            logger.debug("sending metadata of samples " + start + "-" + end + " to openBIS.");
+            start = end + 1;
+            try {
+              ingestRows(batch);
+            } catch (IllegalArgumentException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            } catch (JAXBException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
           }
         }
         UI.getCurrent().setPollInterval(-1);
@@ -321,11 +326,31 @@ public class MetadataUploadView extends VerticalLayout {
     return (Table) sheet.getSelectedTab();
   }
 
-  public static void main(String[] args) {
-    life.qbic.xml.properties.Unit x = life.qbic.xml.properties.Unit.fromString("h");
-    life.qbic.xml.properties.Unit y = life.qbic.xml.properties.Unit.valueOf("Hour");
-    System.out.println(x);
-    System.out.println(y);
+  protected boolean tableContainsSampleLevelProps() {
+    Table sampleTable = getActiveTable();
+    for (Object col : sampleTable.getContainerPropertyIds()) {
+      String label = getSelectedProperty(col);
+      // find properties and experimental factors
+      if (!label.equals("Properties -->") && !label.startsWith("Condition: ")
+          && !label.startsWith("Property: ")) {
+        return true;
+      }
+    }
+    logger.info("No sample properties need to be updated.");
+    return false;
+  }
+
+  protected boolean tableContainsExperimentXMLProps() {
+    Table sampleTable = getActiveTable();
+    for (Object col : sampleTable.getContainerPropertyIds()) {
+      String label = getSelectedProperty(col);
+      // find properties and experimental factors
+      if (label.startsWith("Condition: ") || label.startsWith("Property: ")) {
+        logger.info("Experiment xml need to be updated.");
+        return true;
+      }
+    }
+    return false;
   }
 
   protected String collectPropsForExperimentXML(List<Integer> rows) throws JAXBException {
