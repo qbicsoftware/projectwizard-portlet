@@ -57,7 +57,7 @@ import life.qbic.xml.study.Qexperiment;
  */
 public class OpenbisV3CreationController implements IOpenbisCreationController {
   final int RETRY_UNTIL_SECONDS_PASSED = 5;
-  final int SPLIT_AT_ENTITY_SIZE = 500;
+  final int SPLIT_AT_ENTITY_SIZE = 300;
   private IOpenBisClient openbis;
   private OpenbisV3APIWrapper api;
 
@@ -192,6 +192,77 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
         res.add(samples.subList(to, size));
     }
     return res;
+  }
+
+  /**
+   * less convoluted version
+   */
+  @Override
+  public void registerProjectWithExperimentsAndSamplesBatchWise(
+      List<List<ISampleBean>> tsvSampleHierarchy, List<OpenbisExperiment> informativeExperiments,
+      String description, boolean isPilot) {
+    errors = "";
+
+    RegisterableProject p =
+        new RegisterableProject(tsvSampleHierarchy, description, informativeExperiments, isPilot);
+
+    logger.debug("User sending samples: " + user);
+    Thread t = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        List<RegisterableExperiment> exps = p.getExperiments();
+        String space = p.getSpace().toUpperCase();
+        String project = p.getProjectCode();
+        String desc = p.getDescription();
+
+        boolean success = true;
+
+        if (!openbis.projectExists(space, project)) {
+          success = registerProject(space, project, desc);
+          if (!success) {
+            errors = "Project could not be registered.";
+            UI.getCurrent().setPollInterval(-1);
+          }
+        }
+        if (success) {
+          success = registerExperiments(space, project, exps);
+          if (!success) {
+            errors = "Experiments could not be registered.";
+          }
+        }
+        if (!success) {
+          // experiments were not registered, break registration
+          UI.getCurrent().setPollInterval(-1);
+          return;
+        }
+        int i = 0;
+        for (List<ISampleBean> level : tsvSampleHierarchy) {
+          i++;
+          logger.info("registration of level " + i);
+
+          boolean batchSuccess;
+          if (level.size() > SPLIT_AT_ENTITY_SIZE) {
+            for (List<ISampleBean> batch : splitSamplesIntoBatches(level, SPLIT_AT_ENTITY_SIZE)) {
+              batchSuccess = registerSampleBatch(batch);
+              if (!batchSuccess) {
+                UI.getCurrent().setPollInterval(-1);
+                return;
+              }
+            }
+          } else {
+            batchSuccess = registerSampleBatch(level);
+            if (!batchSuccess) {
+              UI.getCurrent().setPollInterval(-1);
+              return;
+            }
+          }
+        }
+        UI.getCurrent().setPollInterval(-1);
+        api.logout();
+      }
+    });
+    t.start();
+    UI.getCurrent().setPollInterval(100);
   }
 
   /**
@@ -397,13 +468,13 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
     for (String permID : ids) {
       DataSetUpdate dsUpdate = new DataSetUpdate();
       dsUpdate.setDataSetId(new DataSetPermId(permID));
-      
-      //samples to update?
+
+      // samples to update?
       if (idsToSampleIDs.containsKey(permID)) {
         dsUpdate.setSampleId(idsToSampleIDs.get(permID));
       }
 
-      //props to update?
+      // props to update?
       if (idsToProps.containsKey(permID)) {
         Map<String, String> props = new HashMap<>();
         Map<String, Object> map = idsToProps.get(permID);
@@ -412,7 +483,7 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
         }
         dsUpdate.setProperties(props);
       }
-      
+
       updates.add(dsUpdate);
     }
     logger.info("updating dataset metadata for: " + ids);
