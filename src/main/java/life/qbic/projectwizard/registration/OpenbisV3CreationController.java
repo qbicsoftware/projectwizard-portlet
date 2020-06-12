@@ -391,20 +391,31 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
     return res;
   }
 
-  public void updateDatasets(Map<String, Map<String, Object>> idsToProps) {
+  public void updateDatasets(List<String> ids, Map<String, Map<String, Object>> idsToProps,
+      Map<String, SampleIdentifier> idsToSampleIDs) {
     List<DataSetUpdate> updates = new ArrayList<>();
-    for (String permID : idsToProps.keySet()) {
+    for (String permID : ids) {
       DataSetUpdate dsUpdate = new DataSetUpdate();
       dsUpdate.setDataSetId(new DataSetPermId(permID));
-      Map<String, String> props = new HashMap<>();
-      Map<String, Object> map = idsToProps.get(permID);
-      for (String key : map.keySet()) {
-        props.put(key, map.get(key).toString());
+      
+      //samples to update?
+      if (idsToSampleIDs.containsKey(permID)) {
+        dsUpdate.setSampleId(idsToSampleIDs.get(permID));
       }
-      dsUpdate.setProperties(props);
+
+      //props to update?
+      if (idsToProps.containsKey(permID)) {
+        Map<String, String> props = new HashMap<>();
+        Map<String, Object> map = idsToProps.get(permID);
+        for (String key : map.keySet()) {
+          props.put(key, map.get(key).toString());
+        }
+        dsUpdate.setProperties(props);
+      }
+      
       updates.add(dsUpdate);
     }
-    logger.info("updating dataset metadata for: " + idsToProps.keySet());
+    logger.info("updating dataset metadata for: " + ids);
 
     api.updateDataSets(updates);
   }
@@ -433,8 +444,8 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
             parents.add(new SampleIdentifier(space, null, parent));
           }
         }
-        if(!parents.isEmpty()) {
-        sampleCreation.setParentIds(parents);
+        if (!parents.isEmpty()) {
+          sampleCreation.setParentIds(parents);
         }
         sampleCreation.setExperimentId(new ExperimentIdentifier(
             "/" + space + "/" + sample.getProject() + "/" + sample.getExperiment()));

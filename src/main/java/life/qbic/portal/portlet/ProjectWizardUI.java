@@ -24,6 +24,7 @@ import com.vaadin.annotations.Widgetset;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.themes.ValoTheme;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
@@ -46,14 +47,16 @@ import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.registration.OpenbisV3APIWrapper;
 import life.qbic.projectwizard.registration.OpenbisV3CreationController;
+import life.qbic.projectwizard.registration.OpenbisV3ReadController;
 import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
+import life.qbic.utils.TimeUtils;
 
 @Theme("mytheme")
 @Widgetset("life.qbic.portlet.AppWidgetSet")
 public class ProjectWizardUI extends QBiCPortletUI {
 
-  public static boolean development = false;
+  public static boolean development = true;
   public static boolean v3RegistrationAPI = false;
   public static String MSLabelingMethods;
   public static String tmpFolder;
@@ -111,8 +114,10 @@ public class ProjectWizardUI extends QBiCPortletUI {
       this.openbis = new OpenBisClient(config.getDataSourceUser(), config.getDataSourcePassword(),
           config.getDataSourceUrl());
       this.openbis.login();
+
       v3 = new OpenbisV3APIWrapper(config.getDataSourceUrl(), config.getDataSourceUser(),
           config.getDataSourcePassword(), userID);
+
     } catch (Exception e) {
       success = false;
       logger.error(
@@ -122,7 +127,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
     }
     if (success) {
       // stuff from openbis
-      // OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
+      OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
+      // findDuplicateData(readController);
 
       Map<String, String> taxMap = v3.getVocabLabelToCode("Q_NCBI_TAXONOMY");
       Map<String, String> tissueMap = v3.getVocabLabelToCode("Q_PRIMARY_TISSUES");
@@ -140,7 +146,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
       // Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
       // Map<String, String> enzymeMap =
       // openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES");
-      // Map<String, String> chromTypes =
+      // Map<String, String> chromTypes2 =
       // openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
       // Map<String, String> purificationMethods =
       // openbis.getVocabCodesAndLabelsForVocab("Q_PROTEIN_PURIFICATION_METHODS");
@@ -238,26 +244,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
     if (overwriteAllowed)
       logger.info("User can overwrite existing metadata for their project.");
   }
-
-  // TODO group that might be used to delete metadata or even sample/experiment objects in the
-  // future
-  // private boolean canDelete() {
-  // try {
-  // User user = PortalUtils.getUser();
-  // for (UserGroup grp : user.getUserGroups()) {
-  // String group = grp.getName();
-  // if (config.getDeletionGrp().contains(group)) {
-  // logger.info(
-  // "User " + user.getScreenName() + " can delete because they are part of " + group);
-  // return true;
-  //// }
-  // }
-  // } catch (Exception e) {
-  // e.printStackTrace();
-  // logger.error("Could not fetch user groups. User won't be able to delete.");
-  // }
-  // return false;
-  // }
 
   private boolean canOverwrite() {
     try {

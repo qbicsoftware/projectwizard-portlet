@@ -63,7 +63,7 @@ public class ExtractionStep implements WizardStep {
   private ComboBox tissue;
   private ComboBox cellLine;
   private TextField otherTissue;
-  private ConditionsPanel c;
+  private ConditionsPanel cPanel;
   private TextField expName;
 
   private String emptyFactor = "Other (please specify)";
@@ -115,9 +115,9 @@ public class ExtractionStep implements WizardStep {
     expName.setStyleName(Styles.fieldTheme);
     main.addComponent(expName);
 
-    c = new ConditionsPanel(suggestions, emptyFactor, "Tissue", tissue, true, conditionsSet,
+    cPanel = new ConditionsPanel(suggestions, emptyFactor, "Tissue", tissue, true, conditionsSet,
         (TextField) tissueNum.getInnerComponent());
-    main.addComponent(c);
+    main.addComponent(cPanel);
 
     isotopes = new CheckBox("Isotope Labeling");
     isotopes.setImmediate(true);
@@ -203,7 +203,7 @@ public class ExtractionStep implements WizardStep {
   }
 
   public ConditionsPanel getCondPanel() {
-    return c;
+    return cPanel;
   }
 
   public OptionGroup conditionsSet() {
@@ -238,7 +238,7 @@ public class ExtractionStep implements WizardStep {
 
   @Override
   public boolean onAdvance() {
-    if (skip || tissueReady() && replicatesReady() && c.isValid())
+    if (skip || tissueReady() && replicatesReady() && cPanel.isValid())
       return true;
     else {
       Styles.notification("Information missing", "Please fill in the required fields.",
@@ -266,7 +266,7 @@ public class ExtractionStep implements WizardStep {
   }
 
   public List<String> getFactors() {
-    return c.getConditions();
+    return cPanel.getConditions();
   }
 
   public int getExtractRepAmount() {

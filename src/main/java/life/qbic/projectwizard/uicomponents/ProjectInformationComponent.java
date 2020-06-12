@@ -78,9 +78,8 @@ public class ProjectInformationComponent extends VerticalLayout {
     spaceBox.setFilteringMode(FilteringMode.CONTAINS);
     addComponent(Styles.questionize(spaceBox, "Name of the project", "Project Name"));
 
-    //
     imgCheck = new CheckBox("Imaging Support");
-//    addComponent(imgCheck);//TODO omero support
+    addComponent(imgCheck);
 
     ComboBox prBox = new ComboBox("Sub-Project");
     prBox.setStyleName(Styles.boxTheme);
@@ -235,9 +234,7 @@ public class ProjectInformationComponent extends VerticalLayout {
   }
 
   public boolean hasImagingSupport(){
-
     return this.imgCheck.getValue();
-
   }
 
   public String getProjectDescription() {
