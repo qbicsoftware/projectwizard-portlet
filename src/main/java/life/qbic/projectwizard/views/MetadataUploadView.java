@@ -22,6 +22,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -81,8 +82,6 @@ import com.vaadin.ui.Window;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
-// import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
-// import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
 import com.vaadin.ui.Upload.FinishedEvent;
 
@@ -205,7 +204,6 @@ public class MetadataUploadView extends VerticalLayout {
 
   public void showProgress(boolean b) {
     progressBar.setVisible(b);
-    // progressInfo.setVisible(b);
   }
 
   private void initListeners() {
@@ -650,9 +648,10 @@ public class MetadataUploadView extends VerticalLayout {
       List<Object> row = new ArrayList<Object>();
       row.add("Properties -->");
       for (int i = 1; i < header.length; i++) {
-        // if (i != barcodeCol) {
         String headline = header[i];
-        ComboBox attributeOptions = new ComboBox("", options);
+        List<String> sortedOtions = new ArrayList<>(options);
+        Collections.sort(sortedOtions);
+        ComboBox attributeOptions = new ComboBox("", sortedOtions);
         attributeOptions.setStyleName(Styles.boxTheme);
         attributeOptions.setImmediate(true);
         attributeOptions.setInputPrompt("<Select Attribute>");
@@ -666,13 +665,15 @@ public class MetadataUploadView extends VerticalLayout {
             List<Object> toRemove = new ArrayList<Object>();
             for (Object item : attributeOptions.getItemIds()) {
               String val = item.toString();
-              if (val.startsWith("Condition: ") || val.startsWith("Property: "))
+              if (val.startsWith("Condition: ") || val.startsWith("Property: ")) {
                 if (!attributeOptions.getValue().equals(item))
                   toRemove.add(item);
+              }
             }
             for (Object item : toRemove) {
               attributeOptions.removeItem(item);
             }
+
             if (attributeOptions.getValue() != null) {
               String selectedProperty = (String) attributeOptions.getValue();
               if (selectedProperty.equals("[Experimental Condition]")
@@ -683,24 +684,37 @@ public class MetadataUploadView extends VerticalLayout {
                   sampleTable.removeContainerProperty(headline);
                   reactToTableChange();
                 } else {
-                  DataTypeCode dType = propertyToType.get(selectedProperty);
-                  if (dType != null) {
-                    switch (dType) {
-                      case CONTROLLEDVOCABULARY:
-                        createVocabularySelectWindow(attributeOptions, selectedProperty,
-                            collectLabelsInCol(headline));// TODO ?
-                        break;
-                      case REAL:
-                      case INTEGER:
-                        checkForNumberConsistency(headline, dType);
-                        reactToTableChange();
-                        break;
-                      default:
-                        reactToTableChange();
-                        break;
-                    }
-                  } else {
+                  if (isDuplicateSelection(selectedProperty)) {
+
+                    Styles.notification("Duplicate selection", selectedProperty
+                        + " has already been selected for another column. Please select something different.",
+                        NotificationType.ERROR);
+
+                    attributeOptions.setNullSelectionAllowed(true);
+                    attributeOptions.select(attributeOptions.getNullSelectionItemId());
+                    attributeOptions.setNullSelectionAllowed(false);
                     reactToTableChange();
+
+                  } else {
+                    DataTypeCode dType = propertyToType.get(selectedProperty);
+                    if (dType != null) {
+                      switch (dType) {
+                        case CONTROLLEDVOCABULARY:
+                          createVocabularySelectWindow(attributeOptions, selectedProperty,
+                              collectLabelsInCol(headline));// TODO ?
+                          break;
+                        case REAL:
+                        case INTEGER:
+                          checkForNumberConsistency(headline, dType);
+                          reactToTableChange();
+                          break;
+                        default:
+                          reactToTableChange();
+                          break;
+                      }
+                    } else {
+                      reactToTableChange();
+                    }
                   }
                 }
               }
@@ -743,6 +757,22 @@ public class MetadataUploadView extends VerticalLayout {
     addComponent(send);
     addComponent(progressBar);
     return true;
+  }
+
+  protected boolean isDuplicateSelection(String selectedProperty) {
+    int propCount = 0;
+    Item headerRow = getActiveTable().getItem(-1);
+    for (Object id : headerRow.getItemPropertyIds()) {
+      Object cell = headerRow.getItemProperty(id).getValue();
+
+      if (cell instanceof ComboBox) {
+        String propName = (String) ((ComboBox) cell).getValue();
+        if (selectedProperty.equals(propName)) {
+          propCount += 1;
+        }
+      }
+    }
+    return propCount > 1;
   }
 
   private char translateSeparatorSelection(OptionGroup option) {
