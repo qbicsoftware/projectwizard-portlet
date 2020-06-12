@@ -6,17 +6,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
-
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
@@ -458,8 +455,8 @@ public class OpenbisCreationController implements IOpenbisCreationController {
       logger.error(errors);
       return false;
     }
-    ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, SampleType.Q_ATTACHMENT_SAMPLE, "",
-        new ArrayList<String>(), new HashMap<String, Object>());
+    ISampleBean infoSample = new TSVSampleBean(code, exp, project, space,
+        SampleType.Q_ATTACHMENT_SAMPLE, "", new ArrayList<String>(), new HashMap<String, Object>());
     success = registerSampleBatch(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
     if (!success) {
       // experiments were not registered, break registration
@@ -478,6 +475,13 @@ public class OpenbisCreationController implements IOpenbisCreationController {
     params.put("user", user);
     params.put("identifier", expID);
     openbis.triggerIngestionService("update-experiment-metadata", params);
+  }
+
+  @Override
+  public void registerProjectWithExperimentsAndSamplesBatchWise(
+      List<List<ISampleBean>> tsvSampleHierarchy, List<OpenbisExperiment> informativeExperiments,
+      String description, boolean isPilot) {
+    throw new NotImplementedException();
   }
 
 }

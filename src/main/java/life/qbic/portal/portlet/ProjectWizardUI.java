@@ -47,7 +47,6 @@ import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.registration.OpenbisV3APIWrapper;
 import life.qbic.projectwizard.registration.OpenbisV3CreationController;
-import life.qbic.projectwizard.registration.OpenbisV3ReadController;
 import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
 import life.qbic.utils.TimeUtils;
@@ -127,8 +126,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     }
     if (success) {
       // stuff from openbis
-      OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
-      // findDuplicateData(readController);
+      // OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
 
       Map<String, String> taxMap = v3.getVocabLabelToCode("Q_NCBI_TAXONOMY");
       Map<String, String> tissueMap = v3.getVocabLabelToCode("Q_PRIMARY_TISSUES");
@@ -182,6 +180,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
     tabs.removeAllComponents();
 
     IOpenbisCreationController creationController = new OpenbisCreationController(openbis, user);
+
+
 
     if (v3RegistrationAPI) {
       creationController = new OpenbisV3CreationController(openbis, user, v3);

@@ -31,6 +31,8 @@ public class RegisterableProject {
     for (OpenbisExperiment e : informativeExperiments) {
       knownExperiments.put(e.getExperimentCode(), e);
     }
+    Map<String, RegisterableExperiment> expMap = new HashMap<String, RegisterableExperiment>();
+
     for (List<ISampleBean> inner : tsvSampleHierarchy) {
       // needed since we collect some samples that don't have the same experiment now - TODO not the
       // best place here
@@ -38,7 +40,6 @@ public class RegisterableProject {
         ISampleBean sa = inner.get(0);
         this.space = sa.getSpace();
         this.code = sa.getProject();
-        Map<String, RegisterableExperiment> expMap = new HashMap<String, RegisterableExperiment>();
         for (ISampleBean s : inner) {
           String expCode = s.getExperiment();
           // we know this experiment, add the current sample

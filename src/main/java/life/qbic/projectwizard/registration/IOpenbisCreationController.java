@@ -4,12 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.bind.JAXBException;
-
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ProgressBar;
-
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.persons.OpenbisSpaceUserRole;
@@ -32,6 +29,10 @@ public interface IOpenbisCreationController {
       final List<OpenbisExperiment> informativeExperiments, final ProgressBar bar, final Label info,
       final Runnable ready, Map<String, Map<String, Object>> entitiesToUpdate,
       final boolean isPilot);
+
+  public void registerProjectWithExperimentsAndSamplesBatchWise(
+      List<List<ISampleBean>> tsvSampleHierarchy, List<OpenbisExperiment> informativeExperiments,
+      String description, boolean isPilot);
 
   public boolean registerSampleBatch(List<ISampleBean> samples);
 
