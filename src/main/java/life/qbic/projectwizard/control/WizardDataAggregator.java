@@ -641,8 +641,8 @@ public class WizardDataAggregator {
         entityNum++;
       }
     }
+    backgroundEntities = new ArrayList<>();
     if (infectionStudy) {
-      backgroundEntities = new ArrayList<>();
       int personID = -1;
       String person = s2.getPerson();
       Map<String, Object> props = new HashMap<String, Object>();
