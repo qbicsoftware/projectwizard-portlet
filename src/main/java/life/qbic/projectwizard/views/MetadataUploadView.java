@@ -22,6 +22,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -81,8 +82,6 @@ import com.vaadin.ui.Window;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
-// import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
-// import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
 import com.vaadin.ui.Upload.FinishedEvent;
 
@@ -205,7 +204,6 @@ public class MetadataUploadView extends VerticalLayout {
 
   public void showProgress(boolean b) {
     progressBar.setVisible(b);
-    // progressInfo.setVisible(b);
   }
 
   private void initListeners() {
@@ -262,20 +260,24 @@ public class MetadataUploadView extends VerticalLayout {
 
         int last = ids.size() - 1;
         int steps = Math.max(1, (last / BATCH_SIZE) + 1);
-        String xmlToUpdate = null;
-        try {
-          xmlToUpdate = collectPropsForExperimentXML(ids);
-        } catch (JAXBException e1) {
-          // TODO Auto-generated catch block
-          e1.printStackTrace();
-        }
-        if (xmlToUpdate != null) {
-          steps++;
-          current++;
-          double frac = current * 1.0 / steps;
-          UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
 
-          updateExperimentalDesignXML(xmlToUpdate);
+        boolean hasSampleLevelProps = tableContainsSampleLevelProps();
+        String xmlToUpdate = null;
+        if (tableContainsExperimentXMLProps()) {
+          try {
+            xmlToUpdate = collectPropsForExperimentXML(ids);
+          } catch (JAXBException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+          }
+          if (xmlToUpdate != null) {
+            steps++;
+            current++;
+            double frac = current * 1.0 / steps;
+            UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+
+            updateExperimentalDesignXML(xmlToUpdate);
+          }
         }
         int start = 0;
         int end = -1;
@@ -284,19 +286,20 @@ public class MetadataUploadView extends VerticalLayout {
           end += Math.min(BATCH_SIZE, last - end);
           List<Integer> batch = ids.subList(start, end + 1);
 
-          logger.debug("sending metadata of samples " + start + "-" + end + " to openBIS.");
-          start = end + 1;
-
           double frac = current * 1.0 / steps;
           UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
-          try {
-            ingestRows(batch);
-          } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          } catch (JAXBException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+          if (hasSampleLevelProps) {
+            logger.debug("sending metadata of samples " + start + "-" + end + " to openBIS.");
+            start = end + 1;
+            try {
+              ingestRows(batch);
+            } catch (IllegalArgumentException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            } catch (JAXBException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
           }
         }
         UI.getCurrent().setPollInterval(-1);
@@ -321,11 +324,31 @@ public class MetadataUploadView extends VerticalLayout {
     return (Table) sheet.getSelectedTab();
   }
 
-  public static void main(String[] args) {
-    life.qbic.xml.properties.Unit x = life.qbic.xml.properties.Unit.fromString("h");
-    life.qbic.xml.properties.Unit y = life.qbic.xml.properties.Unit.valueOf("Hour");
-    System.out.println(x);
-    System.out.println(y);
+  protected boolean tableContainsSampleLevelProps() {
+    Table sampleTable = getActiveTable();
+    for (Object col : sampleTable.getContainerPropertyIds()) {
+      String label = getSelectedProperty(col);
+      // find properties and experimental factors
+      if (!label.equals("Properties -->") && !label.startsWith("Condition: ")
+          && !label.startsWith("Property: ")) {
+        return true;
+      }
+    }
+    logger.info("No sample properties need to be updated.");
+    return false;
+  }
+
+  protected boolean tableContainsExperimentXMLProps() {
+    Table sampleTable = getActiveTable();
+    for (Object col : sampleTable.getContainerPropertyIds()) {
+      String label = getSelectedProperty(col);
+      // find properties and experimental factors
+      if (label.startsWith("Condition: ") || label.startsWith("Property: ")) {
+        logger.info("Experiment xml need to be updated.");
+        return true;
+      }
+    }
+    return false;
   }
 
   protected String collectPropsForExperimentXML(List<Integer> rows) throws JAXBException {
@@ -625,9 +648,10 @@ public class MetadataUploadView extends VerticalLayout {
       List<Object> row = new ArrayList<Object>();
       row.add("Properties -->");
       for (int i = 1; i < header.length; i++) {
-        // if (i != barcodeCol) {
         String headline = header[i];
-        ComboBox attributeOptions = new ComboBox("", options);
+        List<String> sortedOtions = new ArrayList<>(options);
+        Collections.sort(sortedOtions);
+        ComboBox attributeOptions = new ComboBox("", sortedOtions);
         attributeOptions.setStyleName(Styles.boxTheme);
         attributeOptions.setImmediate(true);
         attributeOptions.setInputPrompt("<Select Attribute>");
@@ -641,13 +665,15 @@ public class MetadataUploadView extends VerticalLayout {
             List<Object> toRemove = new ArrayList<Object>();
             for (Object item : attributeOptions.getItemIds()) {
               String val = item.toString();
-              if (val.startsWith("Condition: ") || val.startsWith("Property: "))
+              if (val.startsWith("Condition: ") || val.startsWith("Property: ")) {
                 if (!attributeOptions.getValue().equals(item))
                   toRemove.add(item);
+              }
             }
             for (Object item : toRemove) {
               attributeOptions.removeItem(item);
             }
+
             if (attributeOptions.getValue() != null) {
               String selectedProperty = (String) attributeOptions.getValue();
               if (selectedProperty.equals("[Experimental Condition]")
@@ -658,24 +684,37 @@ public class MetadataUploadView extends VerticalLayout {
                   sampleTable.removeContainerProperty(headline);
                   reactToTableChange();
                 } else {
-                  DataTypeCode dType = propertyToType.get(selectedProperty);
-                  if (dType != null) {
-                    switch (dType) {
-                      case CONTROLLEDVOCABULARY:
-                        createVocabularySelectWindow(attributeOptions, selectedProperty,
-                            collectLabelsInCol(headline));// TODO ?
-                        break;
-                      case REAL:
-                      case INTEGER:
-                        checkForNumberConsistency(headline, dType);
-                        reactToTableChange();
-                        break;
-                      default:
-                        reactToTableChange();
-                        break;
-                    }
-                  } else {
+                  if (isDuplicateSelection(selectedProperty)) {
+
+                    Styles.notification("Duplicate selection", selectedProperty
+                        + " has already been selected for another column. Please select something different.",
+                        NotificationType.ERROR);
+
+                    attributeOptions.setNullSelectionAllowed(true);
+                    attributeOptions.select(attributeOptions.getNullSelectionItemId());
+                    attributeOptions.setNullSelectionAllowed(false);
                     reactToTableChange();
+
+                  } else {
+                    DataTypeCode dType = propertyToType.get(selectedProperty);
+                    if (dType != null) {
+                      switch (dType) {
+                        case CONTROLLEDVOCABULARY:
+                          createVocabularySelectWindow(attributeOptions, selectedProperty,
+                              collectLabelsInCol(headline));// TODO ?
+                          break;
+                        case REAL:
+                        case INTEGER:
+                          checkForNumberConsistency(headline, dType);
+                          reactToTableChange();
+                          break;
+                        default:
+                          reactToTableChange();
+                          break;
+                      }
+                    } else {
+                      reactToTableChange();
+                    }
                   }
                 }
               }
@@ -718,6 +757,22 @@ public class MetadataUploadView extends VerticalLayout {
     addComponent(send);
     addComponent(progressBar);
     return true;
+  }
+
+  protected boolean isDuplicateSelection(String selectedProperty) {
+    int propCount = 0;
+    Item headerRow = getActiveTable().getItem(-1);
+    for (Object id : headerRow.getItemPropertyIds()) {
+      Object cell = headerRow.getItemProperty(id).getValue();
+
+      if (cell instanceof ComboBox) {
+        String propName = (String) ((ComboBox) cell).getValue();
+        if (selectedProperty.equals(propName)) {
+          propCount += 1;
+        }
+      }
+    }
+    return propCount > 1;
   }
 
   private char translateSeparatorSelection(OptionGroup option) {

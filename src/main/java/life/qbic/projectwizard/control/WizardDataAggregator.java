@@ -104,7 +104,7 @@ public class WizardDataAggregator {
   private String projectCode;
   private List<OpenbisExperiment> experiments;
   private String species;
-  private String speciesInfo;
+  private String speciesSpecified;
   private String tissue;
   private String specialTissue;
   private List<TestSampleInformation> techTypeInfo = new ArrayList<TestSampleInformation>();
@@ -141,6 +141,9 @@ public class WizardDataAggregator {
   private Set<String> oldFactors;
   private Map<Pair<String, String>, Property> oldFactorsForSamples;
   private Map<String, String> expDesignExperimentProperties;
+  private Set<String> infectantSpecies;
+  private OpenbisExperiment infectantExperiment;
+  private List<AOpenbisSample> backgroundEntities;
 
   /**
    * Creates a new WizardDataAggregator
@@ -227,13 +230,13 @@ public class WizardDataAggregator {
    * @return
    * @throws JAXBException
    */
-  public List<AOpenbisSample> prepareEntities(Map<Object, Integer> map, boolean copy)
-      throws JAXBException {
+  public List<AOpenbisSample> prepareEntities(Map<Object, Integer> map, boolean copy,
+      boolean infectionStudy) throws JAXBException {
     prepareBasics();
     this.factorMap = new HashMap<String, Property>();
     experiments = new ArrayList<OpenbisExperiment>();
     species = s2.getSpecies();
-    speciesInfo = s2.getSpecialSpecies();
+    speciesSpecified = s2.getSpecialSpecies();
     bioReps = s2.getBioRepAmount();
 
     // entities are not created new, but parsed from registered ones
@@ -255,7 +258,7 @@ public class WizardDataAggregator {
       List<List<Property>> valueLists = s3.getFactors();
       bioFactors = createFactorInfo(valueLists);
 
-      entities = buildEntities(map);
+      entities = buildEntities(map, infectionStudy);
     }
     return entities;
   }
@@ -541,11 +544,34 @@ public class WizardDataAggregator {
    * Generates all permutations of a list of experiment conditions
    * 
    * @param lists Instance lists of different conditions
+   * @param infectionStudy
    * @return List of all possible permutations of the input conditions
    */
-  public List<String> generatePermutations(List<List<String>> lists) {
-    List<String> res = new ArrayList<String>();
+  public List<String> generatePermutations(List<List<String>> lists, boolean infectionStudy) {
+    infectantSpecies = new HashSet<>();
+    List<String> res = new ArrayList<>();
     generatePermutationsHelper(lists, res, 0, "");
+
+    if (infectionStudy) {
+      List<String> newRes = new ArrayList<>();
+      int n = 0;
+      for (String concat : res) {
+        String[] conditionSplit = concat.split("###");
+
+        // handle infection studies. every second entry is a potential infecting species
+        n++;
+        if ((n % 2) == 0) {
+          for (String condition : conditionSplit) {
+            if (taxMap.containsKey(condition)) {
+              infectantSpecies.add(condition);
+            }
+          }
+        } else {
+          newRes.add(concat);
+        }
+      }
+      res = newRes;
+    }
     return res;
   }
 
@@ -575,18 +601,22 @@ public class WizardDataAggregator {
    * 
    * @return List of AOpenbisSamples containing entity samples
    */
-  private List<AOpenbisSample> buildEntities(Map<Object, Integer> map) {
+  private List<AOpenbisSample> buildEntities(Map<Object, Integer> map, boolean infectionStudy) {
     List<AOpenbisSample> entities = new ArrayList<AOpenbisSample>();
     List<List<String>> factorLists = new ArrayList<List<String>>();
     factorLists.addAll(bioFactors);
-    List<String> permutations = generatePermutations(factorLists);
+    List<String> permutations = generatePermutations(factorLists, infectionStudy);
+
     List<List<String>> permLists = new ArrayList<List<String>>();
     for (String concat : permutations) {
-      permLists.add(new ArrayList<String>(Arrays.asList(concat.split("###"))));
+      String[] conditionSplit = concat.split("###");
+      permLists.add(new ArrayList<String>(Arrays.asList(conditionSplit)));
     }
+    
     int entityNum = firstFreeEntityID;
     int defBioReps = bioReps;
     int permID = 0;
+    
     for (List<String> secondaryNameList : permLists) {
       permID++;
       String secondaryName = nameListToSecondaryName(secondaryNameList);
@@ -605,9 +635,29 @@ public class WizardDataAggregator {
           }
         }
         String taxID = taxMap.get(species);
+        
         entities.add(new OpenbisBiologicalEntity(projectCode + "ENTITY-" + entityNum, spaceCode,
-            experiments.get(0).getExperimentCode(), secondaryName, "", factors, taxID, speciesInfo,
-            ""));
+            experiments.get(0).getExperimentCode(), secondaryName, "", factors, taxID, "", ""));
+        entityNum++;
+      }
+    }
+    backgroundEntities = new ArrayList<>();
+    if (infectionStudy) {
+      int personID = -1;
+      String person = s2.getPerson();
+      Map<String, Object> props = new HashMap<String, Object>();
+      if (!s2.getExpNameField().getValue().isEmpty())
+        props.put("Q_SECONDARY_NAME", s2.getExpNameField().getValue() + " infectants");
+      if (person != null && !person.isEmpty())
+        personID = personMap.get(person);
+      infectantExperiment = new OpenbisExperiment(buildExperimentName(),
+          ExperimentType.Q_EXPERIMENTAL_DESIGN, personID, props);
+      // create sample for every unique infectant species
+      for (String species : infectantSpecies) {
+        String taxID = taxMap.get(species);
+        backgroundEntities.add(new OpenbisBiologicalEntity(projectCode + "ENTITY-" + entityNum,
+            spaceCode, infectantExperiment.getExperimentCode(), "Infectant: " + species, "",
+            new ArrayList<>(), taxID, speciesSpecified, ""));
         entityNum++;
       }
     }
@@ -639,7 +689,7 @@ public class WizardDataAggregator {
       factorLists.add(new ArrayList<String>(Arrays.asList(secName)));
 
       factorLists.addAll(extractFactors);
-      List<String> permutations = generatePermutations(factorLists);
+      List<String> permutations = generatePermutations(factorLists, false);
       List<List<String>> permLists = new ArrayList<List<String>>();
       for (String concat : permutations) {
         permLists.add(new ArrayList<String>(Arrays.asList(concat.split("###"))));
@@ -968,58 +1018,6 @@ public class WizardDataAggregator {
     }
   }
 
-  // /**
-  // * Copy a list of samples, used by the copy context function
-  // *
-  // * @param samples
-  // * @param copies
-  // * @return
-  // */
-  // private List<AOpenbisSample> copySamples(List<AOpenbisSample> samples,
-  // Map<String, String> copies) {
-  // String newExp = buildExperimentName();
-  // String type = samples.get(0).getValueMap().get("SAMPLE TYPE");
-  // ExperimentType eType = ExperimentType.Q_EXPERIMENTAL_DESIGN;
-  // if (type.equals("Q_BIOLOGICAL_ENTITY"))
-  // eType = ExperimentType.Q_EXPERIMENTAL_DESIGN;
-  // else if (type.equals("Q_BIOLOGICAL_SAMPLE"))
-  // eType = ExperimentType.Q_SAMPLE_EXTRACTION;
-  // else if (type.equals("Q_TEST_SAMPLE"))
-  // eType = ExperimentType.Q_SAMPLE_PREPARATION;
-  // else
-  // logger.error("Unexpected type: " + type);
-  // experiments.add(new OpenbisExperiment(newExp, eType, -1, null));// TODO secondary name?
-  //
-  // for (AOpenbisSample s : samples) {
-  // s.setExperiment(newExp);
-  // String code = s.getCode();
-  // String newCode = code;
-  // if (s instanceof OpenbisBiologicalEntity) {
-  // newCode = projectCode + "ENTITY-" + firstFreeEntityID;
-  // firstFreeEntityID++;
-  // } else {
-  // if (nextBarcode == null) {
-  // // classChar = 'A';
-  // // nextBarcode =
-  // // projectCode + Functions.createCountString(firstFreeBarcodeID, 3) + classChar;
-  // // nextBarcode = nextBarcode + Functions.checksum(nextBarcode);
-  // nextBarcode = firstFreeBarcode;
-  // } else {
-  // nextBarcode = SampleCodeFunctions.incrementSampleCode(nextBarcode);
-  // }
-  // newCode = nextBarcode;
-  // }
-  // copies.put(code, newCode);
-  // s.setCode(newCode);
-  // String p = s.getParent();
-  // // change parent if parent was copied
-  // if (p != null && p.length() > 0)
-  // if (copies.containsKey(p))
-  // s.setParent(copies.get(p));
-  // }
-  // return samples;
-  // }
-
   /**
    * Gets all samples that are one level higher in the sample hierarchy of an attached experiment
    * than a given list of samples
@@ -1037,23 +1035,6 @@ public class WizardDataAggregator {
     return null;
   }
 
-  // /**
-  // * Gets all samples that are one level lower in the sample hierarchy of an attached experiment
-  // * than a given list of samples
-  // *
-  // * @param originals
-  // * @return
-  // */
-  // private List<Sample> getLowerSamples(List<Sample> originals) {
-  // for (Sample s : originals) {
-  // List<Sample> children = openbis.getChildrenSamples(s);
-  // if (children.size() > 0) {
-  // return openbis.getSamplesofExperiment(children.get(0).getExperimentIdentifierOrNull());
-  // }
-  // }
-  // return null;
-  // }
-
   /**
    * Creates a tab separated values file of the context created by the wizard, given that samples
    * have been prepared in the aggregator class
@@ -1065,6 +1046,7 @@ public class WizardDataAggregator {
   public String createTSV() throws FileNotFoundException, UnsupportedEncodingException {
     List<AOpenbisSample> samples = new ArrayList<AOpenbisSample>();
     samples.addAll(entities);
+    samples.addAll(backgroundEntities);
     samples.addAll(extracts);
     samples.addAll(tests);
     if (testPools != null)
@@ -1105,12 +1087,17 @@ public class WizardDataAggregator {
     result += "#CONTACT=" + contact + "\n";
     result += "#MANAGER=" + manager + "\n";
 
-    // TODO reuse this in the refactored version, it's not stupid
+    List<OpenbisExperiment> allExperiments = new ArrayList<>();
     if (experiments != null) {
-      for (OpenbisExperiment e : experiments) {
-        if (informativeExpTypes.contains(e.getType()) || e.containsProperties()) {
-          result += e.getPropertiesString() + "\n";
-        }
+      allExperiments.addAll(experiments);
+    }
+    if (!infectantSpecies.isEmpty()) {
+      allExperiments.add(infectantExperiment);
+    }
+    // TODO reuse this in the refactored version, it's not stupid
+    for (OpenbisExperiment e : allExperiments) {
+      if (informativeExpTypes.contains(e.getType()) || e.containsProperties()) {
+        result += e.getPropertiesString() + "\n";
       }
     }
     // Map<String, Object> msProps = s8.getProteinMSExperimentProperties(); TODO might need this for
@@ -1176,7 +1163,15 @@ public class WizardDataAggregator {
   // TODO should be parsed from the tsv?
   public List<OpenbisExperiment> getExperimentsWithMetadata() {
     List<OpenbisExperiment> res = new ArrayList<OpenbisExperiment>();
-    for (OpenbisExperiment e : experiments) {
+    List<OpenbisExperiment> allExperiments = new ArrayList<>();
+    if (experiments != null) {
+      allExperiments.addAll(experiments);
+    }
+    if (!infectantSpecies.isEmpty()) {
+      allExperiments.add(infectantExperiment);
+    }
+    // TODO reuse this in the refactored version, it's not stupid
+    for (OpenbisExperiment e : allExperiments) {
       if (informativeExpTypes.contains(e.getType()) || e.containsProperties()) {
         res.add(e);
       }

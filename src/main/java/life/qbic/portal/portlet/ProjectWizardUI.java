@@ -111,8 +111,10 @@ public class ProjectWizardUI extends QBiCPortletUI {
       this.openbis = new OpenBisClient(config.getDataSourceUser(), config.getDataSourcePassword(),
           config.getDataSourceUrl());
       this.openbis.login();
+
       v3 = new OpenbisV3APIWrapper(config.getDataSourceUrl(), config.getDataSourceUser(),
           config.getDataSourcePassword(), userID);
+
     } catch (Exception e) {
       success = false;
       logger.error(
@@ -140,7 +142,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
       // Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
       // Map<String, String> enzymeMap =
       // openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES");
-      // Map<String, String> chromTypes =
+      // Map<String, String> chromTypes2 =
       // openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
       // Map<String, String> purificationMethods =
       // openbis.getVocabCodesAndLabelsForVocab("Q_PROTEIN_PURIFICATION_METHODS");
@@ -176,6 +178,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
     tabs.removeAllComponents();
 
     IOpenbisCreationController creationController = new OpenbisCreationController(openbis, user);
+
+
 
     if (v3RegistrationAPI) {
       creationController = new OpenbisV3CreationController(openbis, user, v3);
@@ -238,26 +242,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
     if (overwriteAllowed)
       logger.info("User can overwrite existing metadata for their project.");
   }
-
-  // TODO group that might be used to delete metadata or even sample/experiment objects in the
-  // future
-  // private boolean canDelete() {
-  // try {
-  // User user = PortalUtils.getUser();
-  // for (UserGroup grp : user.getUserGroups()) {
-  // String group = grp.getName();
-  // if (config.getDeletionGrp().contains(group)) {
-  // logger.info(
-  // "User " + user.getScreenName() + " can delete because they are part of " + group);
-  // return true;
-  //// }
-  // }
-  // } catch (Exception e) {
-  // e.printStackTrace();
-  // logger.error("Could not fetch user groups. User won't be able to delete.");
-  // }
-  // return false;
-  // }
 
   private boolean canOverwrite() {
     try {

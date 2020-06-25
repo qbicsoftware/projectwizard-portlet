@@ -105,7 +105,7 @@ public class OpenbisV3APIWrapper {
       }
     }
     if (adminToken == null) {
-      logger.info("Logging in to the openBIS V3 API as config user: "+adminUser);
+      logger.info("Logging in to the openBIS V3 API as config user: " + adminUser);
       adminToken = adminAPI.login(adminUser, pw);
       if (adminToken != null) {
         logger.info("Successfully logged in.");
@@ -185,6 +185,30 @@ public class OpenbisV3APIWrapper {
     Map<IExperimentId, Experiment> map =
         API.getExperiments(getActiveToken(), Arrays.asList(id), options);
     return map.get(id);
+  }
+
+  public SearchResult<Sample> searchSampleWithCodeAndDescendants(String code) {
+    checklogin();
+    SampleSearchCriteria sc = new SampleSearchCriteria();
+    sc.withCode().thatEquals(code);
+    SampleFetchOptions options = new SampleFetchOptions();
+    options.withExperiment();
+
+    SampleFetchOptions cOptions = new SampleFetchOptions();
+
+    ExperimentFetchOptions eOptions = new ExperimentFetchOptions();
+    eOptions.withProperties();
+    
+    cOptions.withExperimentUsing(eOptions);
+    cOptions.withChildren();
+    
+    DataSetFetchOptions dsOptions = new DataSetFetchOptions();
+    dsOptions.withType();
+    dsOptions.withPhysicalData();
+    cOptions.withDataSetsUsing(dsOptions);
+
+    options.withChildrenUsing(cOptions);
+    return API.searchSamples(getActiveToken(), sc, options);
   }
 
   public SearchResult<Sample> searchSampleWithCode(String code) {

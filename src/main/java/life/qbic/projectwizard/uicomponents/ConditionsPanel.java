@@ -29,6 +29,7 @@ import com.vaadin.ui.Button.ClickEvent;
 import life.qbic.portal.Styles;
 
 import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
@@ -43,21 +44,21 @@ import com.vaadin.ui.TextField;
 public class ConditionsPanel extends HorizontalLayout {
 
   private static final long serialVersionUID = -1578503116738309380L;
-  List<String> options;
-  String other;
-  String special;
-  ComboBox specialField;
-  TextField specialNumField;
-  boolean nullSelectionAllowed;
-  List<ConditionChooser> choosers;
-  ValueChangeListener conditionChangeListener;
-  Button.ClickListener buttonListener;
-  HorizontalLayout buttonGridComp;
-  GridLayout buttonGrid;
-  Button add;
-  Button remove;
+  private List<String> options;
+  private String other;
+  private String special;
+  private ComboBox specialField;
+  private Component specialOptionsComponent;
+  private boolean nullSelectionAllowed;
+  private List<ConditionChooser> choosers;
+  private ValueChangeListener conditionChangeListener;
+  private Button.ClickListener buttonListener;
+  private HorizontalLayout buttonGridComp;
+  private GridLayout buttonGrid;
+  private Button add;
+  private Button remove;
 
-  OptionGroup conditionsSet;
+  private OptionGroup conditionsSet;
 
   /**
    * Create a new Conditions Panel component to select experimental conditions
@@ -72,12 +73,12 @@ public class ConditionsPanel extends HorizontalLayout {
    * @param nullSelectionAllowed true, if the conditions may be empty
    * @param conditionsSet (empty) option group that makes it possible to listen to the conditions
    *        inside this component from the outside
-   * @param specialNumField
+   * @param specialOptionsComponent
    */
   public ConditionsPanel(List<String> options, String other, String special, ComboBox specialField,
-      boolean nullSelectionAllowed, OptionGroup conditionsSet, TextField specialNumField) {
+      boolean nullSelectionAllowed, OptionGroup conditionsSet, Component specialOptionsComponent) {
     this.specialField = specialField;
-    this.specialNumField = specialNumField;
+    this.specialOptionsComponent = specialOptionsComponent;
     this.options = options;
     this.other = other;
     this.special = special;
@@ -136,8 +137,8 @@ public class ConditionsPanel extends HorizontalLayout {
         specialField.setRequired(!special);
         //TODO test this, was enabled
         specialField.setVisible(!special);
-        specialNumField.setEnabled(special);
-        specialNumField.setVisible(special);
+        specialOptionsComponent.setEnabled(special);
+        specialOptionsComponent.setVisible(special);
       }
     };
 

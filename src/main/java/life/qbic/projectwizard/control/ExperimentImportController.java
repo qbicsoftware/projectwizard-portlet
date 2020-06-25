@@ -524,7 +524,6 @@ public class ExperimentImportController implements IRegistrationController {
     }
   }
 
-
   private void prepareCompletionDialog() {
     Map<String, List<String>> catToVocabulary = new HashMap<String, List<String>>();
     catToVocabulary.put("Species", new ArrayList<String>(taxMap.keySet()));
