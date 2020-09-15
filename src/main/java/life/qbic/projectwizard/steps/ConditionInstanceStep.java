@@ -19,11 +19,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import life.qbic.projectwizard.model.TissueInfo;
 import life.qbic.projectwizard.uicomponents.ConditionPropertyPanel;
 import life.qbic.projectwizard.uicomponents.FactorOptionBox;
@@ -33,9 +33,7 @@ import life.qbic.portal.components.CustomVisibilityComponent;
 import life.qbic.portal.components.StandardTextField;
 import life.qbic.xml.properties.Property;
 import life.qbic.xml.properties.PropertyType;
-
 import org.vaadin.teemu.wizards.WizardStep;
-
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -69,6 +67,8 @@ public class ConditionInstanceStep implements WizardStep {
   private Map<Object, Integer> permutations;
 
   private Map<String, TissueInfo> specialTissueInfos;
+
+  private boolean infectionStudy = false;
 
   /**
    * Create a new Condition Step for the wizard
@@ -137,7 +137,8 @@ public class ConditionInstanceStep implements WizardStep {
     for (int i = 0; i < factors.size(); i++) {
       String f = factors.get(i);
       if (!optionName.contains(f)) {
-        EnumSet<life.qbic.xml.properties.Unit> units = EnumSet.noneOf(life.qbic.xml.properties.Unit.class);
+        EnumSet<life.qbic.xml.properties.Unit> units =
+            EnumSet.noneOf(life.qbic.xml.properties.Unit.class);
         units.addAll(Arrays.asList(life.qbic.xml.properties.Unit.values()));
         ConditionPropertyPanel a = new ConditionPropertyPanel(f, units);
         a.setMargin(true);
@@ -147,15 +148,27 @@ public class ConditionInstanceStep implements WizardStep {
     }
   }
 
-  public void initOptionsFactorComponent(int amount, Set<String> altOptions, String altBoxCaption,
-      String altFieldCaption, String altBoxKeyword, String altFieldKeyword) {
+  public void initOptionsFactorComponent(int amount, boolean infectionStudy, Set<String> altOptions,
+      String altBoxCaption, String altFieldCaption, String altBoxKeyword, String altFieldKeyword) {
+    this.infectionStudy  = infectionStudy;
     VerticalLayout optionBox = new VerticalLayout();
     for (int i = 1; i <= amount; i++) {
-      FactorOptionBox b = new FactorOptionBox(options, altOptions, optionName + " " + i,
+      FactorOptionBox b = new FactorOptionBox(options, null, altOptions, optionName + " " + i,
           altBoxCaption, altFieldCaption, altBoxKeyword, altFieldKeyword);
       b.setStyleName(Styles.boxTheme);
       optionInstances.add(b);
       optionBox.addComponent(b);
+
+      if (infectionStudy) {
+        Set<String> infectOptions = new HashSet<>(options);
+        infectOptions.add("None");
+        FactorOptionBox c =
+            new FactorOptionBox(infectOptions, "None", altOptions, "Organism infecting " + i,
+                altBoxCaption, altFieldCaption, altBoxKeyword, altFieldKeyword);
+        c.setStyleName(Styles.boxTheme);
+        optionInstances.add(c);
+        optionBox.addComponent(c);
+      }
     }
     HorizontalLayout helpBox = Styles.questionize(optionBox,
         "To continue, fill in the different " + optionName + " in this experiment.", optionName);
@@ -177,7 +190,7 @@ public class ConditionInstanceStep implements WizardStep {
         if (p.getException() != "")
           error = p.getException();
       }
-      if(error.isEmpty())
+      if (error.isEmpty())
         error = "Please add all missing values.";
       Styles.notification("Wrong input", error, NotificationType.ERROR);
     }

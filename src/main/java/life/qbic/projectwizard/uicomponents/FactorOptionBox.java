@@ -1,14 +1,12 @@
 package life.qbic.projectwizard.uicomponents;
 
 import java.util.Set;
-
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-
 import life.qbic.projectwizard.model.TissueInfo;
 import life.qbic.portal.Styles;
 
@@ -20,11 +18,15 @@ public class FactorOptionBox extends VerticalLayout {
   private String altFieldKeyword;
   private String altBoxKeyword;
 
-  public FactorOptionBox(Set<String> options, Set<String> altOptions, String optionCaption,
-      String altBoxCaption, String altFieldCaption, String altBoxKeyword, String altFieldKeyword) {
+  public FactorOptionBox(Set<String> options, String preselection, Set<String> altOptions,
+      String optionCaption, String altBoxCaption, String altFieldCaption, String altBoxKeyword,
+      String altFieldKeyword) {
     this.altFieldKeyword = altFieldKeyword;
     this.altBoxKeyword = altBoxKeyword;
     optionBox = new ComboBox(optionCaption, options);
+    if (preselection != null && !preselection.isEmpty()) {
+      optionBox.setValue(preselection);
+    }
     optionBox.setStyleName(Styles.boxTheme);
     optionBox.setImmediate(true);
     optionBox.setRequired(true);

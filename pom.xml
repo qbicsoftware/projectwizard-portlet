@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>projectwizard-portlet</artifactId>
-	<version>1.8.0-SNAPSHOT</version>
+	<version>1.9.0-SNAPSHOT</version>
 	<name>ProjectWizard Portlet</name>
 	<url>http://github.com/qbicsoftware/projectwizard-portlet</url>
 	<packaging>war</packaging>
@@ -112,11 +112,11 @@
 			<version>5.8</version>
 		</dependency>
 		
-		<!--ask Luis K. :)
+		<!--ask Luis K. :) -->
         <dependency>
             <groupId>life.qbic</groupId>
             <artifactId>omero-client-lib</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -131,7 +131,7 @@
                     <artifactId>jcl-over-slf4j</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>-->
+        </dependency>
 		<dependency>
 			<!-- Patched version 4.2-min does not bundle slf4j -->
 			<groupId>org.slf4j</groupId>
