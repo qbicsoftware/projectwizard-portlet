@@ -1,0 +1,12 @@
+File Name	Organism ID	Sample Secondary Name	Species	Tissue	Pooled Sample	Cycle/Fraction Name	Fractionation Type	Digestion Method	Digestion enzyme	Enrichment Method	Labeling Type	Label	LC Column	MS Device	LCMS Method	Facility Comment	Customer Comment
+easy.raw	p1	R1	Homo sapiens	Whole blood				Beads	Trypsin				HPLC	HFX	180min_something		
+R2.raw	p1	R2	Homo sapiens	Liver				Beads	Trypsin				HPLC	HFX	180min_something		
+easy_pool.raw	p1	R1R2	Homo sapiens	Whole blood	R1+R2								HPLC	HFX	180min_something		
+fraction1.raw	p1	R3	Homo sapiens	Whole blood		R3F1	Offgel	Beads	Trypsin		SILAC	light	UPLC	HFX	120min_x		
+fraction2.raw	p1	R3	Homo sapiens	Whole blood		R3F2	Offgel	Beads	Trypsin		SILAC	medium	UPLC	HFX	120min_x		
+fraction3.raw	p1	R3	Homo sapiens	Whole blood		R3F3	Offgel	Beads	Trypsin		SILAC	heavy	UPLC	HFX	120min_x		
+pooled_fractions.raw	p1	R3pool	Homo sapiens	Whole blood	R3F1+R3F2+R3F3			Beads	Trypsin		SILAC	mix	UPLC	HFX	240min_y		
+fractioned_pool1.raw	p1	R1R2	Homo sapiens	Whole blood		Fraction #1	Offgel	Beads	Trypsin		SILAC	light	UPLC	HFX	120min_x		
+fractioned_pool2.raw	p1	R1R2	Homo sapiens	Whole blood		Fraction #2	Offgel	Beads	Trypsin		SILAC	medium	UPLC	HFX	120min_x		
+fractioned_pool3.raw	p1	R1R2	Homo sapiens	Whole blood		Fraction #3	Offgel	Beads	Trypsin		SILAC	heavy	UPLC	HFX	120min_x		
+R4.raw	p1	R4	Homo sapiens	Liver				Beads	Trypsin+Chymotrypsin				UPLC	HFX	240min_y		

@@ -27,14 +27,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.xml.bind.JAXBException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.isatools.isacreator.model.Study;
-
+// import org.isatools.isacreator.model.Study;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.CompositeValidator;
@@ -44,14 +41,12 @@ import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload.FinishedEvent;
 import com.vaadin.ui.Upload.FinishedListener;
 import com.wcs.wcslib.vaadin.widget.multifileupload.ui.AllUploadFinishedHandler;
-
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
@@ -71,20 +66,20 @@ import life.qbic.expdesign.VocabularyValidator;
 import life.qbic.expdesign.io.EasyDesignReader;
 import life.qbic.expdesign.io.IExperimentalDesignReader;
 import life.qbic.expdesign.io.MHCLigandDesignReader;
+import life.qbic.expdesign.io.MSDesignReader;
 import life.qbic.expdesign.io.QBiCDesignReader;
 import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
 import life.qbic.expdesign.model.ExperimentalDesignType;
 import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.expdesign.model.StructuredExperiment;
-import life.qbic.isatab.ISAReader;
-import life.qbic.isatab.ISAStudyInfos;
-import life.qbic.isatab.ISAToQBIC;
+// import life.qbic.isatab.ISAReader;
+// import life.qbic.isatab.ISAStudyInfos;
+// import life.qbic.isatab.ISAToQBIC;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.model.MHCTyping;
 import life.qbic.projectwizard.model.Vocabularies;
-import life.qbic.projectwizard.processes.ISAParseReady;
-import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
+// import life.qbic.projectwizard.processes.ISAParseReady;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
@@ -103,17 +98,16 @@ public class ExperimentImportController implements IRegistrationController {
   private SamplePreparator prep;
   //
   private ProjectInfo projectInfo;
+  private List<Map<String, Object>> metadataList;
   private Map<String, Map<String, Object>> msProperties;
   private Map<String, Map<String, Object>> mhcProperties;
+  private Map<String, Map<String, Object>> samplePrepProperties;
   private Map<String, MHCTyping> dnaSampleCodeToMHCType;
-  private Map<String, Sample> extIDToSample;
+  private Map<String, Sample> uniqueIDToSample;
   private List<OpenbisExperiment> complexExperiments;
 
   private Map<String, String> reverseTaxMap;
-  private Map<String, String> taxMap;
   private Map<String, String> reverseTissueMap;
-  private Map<String, String> tissueMap;
-  private List<String> analytesVocabulary;
   private MissingInfoComponent questionaire;
   private IOpenBisClient openbis;
   private DBManager dbm;
@@ -123,7 +117,8 @@ public class ExperimentImportController implements IRegistrationController {
   private int firstFreeEntityID;
   private String firstFreeBarcode;
   private String nextBarcode;
-  Map<String, String> extCodeToBarcode;
+  private Map<String, String> uniqueCodeToBarcode;
+  private Map<String, String> uniqueNumericIDToUniqueCode;
 
   private final Logger logger = LogManager.getLogger(ExperimentImportController.class);
   protected String experimentalDesignXML;
@@ -131,85 +126,82 @@ public class ExperimentImportController implements IRegistrationController {
   private ArrayList<Sample> currentProjectSamples;
   private ProjectInformationComponent projectInfoComponent;
   private Set<String> currentDesignTypes;
-  protected ISAStudyInfos isaStudyInfos;
+  // protected ISAStudyInfos isaStudyInfos;
 
-  public ExperimentImportController(IOpenbisCreationController creationController, Vocabularies vocabularies,
-      IOpenBisClient openbis, DBManager dbm) {
+  public ExperimentImportController(IOpenbisCreationController creationController,
+      Vocabularies vocabularies, IOpenBisClient openbis, DBManager dbm) {
     view = new ExperimentImportView();
     this.dbm = dbm;
     this.questionaire = view.getMissingInfoComponent();
     this.vocabs = vocabularies;
     this.openbis = openbis;
-    this.taxMap = vocabularies.getTaxMap();
-    this.tissueMap = vocabularies.getTissueMap();
-    this.analytesVocabulary = vocabularies.getAnalyteTypes();
     this.reverseTaxMap = new HashMap<String, String>();
-    for (Map.Entry<String, String> entry : taxMap.entrySet()) {
+    for (Map.Entry<String, String> entry : vocabs.getTaxMap().entrySet()) {
       this.reverseTaxMap.put(entry.getValue(), entry.getKey());
     }
     this.reverseTissueMap = new HashMap<String, String>();
-    for (Map.Entry<String, String> entry : tissueMap.entrySet()) {
+    for (Map.Entry<String, String> entry : vocabs.getTissueMap().entrySet()) {
       this.reverseTissueMap.put(entry.getValue(), entry.getKey());
     }
     this.openbisCreator = creationController;
   }
 
 
-  public void initISAHandler(ISAReader isaParser, File folder) {
-    ComboBox isaStudyBox = view.getISAStudyBox();
-    isaStudyBox.addValueChangeListener(new ValueChangeListener() {
+  // public void initISAHandler(ISAReader isaParser, File folder) {
+  // ComboBox isaStudyBox = view.getISAStudyBox();
+  // isaStudyBox.addValueChangeListener(new ValueChangeListener() {
+  //
+  // @Override
+  // public void valueChange(ValueChangeEvent event) {
+  // Object study = isaStudyBox.getValue();
+  // if (study != null) {
+  // isaParser.selectStudyToParse(study.toString());
+  // }
+  // boolean readSuccess = false;
+  // try {
+  // prep = new SamplePreparator();
+  // readSuccess = prep.processTSV(folder, isaParser, true);
+  // } catch (IOException e) {
+  // // TODO Auto-generated catch block
+  // e.printStackTrace();
+  // } catch (JAXBException e) {
+  // // TODO Auto-generated catch block
+  // e.printStackTrace();
+  // }
+  // if (readSuccess) {
+  // isaStudyInfos = isaParser.getStudyInfos(study.toString());
+  // handleImportResults(ExperimentalDesignType.ISA, prep.getSummary());
+  // currentDesignTypes = new HashSet<>();
+  // currentDesignTypes.addAll(isaStudyInfos.getDesignTypes());
+  // projectInfoComponent.setDescription(isaStudyInfos.getDescription());
+  // projectInfoComponent.setProjectName(isaStudyInfos.getTitle());
+  // // TODO long information, studydesigns
+  // } else {
+  // String error = prep.getError();
+  // Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
+  // }
+  // }
+  // });
+  // }
 
-      @Override
-      public void valueChange(ValueChangeEvent event) {
-        Object study = isaStudyBox.getValue();
-        if (study != null) {
-          isaParser.selectStudyToParse(study.toString());
-        }
-        boolean readSuccess = false;
-        try {
-          prep = new SamplePreparator();
-          readSuccess = prep.processTSV(folder, isaParser, true);
-        } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch (JAXBException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-        if (readSuccess) {
-          isaStudyInfos = isaParser.getStudyInfos(study.toString());
-          handleImportResults(ExperimentalDesignType.ISA, prep.getSummary());
-          currentDesignTypes = new HashSet<>();
-          currentDesignTypes.addAll(isaStudyInfos.getDesignTypes());
-          projectInfoComponent.setDescription(isaStudyInfos.getDescription());
-          projectInfoComponent.setProjectName(isaStudyInfos.getTitle());
-          // TODO long information, studydesigns
-        } else {
-          String error = prep.getError();
-          Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
-        }
-      }
-    });
-  }
-
-  public void isaPrepComplete(List<Study> studies, String error) {
-    if (error != null) {
-      Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
-      view.resetFormatSelection();
-      view.listISAStudies(new ArrayList<Study>());
-    } else {
-      Styles.notification("Upload complete.",
-          "ISA-Tab has been successfully uploaded, please select a study.",
-          NotificationType.SUCCESS);
-      view.listISAStudies(studies);
-    }
-  }
+  // public void isaPrepComplete(List<Study> studies, String error) {
+  // if (error != null) {
+  // Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
+  // view.resetFormatSelection();
+  // view.listISAStudies(new ArrayList<Study>());
+  // } else {
+  // Styles.notification("Upload complete.",
+  // "ISA-Tab has been successfully uploaded, please select a study.",
+  // NotificationType.SUCCESS);
+  // view.listISAStudies(studies);
+  // }
+  // }
 
   public void init(final String user, final String isaConfigPath) {
-    ExperimentImportController control = this;
+    // ExperimentImportController control = this;
     Upload upload = new Upload("Upload your file here", uploader);
     MultiUploadComponent multiUpload = new MultiUploadComponent();
-    final ExperimentImportController controller = this;
+    // final ExperimentImportController controller = this;
 
     final AllUploadFinishedHandler allUploadFinishedHandler = new AllUploadFinishedHandler() {
 
@@ -220,20 +212,20 @@ public class ExperimentImportController implements IRegistrationController {
           @Override
           public void run() {
             File folder = multiUpload.getISAFolder();
-            ISAReader isaParser = new ISAReader(isaConfigPath, new ISAToQBIC());
+            // ISAReader isaParser = new ISAReader(isaConfigPath, new ISAToQBIC());
             String error = null;
-            List<Study> studies = new ArrayList<Study>();
+            // List<Study> studies = new ArrayList<Study>();
             try {
-              studies = isaParser.listStudies(folder);
-              error = isaParser.getError();
+              // studies = isaParser.listStudies(folder);
+              // error = isaParser.getError();
             } catch (NullPointerException e) {
               error = "Investigation file not found or not the right format.";
             }
             if (error == null)
-              initISAHandler(isaParser, folder);
+              // initISAHandler(isaParser, folder);
 
-            UI.getCurrent().access(new ISAParseReady(controller, studies, error));
-            UI.getCurrent().setPollInterval(-1);
+              // UI.getCurrent().access(new ISAParseReady(controller, studies, error));
+              UI.getCurrent().setPollInterval(-1);
           }
         });
         UI.getCurrent().setPollInterval(10);
@@ -286,6 +278,7 @@ public class ExperimentImportController implements IRegistrationController {
 
               IExperimentalDesignReader reader = null;
               boolean parseGraph = true;
+              boolean experimentVocabCorrectionAllowed = false;
               switch (getImportType()) {
                 case QBIC:
                   reader = new QBiCDesignReader();
@@ -295,6 +288,10 @@ public class ExperimentImportController implements IRegistrationController {
                   break;
                 case MHC_Ligands_Finished:
                   reader = new MHCLigandDesignReader();
+                  break;
+                case Proteomics_MassSpectrometry:
+                  experimentVocabCorrectionAllowed = true;
+                  reader = new MSDesignReader();
                 default:
                   break;
               }
@@ -302,16 +299,22 @@ public class ExperimentImportController implements IRegistrationController {
               boolean readSuccess = prep.processTSV(file, reader, parseGraph);
               boolean vocabValid = false;
               if (readSuccess) {
-                msProperties = prep.getSpecialExperimentsOfTypeOrNull("Q_MS_MEASUREMENT");
-                mhcProperties = prep.getSpecialExperimentsOfTypeOrNull("Q_MHC_LIGAND_EXTRACTION");
-                List<Map<String, Object>> metadataList = new ArrayList<Map<String, Object>>();
+                samplePrepProperties = prep.getSpecialExperimentsOfTypeOrNull(
+                    ExperimentType.Q_SAMPLE_PREPARATION.toString());
+                msProperties = prep
+                    .getSpecialExperimentsOfTypeOrNull(ExperimentType.Q_MS_MEASUREMENT.toString());
+                mhcProperties = prep.getSpecialExperimentsOfTypeOrNull(
+                    ExperimentType.Q_MHC_LIGAND_EXTRACTION.toString());
+                metadataList = new ArrayList<Map<String, Object>>();
+                if (samplePrepProperties != null)
+                  metadataList.addAll(samplePrepProperties.values());
                 if (msProperties != null)
                   metadataList.addAll(msProperties.values());
                 if (mhcProperties != null)
                   metadataList.addAll(mhcProperties.values());
                 vocabValid = validator.validateExperimentMetadata(metadataList);
               }
-              if (readSuccess && vocabValid) {
+              if (readSuccess && (vocabValid || experimentVocabCorrectionAllowed)) {
                 List<SampleSummaryBean> summaries = prep.getSummary();
                 for (SampleSummaryBean s : summaries) {
                   String translation = reverseTaxMap.get(s.getFullSampleContent());
@@ -320,7 +323,7 @@ public class ExperimentImportController implements IRegistrationController {
                 }
                 Styles.notification("Upload successful",
                     "Experiment was successfully uploaded and read.", NotificationType.SUCCESS);
-                handleImportResults(getImportType(), summaries);
+                handleImportResults(summaries);
 
               } else {
                 if (!readSuccess) {
@@ -376,8 +379,9 @@ public class ExperimentImportController implements IRegistrationController {
           String project = projectInfo.getProjectCode();
           String infoExpCode = project + "_INFO";
           String code = project + "000";
-          ISampleBean infoSample = new TSVSampleBean(code, infoExpCode, project, space, SampleType.Q_ATTACHMENT_SAMPLE,
-              "", new ArrayList<String>(), new HashMap<String, Object>());
+          ISampleBean infoSample =
+              new TSVSampleBean(code, infoExpCode, project, space, SampleType.Q_ATTACHMENT_SAMPLE,
+                  "", new ArrayList<String>(), new HashMap<String, Object>());
           samples.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
 
           // projectInfo = prep.getProjectInfo();
@@ -398,6 +402,7 @@ public class ExperimentImportController implements IRegistrationController {
           switch (getImportType()) {
             case Standard:
             case MHC_Ligands_Finished:
+            case Proteomics_MassSpectrometry:
               String tsvContent = addBarcodesToTSV(tsv, view.getSamples(), getImportType());
               view.setTSVWithBarcodes(tsvContent,
                   uploader.getFileNameWithoutExtension() + "_with_barcodes");
@@ -405,11 +410,11 @@ public class ExperimentImportController implements IRegistrationController {
             default:
               break;
           }
-          
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
-              projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
-              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control),
-              entitiesToUpdate, projectInfo.isPilot());
+          // TODO
+          // openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
+          // projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
+          // view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control),
+          // entitiesToUpdate, projectInfo.isPilot());
 
         }
       }
@@ -444,8 +449,7 @@ public class ExperimentImportController implements IRegistrationController {
   }
 
 
-  protected void handleImportResults(ExperimentalDesignType importType,
-      List<SampleSummaryBean> summaries) {
+  protected void handleImportResults(List<SampleSummaryBean> summaries) {
     switch (getImportType()) {
       // Standard hierarchic QBiC design
       case QBIC:
@@ -470,6 +474,7 @@ public class ExperimentImportController implements IRegistrationController {
         view.initGraphPreview(prep.getSampleGraph(), idsToSamples);
         // // MHC Ligands that have already been measured (Filenames exist)
       case MHC_Ligands_Finished:
+      case Proteomics_MassSpectrometry:
         prepareCompletionDialog();
         break;
       default:
@@ -486,8 +491,8 @@ public class ExperimentImportController implements IRegistrationController {
 
     ExperimentalDesignPropertyWrapper importedDesignProperties =
         prep.getExperimentalDesignProperties();
-    if (extCodeToBarcode != null) {
-      ParserHelpers.translateIdentifiersInExperimentalDesign(extCodeToBarcode,
+    if (uniqueCodeToBarcode != null) {
+      ParserHelpers.translateIdentifiersInExperimentalDesign(uniqueCodeToBarcode,
           importedDesignProperties);
     }
     if (currentDesignExperiment != null) {
@@ -526,20 +531,114 @@ public class ExperimentImportController implements IRegistrationController {
 
   private void prepareCompletionDialog() {
     Map<String, List<String>> catToVocabulary = new HashMap<String, List<String>>();
-    catToVocabulary.put("Species", new ArrayList<String>(taxMap.keySet()));
-    catToVocabulary.put("Tissues", new ArrayList<String>(tissueMap.keySet()));
-    catToVocabulary.put("Analytes", new ArrayList<String>(analytesVocabulary));
-    Map<String, List<String>> missingCategoryToValues = new HashMap<String, List<String>>();
-    missingCategoryToValues.put("Species", new ArrayList<String>(prep.getSpeciesSet()));
-    missingCategoryToValues.put("Tissues", new ArrayList<String>(prep.getTissueSet()));
-    missingCategoryToValues.put("Analytes", new ArrayList<String>(prep.getAnalyteSet()));
-    initMissingInfoListener(prep, missingCategoryToValues, catToVocabulary);
+    catToVocabulary.put("Species", new ArrayList<String>(vocabs.getTaxMap().keySet()));
+    catToVocabulary.put("Tissues", new ArrayList<String>(vocabs.getTissueMap().keySet()));
+    catToVocabulary.put("Analytes", new ArrayList<String>(vocabs.getAnalyteTypes()));
+
+    Map<String, List<String>> parsedCategoryToValues = new HashMap<>();
+
+    // allow users to correct
+    if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
+
+      // Map<String, Set<String>> pretransformedProperties = new HashMap<>();
+      //
+      // vocabValid = validator.transformAndValidateExperimentMetadata(metadataList,
+      // pretransformedProperties);
+      logger.info("Before replacement");
+      logger.info(metadataList);
+
+      //// Fractionation Type : Q_MS_FRACTIONATION_METHOD : Q_MS_FRACTIONATION_PROTOCOLS
+      //// Enrichment Type : Q_MS_ENRICHMENT_METHOD : Q_MS_ENRICHMENT_PROTOCOLS
+      //// Digestion Enzyme : (Q_DIGESTION_METHOD) : Q_DIGESTION_PROTEASES
+      //// LC Column : Q_CHROMATOGRAPHY_TYPE : Q_CHROMATOGRAPHY_TYPES
+      //// LCMS Method : Q_MS_LCMS_METHOD : Q_MS_LCMS_METHODS
+      //// MC Device : Q_MS_DEVICE : Q_MS_DEVICES
+      //// Sample Cleanup (peptide) : Q_PROTEIN_PURIFICATION_METHODS
+      //// Sample Cleanup (protein) : Q_PROTEIN_PURIFICATION_METHODS
+      //// TODO
+      //// Expression System : Q_EXPRESSION_SYSTEM = Q_NCBI_TAXONOMY
+      //// Digestion Method : (Q_DIGESTION_METHOD) : Q_DIGESTION_PROTOCOL
+      //// Labeling Type : Q_LABELING_METHOD : Q_LABELING_TYPES
+      //// Sample Preparation
+      parsedCategoryToValues =
+          prep.getParsedCategoriesToValues(new ArrayList<String>(Arrays.asList("LC Column",
+              "MS Device", "Fractionation Type", "Enrichment Type", "Labeling Type", "LCMS Method",
+              "Digestion Method", "Sample Preparation", "Species", "Tissue")));
+
+      Map<String, Set<String>> keyToFields = new HashMap<>();
+      keyToFields.put("Q_MS_DEVICE", new HashSet<>(Arrays.asList("MS Device")));
+      keyToFields.put("Q_CHROMATOGRAPHY_TYPE", new HashSet<>(Arrays.asList("LC Column")));
+      keyToFields.put("Q_MS_ENRICHMENT_METHOD", new HashSet<>(Arrays.asList("Enrichment Type")));
+      // keyToFields.put("Q_MS_PURIFICATION_METHOD",
+      // new HashSet<>(Arrays.asList("Sample Cleanup (protein)")));
+      // keyToFields.put("Q_MS_PURIFICATION_METHOD",
+      // new HashSet<>(Arrays.asList("Sample Cleanup (peptide)")));
+      keyToFields.put("Q_MS_FRACTIONATION_METHOD",
+          new HashSet<>(Arrays.asList("Fractionation Type")));
+      keyToFields.put("Q_LABELING_METHOD", new HashSet<>(Arrays.asList("Labeling Type")));
+      keyToFields.put("Q_DIGESTION_METHOD", new HashSet<>(Arrays.asList("Digestion Method")));
+      ValueChangeListener missingInfoFilledListener = new ValueChangeListener() {
+
+        @Override
+        public void valueChange(ValueChangeEvent event) {
+          boolean valid = questionaire.isValid();
+
+          if (valid) {
+            for (Map<String, Object> props : metadataList) {
+              Map<String, String> newProps = new HashMap<>();
+              for (String key : props.keySet()) {
+                if (keyToFields.containsKey(key)) {
+                  for (String val : keyToFields.get(key)) {
+                    String entry = (String) props.get(key);
+                    String newLabel = questionaire.getVocabularyLabelForValue(val, entry);
+                    String newVal = questionaire.getVocabularyCodeForValue(val, entry);
+                    if (newVal != null) {
+                      props.put(key, newVal);
+                    }
+                  }
+                }
+              }
+              for (String newProp : newProps.keySet()) {
+                props.put(newProp, newProps.get(newProp));
+              }
+            }
+            logger.info("after replacement:");
+            logger.info(metadataList);
+            // handleImportResults(valid);
+          }
+        }
+      };
+
+
+
+      //
+      //
+      // for(Map<String,Object> props : msProperties.values()) {
+      // if(msProperte)
+      // }
+      // missingCategoryToValues.put("Fractionation Type", new ArrayList<String>)
+      // )
+      //
+
+      //
+      // Map<String, Map<String, Object>> prepExperiments =
+      // prep.getSpecialExperimentsOfTypeOrNull(ExperimentType.Q_SAMPLE_PREPARATION.toString());
+      // Map<String, Map<String, Object>> msExperiments =
+      // prep.getSpecialExperimentsOfTypeOrNull(ExperimentType.Q_MS_MEASUREMENT.toString());
+    }
+
+    parsedCategoryToValues.put("Species", new ArrayList<String>(prep.getSpeciesSet()));
+    parsedCategoryToValues.put("Tissues", new ArrayList<String>(prep.getTissueSet()));
+    parsedCategoryToValues.put("Analytes", new ArrayList<String>(prep.getAnalyteSet()));
+
+    initMissingInfoListener(parsedCategoryToValues, catToVocabulary);
   }
 
   protected String addBarcodesToTSV(List<String> tsv, List<List<ISampleBean>> levels,
       ExperimentalDesignType designType) {
     logger.info("adding barcodes to tsv");
     logger.info("design type: " + designType);
+    String fileNameHeader = "Filename";
     StringBuilder builder = new StringBuilder(5000);
     switch (designType) {
       case Standard:
@@ -555,11 +654,13 @@ public class ExperimentImportController implements IRegistrationController {
             String extID = splt[anltIDPos];
             if (extID == null || extID.isEmpty())
               extID = splt[extIDPos];
-            String code = extCodeToBarcode.get(extID);
+            String code = uniqueCodeToBarcode.get(extID);
             builder.append(code + "\t" + line + "\n");
           }
         }
         break;
+      case Proteomics_MassSpectrometry:
+        fileNameHeader = "File Name";
       case MHC_Ligands_Finished:
         Map<String, String> fileNameToBarcode = new HashMap<String, String>();
         for (List<ISampleBean> samples : levels) {
@@ -575,7 +676,8 @@ public class ExperimentImportController implements IRegistrationController {
         for (String line : tsv) {
           String[] splt = line.split("\t");
           if (filePos < 0) {
-            filePos = Arrays.asList(splt).indexOf("Filename");// TODO generalize?
+            filePos = Arrays.asList(splt).indexOf(fileNameHeader);
+
             builder.append("QBiC Code\t" + line + "\n");
           } else {
             String file = splt[filePos];
@@ -589,10 +691,10 @@ public class ExperimentImportController implements IRegistrationController {
     return builder.toString();
   }
 
-  protected void initMissingInfoListener(SamplePreparator prep,
-      Map<String, List<String>> missingCategoryToValues,
+  protected void initMissingInfoListener(Map<String, List<String>> parsedCategoryToValues,
       Map<String, List<String>> catToVocabulary) {
-    extCodeToBarcode = new HashMap<String, String>();
+    uniqueCodeToBarcode = new HashMap<>();
+    uniqueNumericIDToUniqueCode = new HashMap<>();
 
     projectInfoComponent =
         new ProjectInformationComponent(vocabs.getSpaces(), vocabs.getPeople().keySet());
@@ -614,7 +716,7 @@ public class ExperimentImportController implements IRegistrationController {
               cat = "Tissues";
             else if (b.getSampleType().contains("Preparations"))
               cat = "Analytes";
-            if (missingCategoryToValues.containsKey(cat)) {
+            if (parsedCategoryToValues.containsKey(cat)) {
               String val = b.getFullSampleContent();
               List<String> newVal = new ArrayList<String>();
               for (String v : val.split(", ")) {
@@ -654,17 +756,25 @@ public class ExperimentImportController implements IRegistrationController {
             SampleType type = level.get(0).getType();
             String exp = "";
             if (!type.equals(SampleType.Q_MS_RUN) && !type.equals(SampleType.Q_MHC_LIGAND_EXTRACT))
-              exp = getNextExperiment(project);
+              exp = getNextExperiment(project);// TODO
             // list of existing samples to be removed before registration
             List<ISampleBean> existing = new ArrayList<ISampleBean>();
             for (ISampleBean b : level) {
               TSVSampleBean t = (TSVSampleBean) b;
-              
-              String extID = (String) t.getMetadata().get("Q_EXTERNALDB_ID");
-              
-              if (extIDToSample.containsKey(extID)) {
+
+              // TODO do this in the parser
+              Object extID = t.getMetadata().get("Q_EXTERNALDB_ID");
+              boolean noExtID = extID == null || ((String) extID).isEmpty();
+              if (t.getType().equals(SampleType.Q_MS_RUN) && noExtID) {
+                t.getMetadata().put("Q_EXTERNALDB_ID", t.getMetadata().get("Q_EXTERNALDB_ID"));
+              }
+
+              String uniqueID = createUniqueIDFromSampleMetadata(t);
+
+              if (uniqueIDToSample.containsKey(uniqueID)) {
                 existing.add(t);
-                extCodeToBarcode.put(extID, extIDToSample.get(extID).getCode());
+                uniqueCodeToBarcode.put(uniqueID, uniqueIDToSample.get(uniqueID).getCode());
+                uniqueNumericIDToUniqueCode.put(t.getCode(), uniqueID);
               } else {
                 t.setProject(project);
                 t.setSpace(space);
@@ -675,7 +785,7 @@ public class ExperimentImportController implements IRegistrationController {
                     code = project + "ENTITY-" + entityNum;
                     String newVal = questionaire.getVocabularyLabelForValue("Species",
                         props.get("Q_NCBI_ORGANISM"));
-                    props.put("Q_NCBI_ORGANISM", taxMap.get(newVal));
+                    props.put("Q_NCBI_ORGANISM", vocabs.getTaxMap().get(newVal));
                     entityNum++;
                     break;
                   case Q_BIOLOGICAL_SAMPLE:
@@ -687,7 +797,7 @@ public class ExperimentImportController implements IRegistrationController {
                     code = nextBarcode;
                     newVal = questionaire.getVocabularyLabelForValue("Tissues",
                         props.get("Q_PRIMARY_TISSUE"));
-                    props.put("Q_PRIMARY_TISSUE", tissueMap.get(newVal));
+                    props.put("Q_PRIMARY_TISSUE", vocabs.getTaxMap().get(newVal));
                     break;
                   case Q_TEST_SAMPLE:
                     try {
@@ -733,8 +843,12 @@ public class ExperimentImportController implements IRegistrationController {
                     }
                     exp = specialExpToExpCode.get(t.getExperiment());
                     // get parent sample for code
-                    String parentExtID = t.getParentIDs().get(0);
-                    String parentCode = extCodeToBarcode.get(parentExtID);
+                    String parentID = t.getParentIDs().get(0);
+                    if (!uniqueCodeToBarcode.containsKey(parentID)) {
+                      parentID = uniqueNumericIDToUniqueCode.get(parentID);
+                    }
+                    String parentCode = uniqueCodeToBarcode.get(parentID);
+
                     int msRun = 1;
                     code = "";
                     while (code.isEmpty() || msCodes.contains(code)) {
@@ -743,92 +857,98 @@ public class ExperimentImportController implements IRegistrationController {
                     }
                     msCodes.add(code);
                     break;
-				case Q_ATTACHMENT_SAMPLE:
-					break;
-				case Q_BMI_GENERIC_IMAGING_RUN:
-					break;
-				case Q_EDDA_BENCHMARK:
-					break;
-				case Q_EXT_MS_QUALITYCONTROL_RUN:
-					break;
-				case Q_EXT_NGS_QUALITYCONTROL_RUN:
-					break;
-				case Q_FASTA:
-					break;
-				case Q_HT_QPCR_RUN:
-					break;
-				case Q_MICROARRAY_RUN:
-					break;
-				case Q_NGS_EPITOPES:
-					break;
-				case Q_NGS_FLOWCELL_RUN:
-					break;
-				case Q_NGS_HLATYPING:
-					break;
-				case Q_NGS_IMMUNE_MONITORING:
-					break;
-				case Q_NGS_IONTORRENT_RUN:
-					break;
-				case Q_NGS_MAPPING:
-					break;
-				case Q_NGS_MTB_DIAGNOSIS_RUN:
-					break;
-				case Q_NGS_READ_MATCH_ALIGNMENT_RUN:
-					break;
-				case Q_NGS_SINGLE_SAMPLE_RUN:
-					break;
-				case Q_NGS_VARIANT_CALLING:
-					break;
-				case Q_VACCINE_CONSTRUCT:
-					break;
-				case Q_WF_MA_QUALITYCONTROL_RUN:
-					break;
-				case Q_WF_MS_INDIVIDUALIZED_PROTEOME_RUN:
-					break;
-				case Q_WF_MS_LIGANDOMICS_ID_RUN:
-					break;
-				case Q_WF_MS_LIGANDOMICS_QC_RUN:
-					break;
-				case Q_WF_MS_MAXQUANT_RUN:
-					break;
-				case Q_WF_MS_PEPTIDEID_RUN:
-					break;
-				case Q_WF_MS_QUALITYCONTROL_RUN:
-					break;
-				case Q_WF_NGS_16S_TAXONOMIC_PROFILING:
-					break;
-				case Q_WF_NGS_EPITOPE_PREDICTION_RUN:
-					break;
-				case Q_WF_NGS_HLATYPING_RUN:
-					break;
-				case Q_WF_NGS_MAPPING_RUN:
-					break;
-				case Q_WF_NGS_QUALITYCONTROL_RUN:
-					break;
-				case Q_WF_NGS_RNA_EXPRESSION_ANALYSIS_RUN:
-					break;
-				case Q_WF_NGS_SHRNA_COUNTING_RUN:
-					break;
-				case Q_WF_NGS_VARIANT_ANNOTATION_RUN:
-					break;
-				case Q_WF_NGS_VARIANT_CALLING_RUN:
-					break;
-				default:
-					break;
+                  case Q_ATTACHMENT_SAMPLE:
+                    break;
+                  case Q_BMI_GENERIC_IMAGING_RUN:
+                    break;
+                  case Q_EDDA_BENCHMARK:
+                    break;
+                  case Q_EXT_MS_QUALITYCONTROL_RUN:
+                    break;
+                  case Q_EXT_NGS_QUALITYCONTROL_RUN:
+                    break;
+                  case Q_FASTA:
+                    break;
+                  case Q_HT_QPCR_RUN:
+                    break;
+                  case Q_MICROARRAY_RUN:
+                    break;
+                  case Q_NGS_EPITOPES:
+                    break;
+                  case Q_NGS_FLOWCELL_RUN:
+                    break;
+                  case Q_NGS_HLATYPING:
+                    break;
+                  case Q_NGS_IMMUNE_MONITORING:
+                    break;
+                  case Q_NGS_IONTORRENT_RUN:
+                    break;
+                  case Q_NGS_MAPPING:
+                    break;
+                  case Q_NGS_MTB_DIAGNOSIS_RUN:
+                    break;
+                  case Q_NGS_READ_MATCH_ALIGNMENT_RUN:
+                    break;
+                  case Q_NGS_SINGLE_SAMPLE_RUN:
+                    break;
+                  case Q_NGS_VARIANT_CALLING:
+                    break;
+                  case Q_VACCINE_CONSTRUCT:
+                    break;
+                  case Q_WF_MA_QUALITYCONTROL_RUN:
+                    break;
+                  case Q_WF_MS_INDIVIDUALIZED_PROTEOME_RUN:
+                    break;
+                  case Q_WF_MS_LIGANDOMICS_ID_RUN:
+                    break;
+                  case Q_WF_MS_LIGANDOMICS_QC_RUN:
+                    break;
+                  case Q_WF_MS_MAXQUANT_RUN:
+                    break;
+                  case Q_WF_MS_PEPTIDEID_RUN:
+                    break;
+                  case Q_WF_MS_QUALITYCONTROL_RUN:
+                    break;
+                  case Q_WF_NGS_16S_TAXONOMIC_PROFILING:
+                    break;
+                  case Q_WF_NGS_EPITOPE_PREDICTION_RUN:
+                    break;
+                  case Q_WF_NGS_HLATYPING_RUN:
+                    break;
+                  case Q_WF_NGS_MAPPING_RUN:
+                    break;
+                  case Q_WF_NGS_QUALITYCONTROL_RUN:
+                    break;
+                  case Q_WF_NGS_RNA_EXPRESSION_ANALYSIS_RUN:
+                    break;
+                  case Q_WF_NGS_SHRNA_COUNTING_RUN:
+                    break;
+                  case Q_WF_NGS_VARIANT_ANNOTATION_RUN:
+                    break;
+                  case Q_WF_NGS_VARIANT_CALLING_RUN:
+                    break;
+                  default:
+                    break;
                 }
+                String numericID = t.getCode();
+                uniqueNumericIDToUniqueCode.put(numericID, uniqueID);
                 t.setExperiment(exp);
                 t.setCode(code);
-                extCodeToBarcode.put((String) props.get("Q_EXTERNALDB_ID"), code);
+                uniqueCodeToBarcode.put(uniqueID, code);
                 List<String> parents = t.getParentIDs();
                 t.setParents(new ArrayList<ISampleBean>());
                 List<String> newParents = new ArrayList<String>();
-                for (String parentExtID : parents) {
-                  if (extCodeToBarcode.containsKey(parentExtID))
-                    newParents.add(extCodeToBarcode.get(parentExtID));
+                for (String parentID : parents) {
+                  if (!uniqueCodeToBarcode.containsKey(parentID)
+                      && uniqueNumericIDToUniqueCode.containsKey(parentID)) {
+                    parentID = uniqueNumericIDToUniqueCode.get(parentID);
+                  }
+                  if (uniqueCodeToBarcode.containsKey(parentID))
+                    newParents.add(uniqueCodeToBarcode.get(parentID));
                   else
                     logger.warn(
-                        "Parent could not be translated, because no ext id to code mapping was found for ext id "
-                            + parentExtID);
+                        "Parent could not be translated, because no id to code mapping was found for id "
+                            + parentID);
                 }
                 for (String p : newParents) {
                   t.addParentID(p);
@@ -882,7 +1002,7 @@ public class ExperimentImportController implements IRegistrationController {
         }
       }
     };
-    questionaire = view.initMissingInfoComponent(projectInfoComponent, missingCategoryToValues,
+    questionaire = view.initMissingInfoComponent(projectInfoComponent, parsedCategoryToValues,
         catToVocabulary, missingInfoFilledListener);
     // view.addComponent(questionaire);
 
@@ -979,9 +1099,10 @@ public class ExperimentImportController implements IRegistrationController {
    * 
    * @throws TooManySamplesException
    */
+  // TODO
   private void countExistingOpenbisEntities(String space, String project)
       throws TooManySamplesException {
-    extIDToSample = new HashMap<String, Sample>();
+    uniqueIDToSample = new HashMap<String, Sample>();
     firstFreeExperimentID = 1;
     firstFreeEntityID = 1;
     firstFreeBarcode = "";// TODO cleanup where not needed
@@ -1010,14 +1131,18 @@ public class ExperimentImportController implements IRegistrationController {
     }
     for (Sample s : currentProjectSamples) {
       String code = s.getCode();
-      // collect existing samples by their external id
-      String extID = s.getProperties().get("Q_EXTERNALDB_ID");
-      boolean emptyID = extID == null || extID.isEmpty();
-      if (!emptyID && extIDToSample.containsKey(extID)) {
-        logger.warn(extID + " was found as a secondary name for multiple samples. This might"
-            + " lead to inconsistencies if new samples are to be attached to this secondary name.");
+      // collect existing samples by their external id, can create import type-specific unique ids
+      // instead
+      TSVSampleBean converted = new TSVSampleBean(code, SampleType.valueOf(s.getSampleTypeCode()),
+          s.getProperties().get("Q_SECONDARY_NAME"), new HashMap<>(s.getProperties()));
+      String uniqueSampleID = createUniqueIDFromSampleMetadata(converted);
+      boolean emptyID = uniqueSampleID == null || uniqueSampleID.isEmpty();
+      if (!emptyID && uniqueIDToSample.containsKey(uniqueSampleID)) {
+        logger.warn(uniqueSampleID
+            + " was found as a unique id for multiple existing samples. This might"
+            + " lead to inconsistencies if new samples are to be attached to this external id.");
       }
-      extIDToSample.put(extID, s);
+      uniqueIDToSample.put(uniqueSampleID, s);
       if (SampleCodeFunctions.isQbicBarcode(code)) {
         if (SampleCodeFunctions.compareSampleCodes(firstFreeBarcode, code) <= 0) {
           firstFreeBarcode = SampleCodeFunctions.incrementSampleCode(code);
@@ -1032,6 +1157,22 @@ public class ExperimentImportController implements IRegistrationController {
       }
     }
   }
+
+  private String createUniqueIDFromSampleMetadata(ISampleBean b) {
+    String id = (String) b.getMetadata().get("Q_EXTERNALDB_ID");
+    if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
+      // MS import format may contain same name for protein and digested peptide samples, both at
+      // the base, pooled and fraction/cycle level
+      // thus, we add the sample type to the external db id in order to create unique sample ids:
+      if (b.getType().equals(SampleType.Q_TEST_SAMPLE.toString())) {
+        id = id + b.getMetadata().get("Q_SAMPLE_TYPE");
+      }
+      return id;
+    } else {
+      return id;
+    }
+  }
+
 
   private void incrementOrCreateBarcode(String project) throws TooManySamplesException {
     String firstBarcode = project + "001A" + SampleCodeFunctions.checksum(project + "001A");
@@ -1070,10 +1211,10 @@ public class ExperimentImportController implements IRegistrationController {
         projectName = questionaire.getProjectSecondaryName();
         String id = "/" + space + "/" + project;
         addPeopleAndProjectToDB(id, projectName);
-        if (getImportType().equals(ExperimentalDesignType.ISA)) {
-          String protocol = isaStudyInfos.getProtocol();
-          dbm.changeLongProjectDescription(id, protocol);
-        }
+        // if (getImportType().equals(ExperimentalDesignType.ISA)) {
+        // String protocol = isaStudyInfos.getProtocol();
+        // dbm.changeLongProjectDescription(id, protocol);
+        // }
       }
 
       // TODO

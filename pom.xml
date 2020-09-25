@@ -132,17 +132,17 @@
                 </exclusion>
             </exclusions>
         </dependency>
-		<dependency>
-			<!-- Patched version 4.2-min does not bundle slf4j -->
+		<!-- dependency>
+			 Patched version 4.2-min does not bundle slf4j 
 			<groupId>org.slf4j</groupId>
 			<artifactId>jul-to-slf4j</artifactId>
 			<version>1.5.6</version>
 		</dependency>
 		<dependency>
-			<!-- Patched version 4.2-min does not bundle slf4j -->
+			Patched version 4.2-min does not bundle slf4j 
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
 			<version>1.5.6</version>
-		</dependency>
+		</dependency-->
 	</dependencies>
 </project>
