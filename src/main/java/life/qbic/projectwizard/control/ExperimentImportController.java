@@ -27,14 +27,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.xml.bind.JAXBException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.isatools.isacreator.model.Study;
-
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.CompositeValidator;
@@ -51,7 +48,6 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload.FinishedEvent;
 import com.vaadin.ui.Upload.FinishedListener;
 import com.wcs.wcslib.vaadin.widget.multifileupload.ui.AllUploadFinishedHandler;
-
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
@@ -86,6 +82,7 @@ import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.ISAParseReady;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OmeroAdapter;
 import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.projectwizard.views.ExperimentImportView;
@@ -100,6 +97,7 @@ public class ExperimentImportController implements IRegistrationController {
   private ExperimentImportView view;
   private final Uploader uploader = new Uploader();
   private IOpenbisCreationController openbisCreator;
+  private OmeroAdapter omero;
   private SamplePreparator prep;
   //
   private ProjectInfo projectInfo;
@@ -133,9 +131,10 @@ public class ExperimentImportController implements IRegistrationController {
   private Set<String> currentDesignTypes;
   protected ISAStudyInfos isaStudyInfos;
 
-  public ExperimentImportController(IOpenbisCreationController creationController, Vocabularies vocabularies,
-      IOpenBisClient openbis, DBManager dbm) {
+  public ExperimentImportController(IOpenbisCreationController creationController,
+      OmeroAdapter omeroAdapter, Vocabularies vocabularies, IOpenBisClient openbis, DBManager dbm) {
     view = new ExperimentImportView();
+    this.omero = omeroAdapter;
     this.dbm = dbm;
     this.questionaire = view.getMissingInfoComponent();
     this.vocabs = vocabularies;
@@ -374,10 +373,12 @@ public class ExperimentImportController implements IRegistrationController {
           }
           String space = projectInfo.getSpace();
           String project = projectInfo.getProjectCode();
+          String description = projectInfo.getDescription();
           String infoExpCode = project + "_INFO";
           String code = project + "000";
-          ISampleBean infoSample = new TSVSampleBean(code, infoExpCode, project, space, SampleType.Q_ATTACHMENT_SAMPLE,
-              "", new ArrayList<String>(), new HashMap<String, Object>());
+          ISampleBean infoSample =
+              new TSVSampleBean(code, infoExpCode, project, space, SampleType.Q_ATTACHMENT_SAMPLE,
+                  "", new ArrayList<String>(), new HashMap<String, Object>());
           samples.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
 
           // projectInfo = prep.getProjectInfo();
@@ -405,11 +406,22 @@ public class ExperimentImportController implements IRegistrationController {
             default:
               break;
           }
-          
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
-              projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
-              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control),
-              entitiesToUpdate, projectInfo.isPilot());
+
+          if (questionaire != null && questionaire.hasImagingSupport()) {
+            List<ISampleBean> imagableSamples = new ArrayList<>();
+            for (List<ISampleBean> level : samples) {
+              if (!level.isEmpty()
+                  && level.get(0).getType().equals(SampleType.Q_BIOLOGICAL_SAMPLE)) {
+                imagableSamples.addAll(level);
+              }
+            }
+            omero.registerSamples(project, description, imagableSamples);
+          }
+
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, description,
+              complexExperiments, view.getProgressBar(), view.getProgressLabel(),
+              new RegisteredSamplesReadyRunnable(view, control), entitiesToUpdate,
+              projectInfo.isPilot());
 
         }
       }
@@ -659,9 +671,9 @@ public class ExperimentImportController implements IRegistrationController {
             List<ISampleBean> existing = new ArrayList<ISampleBean>();
             for (ISampleBean b : level) {
               TSVSampleBean t = (TSVSampleBean) b;
-              
+
               String extID = (String) t.getMetadata().get("Q_EXTERNALDB_ID");
-              
+
               if (extIDToSample.containsKey(extID)) {
                 existing.add(t);
                 extCodeToBarcode.put(extID, extIDToSample.get(extID).getCode());
@@ -743,78 +755,78 @@ public class ExperimentImportController implements IRegistrationController {
                     }
                     msCodes.add(code);
                     break;
-				case Q_ATTACHMENT_SAMPLE:
-					break;
-				case Q_BMI_GENERIC_IMAGING_RUN:
-					break;
-				case Q_EDDA_BENCHMARK:
-					break;
-				case Q_EXT_MS_QUALITYCONTROL_RUN:
-					break;
-				case Q_EXT_NGS_QUALITYCONTROL_RUN:
-					break;
-				case Q_FASTA:
-					break;
-				case Q_HT_QPCR_RUN:
-					break;
-				case Q_MICROARRAY_RUN:
-					break;
-				case Q_NGS_EPITOPES:
-					break;
-				case Q_NGS_FLOWCELL_RUN:
-					break;
-				case Q_NGS_HLATYPING:
-					break;
-				case Q_NGS_IMMUNE_MONITORING:
-					break;
-				case Q_NGS_IONTORRENT_RUN:
-					break;
-				case Q_NGS_MAPPING:
-					break;
-				case Q_NGS_MTB_DIAGNOSIS_RUN:
-					break;
-				case Q_NGS_READ_MATCH_ALIGNMENT_RUN:
-					break;
-				case Q_NGS_SINGLE_SAMPLE_RUN:
-					break;
-				case Q_NGS_VARIANT_CALLING:
-					break;
-				case Q_VACCINE_CONSTRUCT:
-					break;
-				case Q_WF_MA_QUALITYCONTROL_RUN:
-					break;
-				case Q_WF_MS_INDIVIDUALIZED_PROTEOME_RUN:
-					break;
-				case Q_WF_MS_LIGANDOMICS_ID_RUN:
-					break;
-				case Q_WF_MS_LIGANDOMICS_QC_RUN:
-					break;
-				case Q_WF_MS_MAXQUANT_RUN:
-					break;
-				case Q_WF_MS_PEPTIDEID_RUN:
-					break;
-				case Q_WF_MS_QUALITYCONTROL_RUN:
-					break;
-				case Q_WF_NGS_16S_TAXONOMIC_PROFILING:
-					break;
-				case Q_WF_NGS_EPITOPE_PREDICTION_RUN:
-					break;
-				case Q_WF_NGS_HLATYPING_RUN:
-					break;
-				case Q_WF_NGS_MAPPING_RUN:
-					break;
-				case Q_WF_NGS_QUALITYCONTROL_RUN:
-					break;
-				case Q_WF_NGS_RNA_EXPRESSION_ANALYSIS_RUN:
-					break;
-				case Q_WF_NGS_SHRNA_COUNTING_RUN:
-					break;
-				case Q_WF_NGS_VARIANT_ANNOTATION_RUN:
-					break;
-				case Q_WF_NGS_VARIANT_CALLING_RUN:
-					break;
-				default:
-					break;
+                  case Q_ATTACHMENT_SAMPLE:
+                    break;
+                  case Q_BMI_GENERIC_IMAGING_RUN:
+                    break;
+                  case Q_EDDA_BENCHMARK:
+                    break;
+                  case Q_EXT_MS_QUALITYCONTROL_RUN:
+                    break;
+                  case Q_EXT_NGS_QUALITYCONTROL_RUN:
+                    break;
+                  case Q_FASTA:
+                    break;
+                  case Q_HT_QPCR_RUN:
+                    break;
+                  case Q_MICROARRAY_RUN:
+                    break;
+                  case Q_NGS_EPITOPES:
+                    break;
+                  case Q_NGS_FLOWCELL_RUN:
+                    break;
+                  case Q_NGS_HLATYPING:
+                    break;
+                  case Q_NGS_IMMUNE_MONITORING:
+                    break;
+                  case Q_NGS_IONTORRENT_RUN:
+                    break;
+                  case Q_NGS_MAPPING:
+                    break;
+                  case Q_NGS_MTB_DIAGNOSIS_RUN:
+                    break;
+                  case Q_NGS_READ_MATCH_ALIGNMENT_RUN:
+                    break;
+                  case Q_NGS_SINGLE_SAMPLE_RUN:
+                    break;
+                  case Q_NGS_VARIANT_CALLING:
+                    break;
+                  case Q_VACCINE_CONSTRUCT:
+                    break;
+                  case Q_WF_MA_QUALITYCONTROL_RUN:
+                    break;
+                  case Q_WF_MS_INDIVIDUALIZED_PROTEOME_RUN:
+                    break;
+                  case Q_WF_MS_LIGANDOMICS_ID_RUN:
+                    break;
+                  case Q_WF_MS_LIGANDOMICS_QC_RUN:
+                    break;
+                  case Q_WF_MS_MAXQUANT_RUN:
+                    break;
+                  case Q_WF_MS_PEPTIDEID_RUN:
+                    break;
+                  case Q_WF_MS_QUALITYCONTROL_RUN:
+                    break;
+                  case Q_WF_NGS_16S_TAXONOMIC_PROFILING:
+                    break;
+                  case Q_WF_NGS_EPITOPE_PREDICTION_RUN:
+                    break;
+                  case Q_WF_NGS_HLATYPING_RUN:
+                    break;
+                  case Q_WF_NGS_MAPPING_RUN:
+                    break;
+                  case Q_WF_NGS_QUALITYCONTROL_RUN:
+                    break;
+                  case Q_WF_NGS_RNA_EXPRESSION_ANALYSIS_RUN:
+                    break;
+                  case Q_WF_NGS_SHRNA_COUNTING_RUN:
+                    break;
+                  case Q_WF_NGS_VARIANT_ANNOTATION_RUN:
+                    break;
+                  case Q_WF_NGS_VARIANT_CALLING_RUN:
+                    break;
+                  default:
+                    break;
                 }
                 t.setExperiment(exp);
                 t.setCode(code);
