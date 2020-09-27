@@ -65,7 +65,6 @@ import life.qbic.expdesign.SamplePreparator;
 import life.qbic.expdesign.io.QBiCDesignReader;
 import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
 import life.qbic.expdesign.model.SampleSummaryBean;
-import life.qbic.omero.BasicOMEROClient;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.model.MSExperimentModel;
