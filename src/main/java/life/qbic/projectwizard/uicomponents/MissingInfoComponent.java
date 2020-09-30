@@ -45,9 +45,9 @@ public class MissingInfoComponent extends HorizontalLayout {
     return label;
   }
 
-  public String getVocabularyLabelForValue(String cat, Object entry) {
+  public String getVocabularyLabelForValue(String cat, Object object) {
     for (ComboBox b : catToBoxes.get(cat))
-      if (b.getCaption().equals(entry))
+      if (b.getCaption().equals(object))
         return b.getValue().toString();
     return null;
   }
@@ -121,10 +121,10 @@ public class MissingInfoComponent extends HorizontalLayout {
 
     catToBoxes = new HashMap<String, List<ComboBox>>();
     this.catToVocabulary = catToVocabulary;
-
     for (String cat : missingCategoryToValues.keySet()) {
       List<ComboBox> boxes = new ArrayList<ComboBox>();
       for (String value : missingCategoryToValues.get(cat)) {
+
         Set<String> vocab = new HashSet<String>(catToVocabulary.get(cat).keySet());
         ComboBox b = new ComboBox(value, vocab);
         b.setNullSelectionAllowed(false);
@@ -145,7 +145,7 @@ public class MissingInfoComponent extends HorizontalLayout {
           b.setRequired(true);
         }
         boxes.add(b);
-        addComponent(b);
+        right.addComponent(b);
       }
       catToBoxes.put(cat, boxes);
     }

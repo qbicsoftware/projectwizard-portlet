@@ -340,14 +340,13 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
     return questionaire;
   }
   
-  public MissingInfoComponent initMissingInfoComponent(
-      ProjectInformationComponent projectInfoComponent,
-      Map<String, List<String>> parsedCategoryToValues,
-      Map<String, List<String>> catToVocabulary,
-      ValueChangeListener missingInfoFilledListener) {
-    // TODO Auto-generated method stub
-    return null;
-  }
+//  public MissingInfoComponent initMissingInfoComponent(
+//      ProjectInformationComponent projectInfoComponent,
+//      Map<String, List<String>> parsedCategoryToValues, Map<String, List<String>> catToVocabulary,
+//      ValueChangeListener missingInfoFilledListener) {
+//    // TODO Auto-generated method stub
+//    return null;
+//  }
 
   public MissingInfoComponent getMissingInfoComponent() {
     return questionaire;

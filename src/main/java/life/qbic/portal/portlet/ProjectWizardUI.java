@@ -53,7 +53,7 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 @Widgetset("life.qbic.portlet.AppWidgetSet")
 public class ProjectWizardUI extends QBiCPortletUI {
 
-  public static boolean development = true;
+  public static boolean development = false;
   public static boolean v3RegistrationAPI = false;
   public static String MSLabelingMethods;
   public static String tmpFolder;
@@ -150,6 +150,13 @@ public class ProjectWizardUI extends QBiCPortletUI {
       // openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY");
 
       List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
+
+      //// Labeling Type : Q_LABELING_METHOD : Q_LABELING_TYPES
+      List<String> labelingTypes = openbis.getVocabCodesForVocab("Q_LABELING_TYPES");
+      //// Sample Preparation
+      Map<String, String> samplePreparationMethods = v3.getVocabLabelToCode("Q_SAMPLE_PREPARATION");
+      Map<String, String> digestionMethods = v3.getVocabLabelToCode("Q_DIGESTION_METHODS");
+
       List<String> fractionationTypes =
           openbis.getVocabCodesForVocab("Q_MS_FRACTIONATION_PROTOCOLS");
       List<String> enrichmentTypes = openbis.getVocabCodesForVocab("Q_MS_ENRICHMENT_PROTOCOLS");
@@ -166,7 +173,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
       Map<String, Integer> peopleMap = dbm.fetchPeople();
       Vocabularies vocabs = new Vocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes, spaces,
           peopleMap, expTypes, enzymeMap, antibodiesWithLabels, deviceMap, msProtocols, lcmsMethods,
-          chromTypes, fractionationTypes, enrichmentTypes, purificationMethods);
+          chromTypes, fractionationTypes, enrichmentTypes, purificationMethods,
+          samplePreparationMethods, labelingTypes, digestionMethods);
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
       initView(dbm, vocabs, userID);
       layout.addComponent(tabs);

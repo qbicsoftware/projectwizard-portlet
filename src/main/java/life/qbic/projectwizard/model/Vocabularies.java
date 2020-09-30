@@ -39,12 +39,18 @@ public class Vocabularies {
   private List<String> fractionationTypes;
   private List<String> enrichmentTypes;
 
+  private List<String> labelingTypes;
+  private Map<String, String> samplePreparations;
+  private Map<String, String> digestionMethods;
+
   public Vocabularies(Map<String, String> taxMap, Map<String, String> tissueMap,
       Map<String, String> cellLinesMap, List<String> measureTypes, List<String> spaces,
       Map<String, Integer> piMap, List<String> experimentTypes, Map<String, String> enzymeMap,
       Map<String, String> antibodiesWithDescriptions, Map<String, String> deviceMap,
       List<String> msProtocols, List<String> lcmsMethods, Map<String, String> chromTypes2,
-      List<String> fractionationTypes, List<String> enrichmentTypes, Map<String, String> purificationMethods) {
+      List<String> fractionationTypes, List<String> enrichmentTypes,
+      Map<String, String> purificationMethods, Map<String, String> samplePreparations,
+      List<String> labelingTypes, Map<String, String> digestionMethods) {
     this.taxMap = taxMap;
     this.tissueMap = tissueMap;
     this.cellLinesMap = cellLinesMap;
@@ -62,6 +68,18 @@ public class Vocabularies {
     this.proteinPurificationMethods = purificationMethods;
     this.enzymes = new ArrayList<String>();
     enzymes.addAll(enzymeMap.keySet());
+
+    this.labelingTypes = labelingTypes;
+    this.samplePreparations = samplePreparations;
+    this.digestionMethods = digestionMethods;
+  }
+
+  public List<String> getLabelingTypes() {
+    return labelingTypes;
+  }
+
+  public Map<String, String> getSamplePreparationMethods() {
+    return samplePreparations;
   }
 
   public List<String> getFractionationTypes() {
@@ -120,7 +138,7 @@ public class Vocabularies {
     return lcmsMethods;
   }
 
-  public Map<String,String> getChromTypesMap() {
+  public Map<String, String> getChromTypesMap() {
     return chromTypes;
   }
 
@@ -134,6 +152,10 @@ public class Vocabularies {
 
   public void setSpaces(List<String> userSpaces) {
     this.spaces = userSpaces;
+  }
+
+  public Map<String, String> getDigestionMethodsMap() {
+    return digestionMethods;
   }
 
 }
