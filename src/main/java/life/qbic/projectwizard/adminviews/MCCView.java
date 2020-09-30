@@ -23,13 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItemContainer;
@@ -43,10 +40,9 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
-
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
@@ -210,13 +206,13 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
   private void findAndSetDesignExperiment(String space, String project) throws JAXBException {
     designExperiment = null;
     String id = ExperimentCodeFunctions.getInfoExperimentID(space, project);
-    List<Experiment> exps = openbis.getExperimentById2(id);
-    if (exps.isEmpty()) {
+    Experiment exp = openbis.getExperimentById(id);
+    if (exp == null) {
       designExperiment = null;
       logger.error("could not find info experiment for project" + project);
     } else {
-      Experiment e = exps.get(0);
-      if (e.getExperimentTypeCode().equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
+      Experiment e = exp;
+      if (e.getType().getCode().equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
         designExperiment = e;
         expDesign =
             xmlParser.parseXMLString(designExperiment.getProperties().get("Q_EXPERIMENTAL_SETUP"));
@@ -294,14 +290,14 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
 
         List<OpenbisExperiment> infoExperiments = new ArrayList<>();
         if (designExperiment != null) {
-          entitiesToUpdate.put(designExperiment.getCode(), ParserHelpers
-              .getExperimentalDesignMap(designExperiment.getProperties(), design, techTypes, new HashSet<>()));
+          entitiesToUpdate.put(designExperiment.getCode(), ParserHelpers.getExperimentalDesignMap(
+              designExperiment.getProperties(), design, techTypes, new HashSet<>()));
         } else {
           Map<String, Object> props = new HashMap<>();
           String newDesignXML = "";
           try {
-            JAXBElement<Qexperiment> newDesign = xmlParser.createNewDesign(new HashSet<>(), techTypes,
-                design.getExperimentalDesign(), design.getProperties());
+            JAXBElement<Qexperiment> newDesign = xmlParser.createNewDesign(new HashSet<>(),
+                techTypes, design.getExperimentalDesign(), design.getProperties());
             newDesignXML = xmlParser.toString(newDesign);
           } catch (JAXBException e) {
             logger.error("could not create new design xml");
@@ -311,15 +307,17 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
           props.put("Q_EXPERIMENTAL_SETUP", newDesignXML);
           infoExperiments.add(new OpenbisExperiment(exp, ExperimentType.Q_PROJECT_DETAILS, props));
           String code = project + "000";
-          ISampleBean infoSample = new TSVSampleBean(code, exp, project, mccSpace, SampleType.Q_ATTACHMENT_SAMPLE, "",
-              new ArrayList<String>(), new HashMap<String, Object>());
+          ISampleBean infoSample =
+              new TSVSampleBean(code, exp, project, mccSpace, SampleType.Q_ATTACHMENT_SAMPLE, "",
+                  new ArrayList<String>(), new HashMap<String, Object>());
           samps.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
         }
         logger.debug("exps " + infoExperiments);
         logger.debug("update " + entitiesToUpdate);
-//        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
-//            registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
-//            entitiesToUpdate, false);
+        // creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments,
+        // bar,
+        // registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
+        // entitiesToUpdate, false);
         creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
             registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()),
             entitiesToUpdate, false);
@@ -352,11 +350,12 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
       counter = new SampleCounter(newProject.getValue());
     String treatment = "";
     boolean wrongFormat = false;
+    // TODO
     for (Sample s : openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(
         "/" + mccSpace + "/" + (String) mccProjects.getValue())) {
       counter.increment(s);
       String id = s.getProperties().get("Q_EXTERNALDB_ID");
-      if (s.getSampleTypeCode().equals("Q_BIOLOGICAL_ENTITY")) {
+      if (s.getType().getCode().equals("Q_BIOLOGICAL_ENTITY")) {
         entities.add(s);
         patients.add(id);
       } else {
@@ -431,7 +430,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
       metadata.put("Q_EXTERNALDB_ID", patientExtID);
       metadata.put("Q_NCBI_ORGANISM", "9606");
       patients.add(new TSVSampleBean(patientID, project + "E1", project, mccSpace,
-          SampleType.Q_BIOLOGICAL_ENTITY, "patient #" + patient, new ArrayList<String>(), metadata));
+          SampleType.Q_BIOLOGICAL_ENTITY, "patient #" + patient, new ArrayList<String>(),
+          metadata));
     }
     String extIDBase = patientExtID + ":" + timepoint + ":";
 
@@ -443,15 +443,17 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
     metadata.put("Q_EXTERNALDB_ID", urineExtIDBase);
     String urineID = counter.getNewBarcode();// parent
     List<String> patientIDs = new ArrayList<String>(Arrays.asList(patientID));
-    urine.add(new TSVSampleBean(urineID, project + "E2", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
-        "urine sample", patientIDs, (HashMap<String, Object>) metadata.clone()));
+    urine.add(new TSVSampleBean(urineID, project + "E2", project, mccSpace,
+        SampleType.Q_BIOLOGICAL_SAMPLE, "urine sample", patientIDs,
+        (HashMap<String, Object>) metadata.clone()));
     for (int i = 1; i < 6; i++) {
       char lower = (char) ('a' + i - 1);
       String ID = counter.getNewBarcode();
       metadata.put("Q_EXTERNALDB_ID", urineExtIDBase + lower);
-      uAliquots.add(new TSVSampleBean(ID, project + "E3", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
-          "aliquot #" + i, new ArrayList<String>(Arrays.asList(urineID)),
-          (HashMap<String, Object>) metadata.clone()));
+      uAliquots.add(
+          new TSVSampleBean(ID, project + "E3", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
+              "aliquot #" + i, new ArrayList<String>(Arrays.asList(urineID)),
+              (HashMap<String, Object>) metadata.clone()));
     }
     for (int i = 1; i < 4; i++) {
       String plasmaExtID = extIDBase + "B:" + i;
@@ -459,17 +461,17 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
       List<String> plasmaIDs = new ArrayList<String>(Arrays.asList(plasmaID));
       metadata.put("Q_EXTERNALDB_ID", plasmaExtID);
       metadata.put("Q_PRIMARY_TISSUE", "BLOOD_PLASMA");
-      plasma
-          .add(new TSVSampleBean(plasmaID, project + "E4", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
-              "EDTA plasma #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
+      plasma.add(new TSVSampleBean(plasmaID, project + "E4", project, mccSpace,
+          SampleType.Q_BIOLOGICAL_SAMPLE, "EDTA plasma #" + i, patientIDs,
+          (HashMap<String, Object>) metadata.clone()));
       if (i == 1) {
         for (int j = 1; j < 3; j++) {
           char lower = (char) ('a' + j - 1);
           String ID = counter.getNewBarcode();
           metadata.put("Q_EXTERNALDB_ID", plasmaExtID + lower);
-          pAliquots
-              .add(new TSVSampleBean(ID, project + "E4", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
-                  "plasma aliquot #" + j, plasmaIDs, (HashMap<String, Object>) metadata.clone()));
+          pAliquots.add(new TSVSampleBean(ID, project + "E4", project, mccSpace,
+              SampleType.Q_BIOLOGICAL_SAMPLE, "plasma aliquot #" + j, plasmaIDs,
+              (HashMap<String, Object>) metadata.clone()));
         }
       }
       if (i == 3) {
@@ -479,8 +481,9 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
           String ID = counter.getNewBarcode();
           metadata.put("Q_EXTERNALDB_ID", plasmaExtID + lower);
           metadata.put("Q_SAMPLE_TYPE", "SMALLMOLECULES");
-          molecules.add(new TSVSampleBean(ID, project + "E5", project, mccSpace, SampleType.Q_TEST_SAMPLE,
-              "cryovial #" + j, plasmaIDs, (HashMap<String, Object>) metadata.clone()));
+          molecules.add(
+              new TSVSampleBean(ID, project + "E5", project, mccSpace, SampleType.Q_TEST_SAMPLE,
+                  "cryovial #" + j, plasmaIDs, (HashMap<String, Object>) metadata.clone()));
         }
         metadata.remove("Q_SAMPLE_TYPE");
       }
@@ -490,16 +493,18 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
       String ID = counter.getNewBarcode();
       metadata.put("Q_EXTERNALDB_ID", tumorExtBase + i);
       metadata.put("Q_PRIMARY_TISSUE", "HEPATOCELLULAR_CARCINOMA");
-      liver.add(new TSVSampleBean(ID, project + "E6", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
-          "tumor biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
+      liver.add(
+          new TSVSampleBean(ID, project + "E6", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
+              "tumor biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
     }
     String liverExtBase = extIDBase + "L";
     for (int i = 1; i < 5; i++) {
       String ID = counter.getNewBarcode();
       metadata.put("Q_EXTERNALDB_ID", liverExtBase + i);
       metadata.put("Q_PRIMARY_TISSUE", "LIVER");
-      liver.add(new TSVSampleBean(ID, project + "E6", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
-          "liver biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
+      liver.add(
+          new TSVSampleBean(ID, project + "E6", project, mccSpace, SampleType.Q_BIOLOGICAL_SAMPLE,
+              "liver biopsy #" + i, patientIDs, (HashMap<String, Object>) metadata.clone()));
     }
     List<List<ISampleBean>> dummy = new ArrayList<List<ISampleBean>>(
         Arrays.asList(patients, urine, uAliquots, plasma, pAliquots, molecules, liver));

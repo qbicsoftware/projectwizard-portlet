@@ -79,10 +79,12 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Upload.FinishedListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.PropertyType;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
-import ch.systemsx.cisd.openbis.generic.shared.basic.dto.DataTypeCode;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.DataType;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyAssignment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import com.vaadin.ui.Upload.FinishedEvent;
 
 
@@ -432,12 +434,12 @@ public class MetadataUploadView extends VerticalLayout {
   private void findAndSetDesignExperiment(String space, String project) throws JAXBException {
     designExperiment = null;
     String id = ExperimentCodeFunctions.getInfoExperimentID(space, project);
-    List<Experiment> exps = openbis.getExperimentById2(id);
-    if (exps.isEmpty()) {
+    Experiment exp = openbis.getExperimentById(id);
+    if (exp == null) {
       designExperiment = null;
       logger.error("could not find info experiment for project" + project);
     } else {
-      designExperiment = exps.get(0);
+      designExperiment = exp;
       expDesign = studyXMLParser
           .parseXMLString(designExperiment.getProperties().get("Q_EXPERIMENTAL_SETUP"));
       logger.debug("setting exp design: " + expDesign);
@@ -502,6 +504,15 @@ public class MetadataUploadView extends VerticalLayout {
     metadata.put("types", types);
     logger.info("Ingesting metadata");
     openbis.ingest("DSS1", "update-sample-metadata", metadata);
+  }
+
+  private List<PropertyType> getPropertiesOfSampleType(SampleType type) {
+    List<PropertyType> res = new ArrayList<>();
+    List<PropertyAssignment> assignemnts = type.getPropertyAssignments();
+    for (PropertyAssignment as : assignemnts) {
+      res.add(as.getPropertyType());
+    }
+    return res;
   }
 
   protected boolean parseTSV(File file) throws IOException, JAXBException {
@@ -575,10 +586,11 @@ public class MetadataUploadView extends VerticalLayout {
 
     codesToSamples = new HashMap<String, Sample>();
     Map<String, List<String>> sampleTypeToAttributes = new HashMap<String, List<String>>();
-    Map<String, DataTypeCode> propertyToType = new HashMap<String, DataTypeCode>();
+
+    Map<String, DataType> propertyToType = new HashMap<String, DataType>();
     String space = null;
     for (Sample s : projectSamples) {
-      space = s.getSpaceCode();
+      space = s.getSpace().getCode();
       // don't add samples the user should not be able to see
       if (allowedSpaces.contains(space))
         codesToSamples.put(s.getCode(), s);
@@ -598,16 +610,19 @@ public class MetadataUploadView extends VerticalLayout {
             "Sample with code " + bc + " was not found in the Database.", NotificationType.ERROR);
         return false;
       }
-      String type = codesToSamples.get(bc).getSampleTypeCode();
+
+
+
+      SampleType type = codesToSamples.get(bc).getType();
+
       if (!sampleTypeToAttributes.containsKey(type)) {
-        List<PropertyType> props =
-            openbis.listPropertiesForType(openbis.getSampleTypeByString(type));
+        List<PropertyType> props = getPropertiesOfSampleType(type);
         List<String> propertyNames = new ArrayList<String>();
         for (PropertyType p : props) {
           String propName = p.getLabel();
           String propCode = p.getCode();
           propNameToCode.put(propName, propCode);
-          DataTypeCode dataType = p.getDataType();
+          DataType dataType = p.getDataType();
           switch (dataType) {
             case CONTROLLEDVOCABULARY:// TODO properties without mapping?
               if (propToVocabulary.containsKey(propCode)) {
@@ -626,7 +641,7 @@ public class MetadataUploadView extends VerticalLayout {
               propertyNames.add(propName);
           }
         }
-        sampleTypeToAttributes.put(type, propertyNames);
+        sampleTypeToAttributes.put(type.getCode(), propertyNames);
       }
       codesInTSV.add(bc);
     }
@@ -696,7 +711,7 @@ public class MetadataUploadView extends VerticalLayout {
                     reactToTableChange();
 
                   } else {
-                    DataTypeCode dType = propertyToType.get(selectedProperty);
+                    DataType dType = propertyToType.get(selectedProperty);
                     if (dType != null) {
                       switch (dType) {
                         case CONTROLLEDVOCABULARY:
@@ -728,7 +743,7 @@ public class MetadataUploadView extends VerticalLayout {
       }
       sampleTable.addItem(row.toArray(), -1);
       for (int i = 0; i < codesInTSV.size(); i++) {
-        String thisType = codesToSamples.get(codesInTSV.get(i)).getSampleTypeCode();
+        String thisType = codesToSamples.get(codesInTSV.get(i)).getType().getCode();
         if (thisType.equals(type)) {
           row = new ArrayList<Object>();
           row.add(codesInTSV.get(i));
@@ -799,7 +814,7 @@ public class MetadataUploadView extends VerticalLayout {
     return res;
   }
 
-  protected void checkForNumberConsistency(String headline, DataTypeCode dType) {
+  protected void checkForNumberConsistency(String headline, DataType dType) {
     boolean consistent = true;
     boolean needsDelimiterChange = false;
     String moreInfo = "Not a number.";
@@ -809,14 +824,14 @@ public class MetadataUploadView extends VerticalLayout {
       if (id != -1) {
         String val = parseLabelCell(id, headline);
         if (!val.isEmpty()) {
-          if (dType.equals(DataTypeCode.INTEGER)) {
+          if (dType.equals(DataType.INTEGER)) {
             try {
               Integer.parseInt(val);
             } catch (NumberFormatException e) {
               consistent = false;
             }
           }
-          if (dType.equals(DataTypeCode.REAL)) {
+          if (dType.equals(DataType.REAL)) {
             // try normal parse
             try {
               Double.parseDouble(val);

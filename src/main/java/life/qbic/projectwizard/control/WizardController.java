@@ -47,9 +47,9 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.datamodel.experiments.ExperimentBean;
 import life.qbic.datamodel.experiments.ExperimentType;
@@ -241,8 +241,8 @@ public class WizardController implements IRegistrationController {
     if (!openbis.projectExists(spaceCode, code))
       return false;
     for (Experiment e : openbis.getExperimentsOfProjectByCode(code)) {
-      if (e.getExperimentTypeCode().equals("Q_EXPERIMENTAL_DESIGN")) {
-        if (openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0)
+      if (e.getType().getCode().equals("Q_EXPERIMENTAL_DESIGN")) {
+        if (openbis.getSamplesofExperiment(e.getIdentifier().getIdentifier()).size() > 0)
           return true;
       }
     }
@@ -261,8 +261,8 @@ public class WizardController implements IRegistrationController {
     if (!openbis.projectExists(spaceCode, code))
       return false;
     for (Experiment e : openbis.getExperimentsOfProjectByCode(code)) {
-      if (e.getExperimentTypeCode().equals("Q_SAMPLE_EXTRACTION"))
-        if (openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0)
+      if (e.getType().getCode().equals("Q_SAMPLE_EXTRACTION"))
+        if (openbis.getSamplesofExperiment(e.getIdentifier().getIdentifier()).size() > 0)
           return true;
     }
     return false;
@@ -720,7 +720,7 @@ public class WizardController implements IRegistrationController {
           for (Sample s : openbis.getSamplesofExperiment(exp.getID())) {
             Map<String, String> props = s.getProperties();
             beans.add(new TSVSampleBean(s.getCode(), exp.getCode(), contextStep.getProjectCode(),
-                s.getSpaceCode(), SampleType.valueOf(s.getSampleTypeCode()),
+                s.getSpace().getCode(), SampleType.valueOf(s.getType().getCode()),
                 props.get("Q_SECONDARY_NAME"), Arrays.asList(), new HashMap<>()));
           }
           contextStep.setSamples(beans);
@@ -1198,16 +1198,19 @@ public class WizardController implements IRegistrationController {
           }
           Project p = openbis.getProjectByIdentifier("/" + space + "/" + proj);
           Map<String, List<Sample>> samplesByExperiment = new HashMap<String, List<Sample>>();
-          for (Sample s : openbis.getSamplesOfProject(p.getIdentifier())) {
-            String expID = s.getExperimentIdentifierOrNull();
-            String exp = expID.substring(expID.lastIndexOf("/") + 1);
-            if (samplesByExperiment.containsKey(exp)) {
-              List<Sample> lis = samplesByExperiment.get(exp);
-              lis.add(s);
-              samplesByExperiment.put(exp, lis);
+          for (Sample s : openbis.getSamplesOfProject(p.getIdentifier().getIdentifier())) {
+            if (s.getExperiment() != null) {
+              String expCode = s.getExperiment().getCode();
+              if (samplesByExperiment.containsKey(expCode)) {
+                List<Sample> lis = samplesByExperiment.get(expCode);
+                lis.add(s);
+                samplesByExperiment.put(expCode, lis);
+              } else {
+                List<Sample> lis = new ArrayList<Sample>(Arrays.asList(s));
+                samplesByExperiment.put(expCode, lis);
+              }
             } else {
-              List<Sample> lis = new ArrayList<Sample>(Arrays.asList(s));
-              samplesByExperiment.put(exp, lis);
+              logger.warn("No experiment found for sample " + s.getCode());
             }
           }
           String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, proj);

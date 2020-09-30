@@ -20,11 +20,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 
 public class SampleCounter {
@@ -49,23 +47,28 @@ public class SampleCounter {
     barcode = "";
     // barcodeID = 1;
     this.project = project;
-    knownAtypical.add(project+"_INFO");
+    knownAtypical.add(project + "_INFO");
   }
 
   // TODO later updates (after initialization)
   public void increment(Sample s) {
     String code = s.getCode();
-    String experiment = s.getExperimentIdentifierOrNull();
+    String experimentID = null;
     try {
-      String exp = experiment.split(project + "E")[1];
-      int expNum = Integer.parseInt(exp);
+      experimentID = s.getExperiment().getIdentifier().getIdentifier();
+    } catch (Exception e) {
+    }
+
+    try {
+      String expNumString = experimentID.split(project + "E")[1];
+      int expNum = Integer.parseInt(expNumString);
       if (expNum > expID)
         expID = expNum;
     } catch (Exception e) {
-      if (!knownAtypical.contains(experiment)) {
-        knownAtypical.add(experiment);
+      if (!knownAtypical.contains(experimentID)) {
+        knownAtypical.add(experimentID);
         logger.warn("While counting existing experiments in project " + project
-            + " unfamiliar experiment identifier " + experiment + " was found.");
+            + " unfamiliar experiment identifier " + experimentID + " was found.");
       }
     }
     if (SampleCodeFunctions.isQbicBarcode(code)) {
@@ -78,7 +81,7 @@ public class SampleCounter {
         if (SampleCodeFunctions.compareSampleCodes(code, barcode) > 0)
           barcode = code;
       }
-    } else if (s.getSampleTypeCode().equals(("Q_BIOLOGICAL_ENTITY"))) {
+    } else if (s.getType().getCode().equals(("Q_BIOLOGICAL_ENTITY"))) {
       int num = Integer.parseInt(s.getCode().split("-")[1]);
       if (num >= entityID)
         entityID = num;
