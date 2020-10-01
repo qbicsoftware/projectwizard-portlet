@@ -83,7 +83,6 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.SampleType;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.DataType;
-import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyAssignment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.property.PropertyType;
 import com.vaadin.ui.Upload.FinishedEvent;
 
@@ -604,8 +603,8 @@ public class MetadataUploadView extends VerticalLayout {
 
       SampleType type = codesToSamples.get(bc).getType();
 
-      if (!sampleTypeToAttributes.containsKey(type)) {
-        List<PropertyType> props = openbis.getPropertiesOfSampleType(type);
+      if (!sampleTypeToAttributes.containsKey(type.getCode())) {
+        List<PropertyType> props = openbis.getPropertiesOfEntityType(type);
         List<String> propertyNames = new ArrayList<String>();
         for (PropertyType p : props) {
           String propName = p.getLabel();
