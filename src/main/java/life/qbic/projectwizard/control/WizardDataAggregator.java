@@ -186,8 +186,7 @@ public class WizardDataAggregator {
 
     samples = new ArrayList<Sample>();
     if (openbis.projectExists(spaceCode, projectCode)) {
-      samples.addAll(openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(
-          "/" + spaceCode + "/" + projectCode));
+      samples.addAll(openbis.getSamplesOfProject("/" + spaceCode + "/" + projectCode));
     }
 
     if (!s1.fetchTSVModeSet()) {
@@ -1048,8 +1047,12 @@ public class WizardDataAggregator {
    * @return
    */
   private List<Sample> getUpperSamples(List<Sample> originals) {
-    for (Sample s : originals) {
-      List<Sample> parents = openbis.getParentsBySearchService(s.getCode());
+    for (Sample sample : originals) {
+      List<Sample> samplesWithParents = openbis.getSamplesWithParentsAndChildren(sample.getCode());
+      List<Sample> parents = new ArrayList<>();
+      for (Sample s : samplesWithParents) {
+        parents.addAll(s.getParents());
+      }
       if (parents.size() > 0) {
         return openbis
             .getSamplesofExperiment(parents.get(0).getExperiment().getIdentifier().getIdentifier());
@@ -1237,8 +1240,7 @@ public class WizardDataAggregator {
     List<Sample> openbisExtracts = new ArrayList<Sample>();
     List<Sample> openbisTests = new ArrayList<Sample>();
 
-    List<Sample> allSamples =
-        openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(projectCode);
+    List<Sample> allSamples = openbis.getSamplesOfProject(projectCode);
     for (Sample sa : allSamples) {
       String type = sa.getType().getCode();
       switch (type) {

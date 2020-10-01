@@ -351,7 +351,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
     String treatment = "";
     boolean wrongFormat = false;
     // TODO
-    for (Sample s : openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(
+    for (Sample s : openbis.getSamplesOfProject(
         "/" + mccSpace + "/" + (String) mccProjects.getValue())) {
       counter.increment(s);
       String id = s.getProperties().get("Q_EXTERNALDB_ID");

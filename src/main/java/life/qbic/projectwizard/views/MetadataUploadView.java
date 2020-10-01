@@ -506,15 +506,6 @@ public class MetadataUploadView extends VerticalLayout {
     openbis.ingest("DSS1", "update-sample-metadata", metadata);
   }
 
-  private List<PropertyType> getPropertiesOfSampleType(SampleType type) {
-    List<PropertyType> res = new ArrayList<>();
-    List<PropertyAssignment> assignemnts = type.getPropertyAssignments();
-    for (PropertyAssignment as : assignemnts) {
-      res.add(as.getPropertyType());
-    }
-    return res;
-  }
-
   protected boolean parseTSV(File file) throws IOException, JAXBException {
     for (Table t : sampleTables) {
       t.removeAllItems();
@@ -582,7 +573,7 @@ public class MetadataUploadView extends VerticalLayout {
       barcodeCol = 0;
     }
     List<Sample> projectSamples =
-        openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(projectCode);
+        openbis.getSamplesOfProject(projectCode);
 
     codesToSamples = new HashMap<String, Sample>();
     Map<String, List<String>> sampleTypeToAttributes = new HashMap<String, List<String>>();
@@ -611,12 +602,10 @@ public class MetadataUploadView extends VerticalLayout {
         return false;
       }
 
-
-
       SampleType type = codesToSamples.get(bc).getType();
 
       if (!sampleTypeToAttributes.containsKey(type)) {
-        List<PropertyType> props = getPropertiesOfSampleType(type);
+        List<PropertyType> props = openbis.getPropertiesOfSampleType(type);
         List<String> propertyNames = new ArrayList<String>();
         for (PropertyType p : props) {
           String propName = p.getLabel();

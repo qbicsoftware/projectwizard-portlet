@@ -351,7 +351,7 @@ public class MCCViewNew extends VerticalLayout
       counter = new SampleCounter(newProject.getValue());
     boolean wrongFormat = false;
     String treat = "";
-    for (Sample s : openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(
+    for (Sample s : openbis.getSamplesOfProject(
         "/" + mccSpace + "/" + (String) mccProjects.getValue())) {
       counter.increment(s);
       String id = s.getProperties().get("Q_EXTERNALDB_ID");
