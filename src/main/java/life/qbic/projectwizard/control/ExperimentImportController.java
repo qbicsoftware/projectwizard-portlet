@@ -597,7 +597,7 @@ public class ExperimentImportController implements IRegistrationController {
         fracMap.put(method, method);
       }
       catToVocabulary.put("Fractionation Type", fracMap);
-      //// Enrichment Type : Q_MS_ENRICHMENT_METHOD : Q_MS_ENRICHMENT_PROTOCOLS
+      //// Enrichment Method : Q_MS_ENRICHMENT_METHOD : Q_MS_ENRICHMENT_PROTOCOLS
       Map<String, String> enrichMap = new HashMap<>();
       for (String method : vocabs.getEnrichmentTypes()) {
         enrichMap.put(method, method);
@@ -638,7 +638,7 @@ public class ExperimentImportController implements IRegistrationController {
 
       parsedCategoryToValues = prep.getParsedCategoriesToValues(
           new ArrayList<String>(Arrays.asList("Expression System", "LC Column", "MS Device",
-              "Fractionation Type", "Enrichment Type", "Labeling Type", "LCMS Method",
+              "Fractionation Type", "Enrichment Method", "Labeling Type", "LCMS Method",
               "Digestion Method", "Digestion Enzyme", "Sample Preparation", "Species", "Tissue")));
     }
 
@@ -654,6 +654,7 @@ public class ExperimentImportController implements IRegistrationController {
 
   protected String addBarcodesToTSV(List<String> tsv, List<List<ISampleBean>> levels,
       ExperimentalDesignType designType) {
+    Set<String> barcodeColumnNames = new HashSet<>(Arrays.asList("QBiC Code", "QBiC Barcode"));
     logger.info("adding barcodes to tsv");
     logger.info("design type: " + designType);
     String fileNameHeader = "Filename";
@@ -693,19 +694,28 @@ public class ExperimentImportController implements IRegistrationController {
         int filePos = -1;
         for (String line : tsv) {
           String[] splt = line.split("\t");
+          boolean colExists = barcodeColumnNames.contains(splt[0]);
           if (filePos < 0) {
             filePos = Arrays.asList(splt).indexOf(fileNameHeader);
-
-            builder.append("QBiC Code\t" + line + "\n");
+            if (colExists) {
+              builder.append(line + "\n");
+            } else {
+              builder.append("QBiC Code\t" + line + "\n");
+            }
           } else {
             String file = splt[filePos];
             String code = fileNameToBarcode.get(file);
-            builder.append(code + "\t" + line + "\n");
+            if (colExists) {
+              builder.append(code + line + "\n");
+            } else {
+              builder.append(code + "\t" + line + "\n");
+            }
           }
         }
       default:
         break;
     }
+    System.out.println(builder.toString());
     return builder.toString();
   }
 
@@ -761,7 +771,7 @@ public class ExperimentImportController implements IRegistrationController {
             keyToFields.put("Q_MS_FRACTIONATION_METHOD",
                 new HashSet<>(Arrays.asList("Fractionation Type")));
             keyToFields.put("Q_MS_ENRICHMENT_METHOD",
-                new HashSet<>(Arrays.asList("Enrichment Type")));
+                new HashSet<>(Arrays.asList("Enrichment Method")));
             keyToFields.put("Q_LABELING_METHOD", new HashSet<>(Arrays.asList("Labeling Type")));
             keyToFields.put("Q_DIGESTION_METHOD", new HashSet<>(Arrays.asList("Digestion Method")));
             keyToFields.put("Q_DIGESTION_ENZYMES",
@@ -869,11 +879,14 @@ public class ExperimentImportController implements IRegistrationController {
                     props.put("Q_NCBI_ORGANISM", vocabs.getTaxMap().get(newVal));
 
                     if (props.containsKey("Q_EXPRESSION_SYSTEM")) {
-                      String newExprVal = questionaire.getVocabularyLabelForValue(
-                          "Expression System", props.get("Q_EXPRESSION_SYSTEM"));
-                      props.put("Q_EXPRESSION_SYSTEM", vocabs.getTaxMap().get(newExprVal));
+                      if (!props.get("Q_EXPRESSION_SYSTEM").equals("")) {
+                        System.out.println("XXXX");
+                        System.out.println("expression system contained");
+                        String newExprVal = questionaire.getVocabularyLabelForValue(
+                            "Expression System", props.get("Q_EXPRESSION_SYSTEM"));
+                        props.put("Q_EXPRESSION_SYSTEM", vocabs.getTaxMap().get(newExprVal));
+                      }
                     }
-
                     entityNum++;
                     break;
                   case Q_BIOLOGICAL_SAMPLE:

@@ -1,6 +1,6 @@
-QBiC Barcode	File Name	Secondary Name	Sample Name	Organism ID	Condition: age	Condition: treatment	Condition: test	Species	Tissue	Comment	Expression System	Pooled Sample	Cycle/Fraction Name	Fractionation Type	Sample Preparation	Sample Cleanup (Protein)	Digestion Method	Digestion Enzyme	Enrichment Method	Sample Cleanup (Peptide)	Labeling Type	Label	LC Column	MS Device	LCMS Method	Comments
-	R1.raw	R1 sec	R1	Patient 1	20	placebo	a	Homo sapiens	Blood		E. coli				Barocycler		on beads	Trypsin+LYSN			iTRAQ	l1	HPLC	HF-X	120min	
-	R2.raw	R2 sec	R2	Patient 2	30	placebo	a	Homo sapiens	Blood		E. coli				Barocycler		in solution	Trypsin			iTRAQ	l2	HPLC	HF-X	240min	
-	R3.raw	R3 sec	R3	Patient 3	21	treatment	a	Homo sapiens	Blood		E. coli				x		on beads	Trypsin+LYSN					HPLC	HF-X	120min	
-	R4.raw	R4 sec	R4	Patient 4	50	treatment	b	Homo sapiens	Blood		E. coli				x		in solution	LYSN					HPLC	HF-X	240min	
-	R1R2.raw	R1R2 sec	R1R2	Patient 1	na	placebo	a	Homo sapiens	Blood		E. coli	R1+R2									iTRAQ	pool	HPLC	HF-X	120min	
+QBiC Barcode	File Name	Secondary Name	Sample Name	Organism ID	Technical Replicates	Condition: age	Condition: treatment	Condition: test	Species	Tissue	Comment	Expression System	Pooled Sample	Cycle/Fraction Name	Fractionation Type	Sample Preparation	Sample Cleanup (Protein)	Digestion Method	Digestion Enzyme	Enrichment Method	Sample Cleanup (Peptide)	Labeling Type	Label	LC Column	MS Device	LCMS Method	Comments
+	R1.raw	R1 sec	R1	Patient 1	a	20	placebo	a	Homo sapiens	Blood		E. coli				Barocycler		on beads	Trypsin+LYSN			iTRAQ	l1	HPLC	HF-X	120min	
+	R2.raw	R2 sec	R2	Patient 2	a	30	placebo	a	Homo sapiens	Blood		E. coli				Barocycler		in solution	Trypsin			iTRAQ	l2	HPLC	HF-X	240min	
+	R3.raw	R3 sec	R3	Patient 3	a	21	treatment	a	Homo sapiens	Blood		E. coli				x		on beads	Trypsin+LYSN					HPLC	HF-X	120min	
+	R4.raw	R4 sec	R4	Patient 4	a	50	treatment	b	Homo sapiens	Blood		E. coli				x		in solution	LYSN					HPLC	HF-X	240min	
+	R1R2.raw	R1R2 sec	R1R2	Patient 1	a	na	placebo	a	Homo sapiens	Blood		E. coli	R1+R2									iTRAQ	pool	HPLC	HF-X	120min	

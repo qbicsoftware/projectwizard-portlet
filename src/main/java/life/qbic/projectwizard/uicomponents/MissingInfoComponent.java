@@ -46,6 +46,8 @@ public class MissingInfoComponent extends HorizontalLayout {
   }
 
   public String getVocabularyLabelForValue(String cat, Object object) {
+    System.out.println(catToBoxes.keySet());
+    System.out.println(cat);
     for (ComboBox b : catToBoxes.get(cat))
       if (b.getCaption().equals(object))
         return b.getValue().toString();
