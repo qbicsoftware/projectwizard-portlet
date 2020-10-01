@@ -18,7 +18,6 @@ package life.qbic.projectwizard.control;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,7 +56,6 @@ import life.qbic.projectwizard.model.TestSampleInformation;
 import life.qbic.projectwizard.model.TissueInfo;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
-import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
 import life.qbic.projectwizard.steps.ConditionInstanceStep;
 import life.qbic.projectwizard.steps.EntityStep;
 import life.qbic.projectwizard.steps.ExtractionStep;
@@ -286,8 +284,7 @@ public class WizardDataAggregator {
       } else {
         samples = openbis.getSamplesofExperiment(s1.getExperiment().getID());
       }
-      // TODO test this!
-      // Map<Sample, List<String>> parentMap = getParentMap(samples);
+
       Map<Sample, List<String>> parentMap = new HashMap<>();
       Map<Sample, List<Sample>> parentSampleMap = openbis.getParentMap(samples);
       for (Sample key : parentSampleMap.keySet()) {
@@ -356,40 +353,6 @@ public class WizardDataAggregator {
     return extracts;
   }
 
-
-  // TODO move this to openbisclient and remove from here and barcodecontroller
-  // protected Map<Sample, List<String>> getParentMap(List<Sample> samples) {
-  // List<String> codes = new ArrayList<String>();
-  // for (Sample s : samples) {
-  // codes.add(s.getCode());
-  // }
-  // Map<String, Object> params = new HashMap<String, Object>();
-  // params.put("codes", codes);
-  // QueryTableModel resTable = openbis.getAggregationService("get-parentmap", params);
-  // Map<String, List<String>> parentMap = new HashMap<String, List<String>>();
-  //
-  // for (Serializable[] ss : resTable.getRows()) {
-  // String code = (String) ss[0];
-  // String parent = (String) ss[1];
-  // if (parentMap.containsKey(code)) {
-  // List<String> parents = parentMap.get(code);
-  // parents.add(parent);
-  // parentMap.put(code, parents);
-  // } else {
-  // parentMap.put(code, new ArrayList<String>(Arrays.asList(parent)));
-  // }
-  // }
-  // Map<Sample, List<String>> res = new HashMap<Sample, List<String>>();
-  // for (Sample s : samples) {
-  // List<String> prnts = parentMap.get(s.getCode());
-  // if (prnts == null)
-  // prnts = new ArrayList<String>();
-  // res.put(s, prnts);
-  // }
-  // return res;
-  // }
-
-
   /**
    * Creates the list of samples prepared for testing from the input information collected in the
    * aggregator fields and wizard steps and fetches or creates the associated context
@@ -450,10 +413,6 @@ public class WizardDataAggregator {
 
     return mhcExtracts;
   }
-
-  // public Map<String, Map<String, Object>> getMHCLigandExtractProperties() {
-  // return mhcExperimentProtocols;
-  // }
 
   /**
    * Build and return a list of all possible MHC ligand extracts, using existing test samples and
