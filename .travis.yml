@@ -57,6 +57,7 @@ deploy:
   script: mvn --quiet --activate-profiles !development-build,release-build --settings .travis.settings.xml deploy
   on:
     branch: master
+    tags: true
     condition: '"$TRAVIS_EVENT_TYPE" = "push"'
 
 # change according to your needs, but we recommend to deactivate email notifications
