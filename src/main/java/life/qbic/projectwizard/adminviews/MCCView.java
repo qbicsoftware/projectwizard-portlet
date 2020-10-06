@@ -211,9 +211,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
       designExperiment = null;
       logger.error("could not find info experiment for project" + project);
     } else {
-      Experiment e = exp;
-      if (e.getType().getCode().equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
-        designExperiment = e;
+      if (exp.getType().getCode().equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
+        designExperiment = exp;
         expDesign =
             xmlParser.parseXMLString(designExperiment.getProperties().get("Q_EXPERIMENTAL_SETUP"));
         logger.debug("setting exp design: " + expDesign);
@@ -314,10 +313,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
         }
         logger.debug("exps " + infoExperiments);
         logger.debug("update " + entitiesToUpdate);
-        // creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments,
-        // bar,
-        // registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()), user,
-        // entitiesToUpdate, false);
+
         creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, infoExperiments, bar,
             registerInfo, new RegisteredSamplesReadyRunnable(getView(), getView()),
             entitiesToUpdate, false);
@@ -351,8 +347,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView, IRegis
     String treatment = "";
     boolean wrongFormat = false;
     // TODO
-    for (Sample s : openbis.getSamplesOfProject(
-        "/" + mccSpace + "/" + (String) mccProjects.getValue())) {
+    for (Sample s : openbis
+        .getSamplesOfProject("/" + mccSpace + "/" + (String) mccProjects.getValue())) {
       counter.increment(s);
       String id = s.getProperties().get("Q_EXTERNALDB_ID");
       if (s.getType().getCode().equals("Q_BIOLOGICAL_ENTITY")) {

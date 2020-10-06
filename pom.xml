@@ -85,12 +85,6 @@
 			<artifactId>openbis-client-lib</artifactId>
 			<version>1.4.1</version>
 		</dependency>
-		<!-- openBIS API (version defined in parent POM) -->
-		<!--dependency>
-			<groupId>life.qbic.openbis</groupId>
-			<artifactId>openbis_api</artifactId>
-			<version>3-S253.0</version>
-		</dependency-->
 		<dependency>
 			<groupId>com.opencsv</groupId>
 			<artifactId>opencsv</artifactId>

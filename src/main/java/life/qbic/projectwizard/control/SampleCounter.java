@@ -51,11 +51,11 @@ public class SampleCounter {
   }
 
   // TODO later updates (after initialization)
-  public void increment(Sample s) {
-    String code = s.getCode();
+  public void increment(Sample sample) {
+    String code = sample.getCode();
     String experimentID = null;
     try {
-      experimentID = s.getExperiment().getIdentifier().getIdentifier();
+      experimentID = sample.getExperiment().getIdentifier().getIdentifier();
     } catch (Exception e) {
     }
 
@@ -81,8 +81,8 @@ public class SampleCounter {
         if (SampleCodeFunctions.compareSampleCodes(code, barcode) > 0)
           barcode = code;
       }
-    } else if (s.getType().getCode().equals(("Q_BIOLOGICAL_ENTITY"))) {
-      int num = Integer.parseInt(s.getCode().split("-")[1]);
+    } else if (sample.getType().getCode().equals(("Q_BIOLOGICAL_ENTITY"))) {
+      int num = Integer.parseInt(sample.getCode().split("-")[1]);
       if (num >= entityID)
         entityID = num;
     }

@@ -240,9 +240,9 @@ public class WizardController implements IRegistrationController {
   public boolean projectHasBioEntities(String spaceCode, String code) {
     if (!openbis.projectExists(spaceCode, code))
       return false;
-    for (Experiment e : openbis.getExperimentsOfProjectByCode(code)) {
-      if (e.getType().getCode().equals("Q_EXPERIMENTAL_DESIGN")) {
-        if (openbis.getSamplesofExperiment(e.getIdentifier().getIdentifier()).size() > 0)
+    for (Experiment experiment : openbis.getExperimentsOfProjectByCode(code)) {
+      if (experiment.getType().getCode().equals("Q_EXPERIMENTAL_DESIGN")) {
+        if (openbis.getSamplesofExperiment(experiment.getIdentifier().getIdentifier()).size() > 0)
           return true;
       }
     }
@@ -1196,25 +1196,26 @@ public class WizardController implements IRegistrationController {
               e.printStackTrace();
             }
           }
-          Project p = openbis.getProjectByIdentifier("/" + space + "/" + proj);
+          Project project = openbis.getProjectByIdentifier("/" + space + "/" + proj);
           Map<String, List<Sample>> samplesByExperiment = new HashMap<String, List<Sample>>();
-          for (Sample s : openbis.getSamplesOfProject(p.getIdentifier().getIdentifier())) {
-            if (s.getExperiment() != null) {
-              String expCode = s.getExperiment().getCode();
+          for (Sample sample : openbis
+              .getSamplesOfProject(project.getIdentifier().getIdentifier())) {
+            if (sample.getExperiment() != null) {
+              String expCode = sample.getExperiment().getCode();
               if (samplesByExperiment.containsKey(expCode)) {
-                List<Sample> lis = samplesByExperiment.get(expCode);
-                lis.add(s);
-                samplesByExperiment.put(expCode, lis);
+                List<Sample> samples = samplesByExperiment.get(expCode);
+                samples.add(sample);
+                samplesByExperiment.put(expCode, samples);
               } else {
-                List<Sample> lis = new ArrayList<Sample>(Arrays.asList(s));
-                samplesByExperiment.put(expCode, lis);
+                List<Sample> samples = new ArrayList<Sample>(Arrays.asList(sample));
+                samplesByExperiment.put(expCode, samples);
               }
             } else {
-              logger.warn("No experiment found for sample " + s.getCode());
+              logger.warn("No experiment found for sample " + sample.getCode());
             }
           }
           String designExpID = ExperimentCodeFunctions.getInfoExperimentID(space, proj);
-          finishStep.setExperimentInfos(space, proj, designExpID, p.getDescription(),
+          finishStep.setExperimentInfos(space, proj, designExpID, project.getDescription(),
               samplesByExperiment, openbis);
         }
       }
