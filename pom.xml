@@ -116,12 +116,10 @@
 			<artifactId>sardine</artifactId>
 			<version>5.8</version>
 		</dependency>
-
-		<!--ask Luis K. :) -->
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>omero-client-lib</artifactId>
-			<version>1.0.0</version>
+			<version>1.2.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
