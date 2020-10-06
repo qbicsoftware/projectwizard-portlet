@@ -41,9 +41,9 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
@@ -210,14 +210,13 @@ public class MCCViewNew extends VerticalLayout
     designExperiment = null;
     System.out.println("searching design experiment");
     String id = ExperimentCodeFunctions.getInfoExperimentID(space, project);
-    List<Experiment> exps = openbis.getExperimentById2(id);
-    if (exps.isEmpty()) {
+    Experiment exp = openbis.getExperimentById(id);
+    if (exp == null) {
       designExperiment = null;
       logger.error("could not find info experiment for project" + project);
     } else {
-      Experiment e = exps.get(0);
-      if (e.getExperimentTypeCode().equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
-        designExperiment = e;
+      if (exp.getType().getCode().equalsIgnoreCase(ExperimentType.Q_PROJECT_DETAILS.name())) {
+        designExperiment = exp;
         expDesign =
             xmlParser.parseXMLString(designExperiment.getProperties().get("Q_EXPERIMENTAL_SETUP"));
         logger.debug("setting exp design: " + expDesign);
@@ -352,11 +351,11 @@ public class MCCViewNew extends VerticalLayout
       counter = new SampleCounter(newProject.getValue());
     boolean wrongFormat = false;
     String treat = "";
-    for (Sample s : openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(
+    for (Sample s : openbis.getSamplesOfProject(
         "/" + mccSpace + "/" + (String) mccProjects.getValue())) {
       counter.increment(s);
       String id = s.getProperties().get("Q_EXTERNALDB_ID");
-      if (s.getSampleTypeCode().equals("Q_BIOLOGICAL_ENTITY")) {
+      if (s.getType().getCode().equals("Q_BIOLOGICAL_ENTITY")) {
         entities.add(s);
         try {
           if (id != null) {
