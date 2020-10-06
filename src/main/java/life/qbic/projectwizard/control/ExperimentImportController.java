@@ -82,6 +82,7 @@ import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.ISAParseReady;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OmeroAdapter;
 import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.projectwizard.views.ExperimentImportView;
@@ -96,6 +97,7 @@ public class ExperimentImportController implements IRegistrationController {
   private ExperimentImportView view;
   private final Uploader uploader = new Uploader();
   private IOpenbisCreationController openbisCreator;
+  private OmeroAdapter omero;
   private SamplePreparator prep;
   //
   private ProjectInfo projectInfo;
@@ -130,8 +132,10 @@ public class ExperimentImportController implements IRegistrationController {
   protected ISAStudyInfos isaStudyInfos;
 
   public ExperimentImportController(IOpenbisCreationController creationController,
-      Vocabularies vocabularies, IOpenBisClient openbis, DBManager dbm) {
+      OmeroAdapter omeroAdapter, Vocabularies vocabularies, IOpenBisClient openbis, DBManager dbm) {
+
     view = new ExperimentImportView();
+    this.omero = omeroAdapter;
     this.dbm = dbm;
     this.questionaire = view.getMissingInfoComponent();
     this.vocabs = vocabularies;
@@ -370,6 +374,7 @@ public class ExperimentImportController implements IRegistrationController {
           }
           String space = projectInfo.getSpace();
           String project = projectInfo.getProjectCode();
+          String description = projectInfo.getDescription();
           String infoExpCode = project + "_INFO";
           String code = project + "000";
           ISampleBean infoSample =
@@ -403,11 +408,21 @@ public class ExperimentImportController implements IRegistrationController {
               break;
           }
 
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
-              projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
-              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control),
-              entitiesToUpdate, projectInfo.isPilot());
+          if (questionaire != null && questionaire.hasImagingSupport()) {
+            List<ISampleBean> imagableSamples = new ArrayList<>();
+            for (List<ISampleBean> level : samples) {
+              if (!level.isEmpty()
+                  && level.get(0).getType().equals(SampleType.Q_BIOLOGICAL_SAMPLE)) {
+                imagableSamples.addAll(level);
+              }
+            }
+            omero.registerSamples(project, description, imagableSamples);
+          }
 
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, description,
+              complexExperiments, view.getProgressBar(), view.getProgressLabel(),
+              new RegisteredSamplesReadyRunnable(view, control), entitiesToUpdate,
+              projectInfo.isPilot());
         }
       }
 

@@ -130,4 +130,8 @@ public class MissingInfoComponent extends HorizontalLayout {
   public String getProjectSecondaryName() {
     return projectInfoComponent.getProjectName();
   }
+
+  public boolean hasImagingSupport() {
+    return projectInfoComponent.hasImagingSupport();
+  }
 }

@@ -170,7 +170,6 @@ public class ProjectContextStep implements WizardStep {
     return this.projectInfoComponent.getSelectedProject().toUpperCase();
   }
 
-  //
   public boolean hasImagingSupport() {
     return this.projectInfoComponent.hasImagingSupport();
   }

@@ -30,6 +30,7 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import life.qbic.datamodel.attachments.AttachmentConfig;
+import life.qbic.omero.BasicOMEROClient;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
 import life.qbic.portal.portlet.QBiCPortletUI;
@@ -43,6 +44,7 @@ import life.qbic.projectwizard.io.DBConfig;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OmeroAdapter;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.registration.OpenbisV3APIWrapper;
 import life.qbic.projectwizard.registration.OpenbisV3CreationController;
@@ -188,8 +190,18 @@ public class ProjectWizardUI extends QBiCPortletUI {
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
 
-    WizardController mainController = new WizardController(openbis, v3, creationController, dbm,
-        vocabularies, attachConfig, config);
+    BasicOMEROClient omero = null;
+    try {
+      int omeroPort = Integer.parseInt(config.getOmeroPort());
+      omero = new BasicOMEROClient(config.getOmeroUser(), config.getOmeroPassword(),
+          config.getOmeroHostname(), omeroPort);
+    } catch (NumberFormatException | NullPointerException e) {
+      logger.warn("Omero port could not be parsed form the configuration file.");
+    }
+    OmeroAdapter omeroAdapter = new OmeroAdapter(omero);
+
+    WizardController mainController = new WizardController(openbis, omeroAdapter, v3, creationController,
+        dbm, vocabularies, attachConfig, config);
 
     mainController.init(user);
     Wizard w = mainController.getWizard();
@@ -224,7 +236,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
 
     ExperimentImportController uc =
-        new ExperimentImportController(creationController, vocabularies, openbis, dbm);
+        new ExperimentImportController(creationController, omeroAdapter, vocabularies, openbis, dbm);
     uc.init(user, config.getISAConfigPath());
     tabs.addTab(uc.getView(), "Import Project").setIcon(FontAwesome.FILE);
 
