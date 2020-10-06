@@ -48,9 +48,9 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload.FinishedEvent;
 import com.vaadin.ui.Upload.FinishedListener;
 import com.wcs.wcslib.vaadin.widget.multifileupload.ui.AllUploadFinishedHandler;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
@@ -133,6 +133,7 @@ public class ExperimentImportController implements IRegistrationController {
 
   public ExperimentImportController(IOpenbisCreationController creationController,
       OmeroAdapter omeroAdapter, Vocabularies vocabularies, IOpenBisClient openbis, DBManager dbm) {
+
     view = new ExperimentImportView();
     this.omero = omeroAdapter;
     this.dbm = dbm;
@@ -422,7 +423,6 @@ public class ExperimentImportController implements IRegistrationController {
               complexExperiments, view.getProgressBar(), view.getProgressLabel(),
               new RegisteredSamplesReadyRunnable(view, control), entitiesToUpdate,
               projectInfo.isPilot());
-
         }
       }
 
@@ -528,12 +528,8 @@ public class ExperimentImportController implements IRegistrationController {
 
   private void findFirstExistingDesignExperimentCodeOrNull(String space, String project) {
     String expID = ExperimentCodeFunctions.getInfoExperimentID(space, project);
-    List<Experiment> experiments = openbis.getExperimentById2(expID);
-    // reset
-    currentDesignExperiment = null;
-    for (Experiment e : experiments) {
-      currentDesignExperiment = e;
-    }
+    // TODO nullcheck?
+    currentDesignExperiment = openbis.getExperimentById(expID);
   }
 
   private void prepareCompletionDialog() {
@@ -999,8 +995,7 @@ public class ExperimentImportController implements IRegistrationController {
     firstFreeBarcode = "";// TODO cleanup where not needed
     currentProjectSamples = new ArrayList<Sample>();
     if (openbis.projectExists(space, project)) {
-      currentProjectSamples.addAll(openbis
-          .getSamplesWithParentsAndChildrenOfProjectBySearchService("/" + space + "/" + project));
+      currentProjectSamples.addAll(openbis.getSamplesOfProject("/" + space + "/" + project));
     }
     List<Experiment> experiments = openbis.getExperimentsOfProjectByCode(project);
     for (Experiment e : experiments) {
@@ -1037,7 +1032,7 @@ public class ExperimentImportController implements IRegistrationController {
           if (firstBarcode.equals(firstFreeBarcode))
             throw new TooManySamplesException();
         }
-      } else if (s.getSampleTypeCode().equals(("Q_BIOLOGICAL_ENTITY"))) {
+      } else if (s.getType().getCode().equals(("Q_BIOLOGICAL_ENTITY"))) {
         int num = Integer.parseInt(s.getCode().split("-")[1]);
         if (num >= firstFreeEntityID)
           firstFreeEntityID = num + 1;
