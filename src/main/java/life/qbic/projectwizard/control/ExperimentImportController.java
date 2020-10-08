@@ -692,10 +692,11 @@ public class ExperimentImportController implements IRegistrationController {
           }
         }
         int filePos = -1;
+        boolean colExists = false;
         for (String line : tsv) {
           String[] splt = line.split("\t");
-          boolean colExists = barcodeColumnNames.contains(splt[0]);
           if (filePos < 0) {
+            colExists = barcodeColumnNames.contains(splt[0]);
             filePos = Arrays.asList(splt).indexOf(fileNameHeader);
             if (colExists) {
               builder.append(line + "\n");
@@ -715,7 +716,6 @@ public class ExperimentImportController implements IRegistrationController {
       default:
         break;
     }
-    System.out.println(builder.toString());
     return builder.toString();
   }
 
@@ -794,7 +794,6 @@ public class ExperimentImportController implements IRegistrationController {
                       String entry = (String) props.get(key);
                       // String newLabel = questionaire.getVocabularyLabelForValue(val, entry);//
                       // TODO?
-                      // System.out.println(newLabel);
                       String newVal = questionaire.getVocabularyCodeForValue(vocabCode, entry);
                       if (newVal != null) {
                         props.put(key, newVal);
@@ -880,8 +879,6 @@ public class ExperimentImportController implements IRegistrationController {
 
                     if (props.containsKey("Q_EXPRESSION_SYSTEM")) {
                       if (!props.get("Q_EXPRESSION_SYSTEM").equals("")) {
-                        System.out.println("XXXX");
-                        System.out.println("expression system contained");
                         String newExprVal = questionaire.getVocabularyLabelForValue(
                             "Expression System", props.get("Q_EXPRESSION_SYSTEM"));
                         props.put("Q_EXPRESSION_SYSTEM", vocabs.getTaxMap().get(newExprVal));
