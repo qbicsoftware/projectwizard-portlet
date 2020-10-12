@@ -36,7 +36,7 @@ script: travis_wait 30 mvn --quiet --activate-profiles !development-build,!relea
 # upload code coverage report, generate maven site (javadocs, documentation, static code analysis, etc.)
 after_success: 
 - bash <(curl -s https://codecov.io/bash)
-- mvn --quiet --activate-profiles !development-build,!release-build --settings .travis.settings.xml site
+- travis_wait 30 mvn --quiet --activate-profiles !development-build,!release-build --settings .travis.settings.xml site
 
 # upload to maven
 deploy:
@@ -45,7 +45,7 @@ deploy:
   # artifact will be installed in our testing instance if it is a .war file
 - skip_cleanup: true
   provider: script
-  script: mvn --quiet --activate-profiles development-build,!release-build --settings .travis.settings.xml deploy
+  script: travis_wait 30 mvn --quiet --activate-profiles development-build,!release-build --settings .travis.settings.xml deploy
   on:
     branch: development
     condition: '"$TRAVIS_EVENT_TYPE" = "push"'
@@ -54,7 +54,7 @@ deploy:
   # artifact will be installed in our testing instance if it is a .war file
 - skip_cleanup: true
   provider: script
-  script: mvn --quiet --activate-profiles !development-build,release-build --settings .travis.settings.xml deploy
+  script: travis_wait 30 mvn --quiet --activate-profiles !development-build,release-build --settings .travis.settings.xml deploy
   on:
     branch: master
     tags: true

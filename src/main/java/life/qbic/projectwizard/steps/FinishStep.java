@@ -49,6 +49,7 @@ import com.vaadin.ui.Button.ClickListener;
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.TSVReadyRunnable;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.registration.UpdateProgressBar;

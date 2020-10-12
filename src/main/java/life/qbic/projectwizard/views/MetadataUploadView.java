@@ -604,7 +604,7 @@ public class MetadataUploadView extends VerticalLayout {
       SampleType type = codesToSamples.get(bc).getType();
 
       if (!sampleTypeToAttributes.containsKey(type.getCode())) {
-        List<PropertyType> props = openbis.getPropertiesOfEntityType(type);
+        List<PropertyType> props = openbis.getPropertiesOfSampleType(type);
         List<String> propertyNames = new ArrayList<String>();
         for (PropertyType p : props) {
           String propName = p.getLabel();
