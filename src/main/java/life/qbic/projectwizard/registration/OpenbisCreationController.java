@@ -472,7 +472,7 @@ public class OpenbisCreationController implements IOpenbisCreationController {
     params.put("properties", props);
     params.put("user", user);
     params.put("identifier", expID);
-    openbis.triggerIngestionService("update-experiment-metadata", params);
+    openbis.ingest("DSS1", "update-experiment-metadata", params);
   }
 
   @Override
