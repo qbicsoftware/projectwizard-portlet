@@ -302,10 +302,6 @@ public class OpenbisV3APIWrapper {
     return res;
   }
 
-  public List<String> getVocabCodes(String vocabulary) {
-    return new ArrayList<>(getVocabLabelToCode(vocabulary).values());
-  }
-
   public List<Sample> getSamplesOfProjectOfTypes(String projectCode, List<String> typeCodes) {
     checklogin();
     SampleSearchCriteria sc = new SampleSearchCriteria();
@@ -346,21 +342,4 @@ public class OpenbisV3APIWrapper {
       return userToken;
   }
 
-
-  public boolean isAdmin(String userID) {
-    checklogin();
-    PersonSearchCriteria criteria = new PersonSearchCriteria();
-    criteria.withUserId().thatEquals(userID);
-    PersonFetchOptions options = new PersonFetchOptions();
-    options.withRoleAssignments();
-    SearchResult<Person> res = API.searchPersons(adminToken, criteria, options);
-    for (Person p : res.getObjects()) {
-      for (RoleAssignment r : p.getRoleAssignments()) {
-        if (r.getRole().equals(Role.ADMIN)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
 }
