@@ -225,8 +225,7 @@ public class OpenbisCreationController implements IOpenbisCreationController {
     for (String experiment : entitiesToUpdate.keySet()) {
       String expID = ExperimentCodeFunctions.getExperimentIdentifier(p.getSpace(),
           p.getProjectCode(), experiment);
-      long modificationTime = openbis.getExperimentById2(expID).get(0).getRegistrationDetails()
-          .getModificationDate().getTime();
+      long modificationTime = openbis.getExperimentById(expID).getModificationDate().getTime();
 
       updateExperiment(expID, entitiesToUpdate.get(experiment));
 
@@ -234,8 +233,7 @@ public class OpenbisCreationController implements IOpenbisCreationController {
       double TIMEOUT = 10000;
 
       while (newModificationTime == modificationTime && TIMEOUT > 0) {
-        newModificationTime = openbis.getExperimentById2(expID).get(0).getRegistrationDetails()
-            .getModificationDate().getTime();
+        newModificationTime = openbis.getExperimentById(expID).getModificationDate().getTime();
         TIMEOUT -= 300;
         try {
           Thread.sleep(300);
@@ -474,7 +472,7 @@ public class OpenbisCreationController implements IOpenbisCreationController {
     params.put("properties", props);
     params.put("user", user);
     params.put("identifier", expID);
-    openbis.triggerIngestionService("update-experiment-metadata", params);
+    openbis.ingest("DSS1", "update-experiment-metadata", params);
   }
 
   @Override

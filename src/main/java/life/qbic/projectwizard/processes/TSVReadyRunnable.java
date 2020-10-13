@@ -82,7 +82,6 @@ public class TSVReadyRunnable implements Runnable {
       String[] lineSplit = row.split("\t", -1);// doesn't remove trailing whitespaces
       String xml = "";
       String code = lineSplit[0];
-      logger.warn("debug: code- "+code);
       for (String cell : lineSplit) {
         if (cell.startsWith(xmlStart))
           xml = cell;

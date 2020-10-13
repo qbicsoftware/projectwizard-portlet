@@ -42,13 +42,14 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
+import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.TSVReadyRunnable;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
 import life.qbic.projectwizard.registration.UpdateProgressBar;
@@ -183,9 +184,9 @@ public class FinishStep implements WizardStep {
     for (String exp : samplesByExperiment.keySet()) {
       List<Sample> samps = samplesByExperiment.get(exp);
       for (Sample s : samps)
-        ids.add(s.getIdentifier());
+        ids.add(s.getIdentifier().getIdentifier());
       int amount = samps.size();
-      String sampleType = samps.get(0).getSampleTypeCode();
+      String sampleType = samps.get(0).getType().getCode();
       switch (sampleType) {
         case "Q_BIOLOGICAL_ENTITY":
           entitieNum += amount;
@@ -246,13 +247,13 @@ public class FinishStep implements WizardStep {
           }
         }
         logger.debug("designexpID " + designExpID);
-        List<Experiment> exps = openbis.getExperimentById2(designExpID);
+        Experiment experiment = openbis.getExperimentById(designExpID);
         StudyXMLParser parser = new StudyXMLParser();
         Set<String> factors = new HashSet<>();
         Map<Pair<String, String>, Property> factorsForLabelsAndSamples = new HashMap<>();
         String xml = "";
-        if (!exps.isEmpty()) {
-          xml = exps.get(0).getProperties().get("Q_EXPERIMENTAL_SETUP");
+        if (experiment != null) {
+          xml = experiment.getProperties().get("Q_EXPERIMENTAL_SETUP");
         }
         try {
           JAXBElement<Qexperiment> expDesign = parser.parseXMLString(xml);

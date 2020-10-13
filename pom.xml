@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>projectwizard-portlet</artifactId>
@@ -10,12 +11,29 @@
 	<parent>
 		<groupId>life.qbic</groupId>
 		<artifactId>portlet-parent-pom</artifactId>
-		<version>1.4.0</version>
+		<version>3.1.4</version>
 	</parent>
+	<properties>
+		<vaadin.version>7.7.17</vaadin.version>
+		<vaadin.plugin.version>7.7.17</vaadin.plugin.version>
+	</properties>
 	<repositories>
 		<repository>
 			<releases>
-			<enabled>false</enabled>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>maven-central</id>
+			<name>Maven central</name>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+		<repository>
+			<releases>
+				<enabled>false</enabled>
 			</releases>
 			<snapshots>
 				<enabled>true</enabled>
@@ -24,7 +42,7 @@
 			</snapshots>
 			<id>nexus-snapshots</id>
 			<name>QBiC Snapshots</name>
-			<url>https://qbic-repo.am10.uni-tuebingen.de/repository/maven-snapshots</url>
+			<url>https://qbic-repo.qbic.uni-tuebingen.de/repository/maven-snapshots</url>
 		</repository>
 		<repository>
 			<releases>
@@ -37,14 +55,14 @@
 			</snapshots>
 			<id>nexus-releases</id>
 			<name>QBiC Releases</name>
-			<url>https://qbic-repo.am10.uni-tuebingen.de/repository/maven-releases</url>
+			<url>https://qbic-repo.qbic.uni-tuebingen.de/repository/maven-releases</url>
 		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>core-utils-lib</artifactId>
-			<version>1.2.1</version>
+			<version>1.7.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
@@ -61,7 +79,7 @@
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>experimental-design-lib</artifactId>
-			<version>0.17.0-20201006.164218-1</version>
+			<version>0.17.0-SNAPSHOT</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
@@ -78,13 +96,7 @@
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>openbis-client-lib</artifactId>
-			<version>1.1.4</version>
-		</dependency>
-		<!-- openBIS API (version defined in parent POM) -->
-		<dependency>
-			<groupId>life.qbic.openbis</groupId>
-			<artifactId>openbis_api</artifactId>
-			<version>3-S253.0</version>
+			<version>1.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opencsv</groupId>
@@ -111,38 +123,24 @@
 			<artifactId>sardine</artifactId>
 			<version>5.8</version>
 		</dependency>
-		
-		<!--ask Luis K. :) -->
-        <dependency>
-            <groupId>life.qbic</groupId>
-            <artifactId>omero-client-lib</artifactId>
-            <version>1.0.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>jul-to-slf4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>jcl-over-slf4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-		<!-- dependency>
-			 Patched version 4.2-min does not bundle slf4j 
-			<groupId>org.slf4j</groupId>
-			<artifactId>jul-to-slf4j</artifactId>
-			<version>1.5.6</version>
-		</dependency>
 		<dependency>
-			Patched version 4.2-min does not bundle slf4j 
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<version>1.5.6</version>
-		</dependency-->
+			<groupId>life.qbic</groupId>
+			<artifactId>omero-client-lib</artifactId>
+			<version>1.2.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jul-to-slf4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jcl-over-slf4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 	</dependencies>
-</project>
+</project> 

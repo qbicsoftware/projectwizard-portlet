@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-// import org.isatools.isacreator.model.Study;
+import org.isatools.isacreator.model.Study;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.ExternalResource;
@@ -142,8 +142,7 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
       layout.addComponent(ok);
       isaStudyBox.setVisible(true);
       isaBox.addComponent(isaStudyBox);
-      // String baseDir = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
-      // src/main/webapp
+
       Resource res =
           new ExternalResource(ProjectWizardUI.getPathToVaadinFolder() + "img/isatools.png");
       Image imNotYourC_Pal = new Image(null, res);
@@ -271,8 +270,6 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
         case Proteomics_MassSpectrometry:
         case MHC_Ligands_Finished:
           downloadTSV.setEnabled(true);
-          // case Proteomics_MassSpectrometry:
-          // downloadTSV.setEnabled(true);TODO?
           break;
         default:
           break;
@@ -318,8 +315,8 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
           return ExperimentalDesignType.MHC_Ligands_Finished;
         case "Mass Spec Proteomics":
           return ExperimentalDesignType.Proteomics_MassSpectrometry;
-        // case "ISA-Tab (prototype)":
-        // return ExperimentalDesignType.ISA;
+        case "ISA-Tab (prototype)":
+          return ExperimentalDesignType.ISA;
         default:
           return ExperimentalDesignType.Standard;
       }
@@ -339,14 +336,6 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
     questionaire = newQ;
     return questionaire;
   }
-  
-//  public MissingInfoComponent initMissingInfoComponent(
-//      ProjectInformationComponent projectInfoComponent,
-//      Map<String, List<String>> parsedCategoryToValues, Map<String, List<String>> catToVocabulary,
-//      ValueChangeListener missingInfoFilledListener) {
-//    // TODO Auto-generated method stub
-//    return null;
-//  }
 
   public MissingInfoComponent getMissingInfoComponent() {
     return questionaire;
@@ -410,13 +399,13 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
     return isaStudyBox;
   }
 
-  // public void listISAStudies(List<Study> studies) {
-  // isaStudyBox.setVisible(!studies.isEmpty());
-  // isaStudyBox.removeAllItems();
-  // for (Study s : studies)
-  // isaStudyBox.addItem(s.getStudyId());
-  // isaStudyBox.setEnabled(!studies.isEmpty());
-  // }
+  public void listISAStudies(List<Study> studies) {
+    isaStudyBox.setVisible(!studies.isEmpty());
+    isaStudyBox.removeAllItems();
+    for (Study s : studies)
+      isaStudyBox.addItem(s.getStudyId());
+    isaStudyBox.setEnabled(!studies.isEmpty());
+  }
 
   public void resetFormatSelection() {
     importOptions.setValue(importOptions.getNullSelectionItemId());

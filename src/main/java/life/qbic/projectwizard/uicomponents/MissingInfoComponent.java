@@ -46,8 +46,6 @@ public class MissingInfoComponent extends HorizontalLayout {
   }
 
   public String getVocabularyLabelForValue(String cat, Object object) {
-//    System.out.println(catToBoxes.keySet());
-//    System.out.println(cat);
     for (ComboBox b : catToBoxes.get(cat))
       if (b.getCaption().equals(object))
         return b.getValue().toString();
@@ -153,51 +151,12 @@ public class MissingInfoComponent extends HorizontalLayout {
     }
   }
 
-  // public void init(ProjectInformationComponent projectInfoComponent,
-  // Map<String, List<String>> missingCategoryToValues, Map<String, Map<String>> catToVocabulary,
-  // ValueChangeListener infoCompleteListener) {
-  // VerticalLayout right = new VerticalLayout();
-  // right.setCaption("Sample information (please complete)");
-  // this.projectInfoComponent = projectInfoComponent;
-  // this.catToVocabulary = catToVocabulary;
-  //
-  // projectInfoComponent.addInfoCompleteListener(infoCompleteListener);
-  // addComponent(projectInfoComponent);
-  // addComponent(right);
-  //
-  // catToBoxes = new HashMap<String, List<ComboBox>>();
-  //
-  // for (String cat : missingCategoryToValues.keySet()) {
-  // List<ComboBox> boxes = new ArrayList<ComboBox>();
-  // for (String value : missingCategoryToValues.get(cat)) {
-  // Set<String> vocab = new HashSet<String>(catToVocabulary.get(cat));
-  // ComboBox b = new ComboBox(value, vocab);
-  // b.setNullSelectionAllowed(false);
-  // b.setStyleName(Styles.boxTheme);
-  // b.setFilteringMode(FilteringMode.CONTAINS);
-  // boolean match = false;
-  // for (String vVal : vocab) {
-  // if (vVal.equalsIgnoreCase(value)) {
-  // match = true;
-  // b.setValue(vVal);
-  // b.setEnabled(false);
-  // break;
-  // }
-  // }
-  // if (!match) {
-  // b.addValueChangeListener(infoCompleteListener);
-  // b.setRequiredError("Please find the closest option.");
-  // b.setRequired(true);
-  // }
-  // boxes.add(b);
-  // right.addComponent(b);
-  // }
-  // catToBoxes.put(cat, boxes);
-  // }
-  // }
-
   public String getProjectSecondaryName() {
     return projectInfoComponent.getProjectName();
+  }
+
+  public boolean hasImagingSupport() {
+    return projectInfoComponent.hasImagingSupport();
   }
 
 }

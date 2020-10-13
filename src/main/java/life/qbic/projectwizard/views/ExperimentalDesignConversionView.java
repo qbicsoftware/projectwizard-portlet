@@ -23,9 +23,9 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.themes.ValoTheme;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.samples.ISampleBean;
@@ -96,7 +96,7 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
 
     for (Experiment exp : infoExps) {
       if (exp.getProperties().containsKey("Q_EXPERIMENTAL_SETUP")) {
-        projectInfoExpsWithDesignXML.add(exp.getIdentifier());
+        projectInfoExpsWithDesignXML.add(exp.getIdentifier().getIdentifier());
       }
     }
     for (Sample s : infoSamps) {
@@ -104,7 +104,7 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     }
 
     for (Project project : projects) {
-      String space = project.getSpaceCode();
+      String space = project.getSpace().getCode();
       String code = project.getCode();
       if (spaceToProjects.containsKey(space)) {
         spaceToProjects.get(space).add(code);
@@ -252,21 +252,16 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     logger.info("converting " + project);
     logger.info(size + " samples");
     logger.info("target experiment: " + TARGET_EXPERIMENT);
-    List<ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment> exps =
-        openbis.getExperimentById2(TARGET_EXPERIMENT);
+    Experiment exp = openbis.getExperimentById(TARGET_EXPERIMENT);
 
-    boolean exists = false;
+    boolean exists = exp != null;
     boolean sampleExists = openbis.sampleExists(INFO_SAMPLE_CODE);
-    for (Experiment e : exps) {
-      if (e.getIdentifier().equals(TARGET_EXPERIMENT)) {
-        exists = true;
-      }
-    }
+
     logger.info("experiment exists: " + exists);
     logger.info("sample exists: " + sampleExists);
 
     for (Sample s : samples) {
-      String type = s.getSampleTypeCode();
+      String type = s.getType().getCode();
       if (type.equals("Q_TEST_SAMPLE")) {
         String analyte = s.getProperties().get("Q_SAMPLE_TYPE");
         TechnologyType tech = ParserHelpers.typeToTechnology.get(analyte);
@@ -326,8 +321,7 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     props.put("Q_EXPERIMENTAL_SETUP", xml);
     if (!exists) {
       logger.info("creating new experiment");
-      creator.registerExperiment(space, project, ExperimentType.Q_PROJECT_DETAILS,
-          infoCode, props);
+      creator.registerExperiment(space, project, ExperimentType.Q_PROJECT_DETAILS, infoCode, props);
     } else {
       logger.info("updating existing experiment");
 
@@ -335,8 +329,8 @@ public class ExperimentalDesignConversionView extends VerticalLayout {
     }
     if (!sampleExists) {
       logger.info("registering info sample");
-      ISampleBean infoSample = new TSVSampleBean(INFO_SAMPLE_CODE, infoCode, project,
-          space, SampleType.Q_ATTACHMENT_SAMPLE, "", new ArrayList<String>(),
+      ISampleBean infoSample = new TSVSampleBean(INFO_SAMPLE_CODE, infoCode, project, space,
+          SampleType.Q_ATTACHMENT_SAMPLE, "", new ArrayList<String>(),
           new HashMap<String, Object>());
       creator.registerSampleBatch(new ArrayList<>(Arrays.asList(infoSample)));
     }

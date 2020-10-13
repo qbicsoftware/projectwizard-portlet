@@ -31,7 +31,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-// import org.isatools.isacreator.model.Study;
+import org.isatools.isacreator.model.Study;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.CompositeValidator;
@@ -41,15 +41,16 @@ import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload.FinishedEvent;
 import com.vaadin.ui.Upload.FinishedListener;
 import com.wcs.wcslib.vaadin.widget.multifileupload.ui.AllUploadFinishedHandler;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
@@ -72,16 +73,17 @@ import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
 import life.qbic.expdesign.model.ExperimentalDesignType;
 import life.qbic.expdesign.model.SampleSummaryBean;
 import life.qbic.expdesign.model.StructuredExperiment;
-// import life.qbic.isatab.ISAReader;
-// import life.qbic.isatab.ISAStudyInfos;
-// import life.qbic.isatab.ISAToQBIC;
+import life.qbic.isatab.ISAReader;
+import life.qbic.isatab.ISAStudyInfos;
+import life.qbic.isatab.ISAToQBIC;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.model.MHCTyping;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable;
-// import life.qbic.projectwizard.processes.ISAParseReady;
+import life.qbic.projectwizard.processes.ISAParseReady;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OmeroAdapter;
 import life.qbic.projectwizard.uicomponents.MissingInfoComponent;
 import life.qbic.projectwizard.uicomponents.ProjectInformationComponent;
 import life.qbic.projectwizard.views.ExperimentImportView;
@@ -96,6 +98,7 @@ public class ExperimentImportController implements IRegistrationController {
   private ExperimentImportView view;
   private final Uploader uploader = new Uploader();
   private IOpenbisCreationController openbisCreator;
+  private OmeroAdapter omero;
   private SamplePreparator prep;
   //
   private ProjectInfo projectInfo;
@@ -127,11 +130,13 @@ public class ExperimentImportController implements IRegistrationController {
   private ArrayList<Sample> currentProjectSamples;
   private ProjectInformationComponent projectInfoComponent;
   private Set<String> currentDesignTypes;
-  // protected ISAStudyInfos isaStudyInfos;
+   protected ISAStudyInfos isaStudyInfos;
 
   public ExperimentImportController(IOpenbisCreationController creationController,
-      Vocabularies vocabularies, IOpenBisClient openbis, DBManager dbm) {
+      OmeroAdapter omeroAdapter, Vocabularies vocabularies, IOpenBisClient openbis, DBManager dbm) {
+
     view = new ExperimentImportView();
+    this.omero = omeroAdapter;
     this.dbm = dbm;
     this.questionaire = view.getMissingInfoComponent();
     this.vocabs = vocabularies;
@@ -148,61 +153,61 @@ public class ExperimentImportController implements IRegistrationController {
   }
 
 
-  // public void initISAHandler(ISAReader isaParser, File folder) {
-  // ComboBox isaStudyBox = view.getISAStudyBox();
-  // isaStudyBox.addValueChangeListener(new ValueChangeListener() {
-  //
-  // @Override
-  // public void valueChange(ValueChangeEvent event) {
-  // Object study = isaStudyBox.getValue();
-  // if (study != null) {
-  // isaParser.selectStudyToParse(study.toString());
-  // }
-  // boolean readSuccess = false;
-  // try {
-  // prep = new SamplePreparator();
-  // readSuccess = prep.processTSV(folder, isaParser, true);
-  // } catch (IOException e) {
-  // // TODO Auto-generated catch block
-  // e.printStackTrace();
-  // } catch (JAXBException e) {
-  // // TODO Auto-generated catch block
-  // e.printStackTrace();
-  // }
-  // if (readSuccess) {
-  // isaStudyInfos = isaParser.getStudyInfos(study.toString());
-  // handleImportResults(ExperimentalDesignType.ISA, prep.getSummary());
-  // currentDesignTypes = new HashSet<>();
-  // currentDesignTypes.addAll(isaStudyInfos.getDesignTypes());
-  // projectInfoComponent.setDescription(isaStudyInfos.getDescription());
-  // projectInfoComponent.setProjectName(isaStudyInfos.getTitle());
-  // // TODO long information, studydesigns
-  // } else {
-  // String error = prep.getError();
-  // Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
-  // }
-  // }
-  // });
-  // }
+  public void initISAHandler(ISAReader isaParser, File folder) {
+    ComboBox isaStudyBox = view.getISAStudyBox();
+    isaStudyBox.addValueChangeListener(new ValueChangeListener() {
 
-  // public void isaPrepComplete(List<Study> studies, String error) {
-  // if (error != null) {
-  // Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
-  // view.resetFormatSelection();
-  // view.listISAStudies(new ArrayList<Study>());
-  // } else {
-  // Styles.notification("Upload complete.",
-  // "ISA-Tab has been successfully uploaded, please select a study.",
-  // NotificationType.SUCCESS);
-  // view.listISAStudies(studies);
-  // }
-  // }
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        Object study = isaStudyBox.getValue();
+        if (study != null) {
+          isaParser.selectStudyToParse(study.toString());
+        }
+        boolean readSuccess = false;
+        try {
+          prep = new SamplePreparator();
+          readSuccess = prep.processTSV(folder, isaParser, true);
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (JAXBException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        if (readSuccess) {
+          isaStudyInfos = isaParser.getStudyInfos(study.toString());
+          handleImportResults(prep.getSummary());
+          currentDesignTypes = new HashSet<>();
+          currentDesignTypes.addAll(isaStudyInfos.getDesignTypes());
+          projectInfoComponent.setDescription(isaStudyInfos.getDescription());
+          projectInfoComponent.setProjectName(isaStudyInfos.getTitle());
+          // TODO long information, studydesigns
+        } else {
+          String error = prep.getError();
+          Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
+        }
+      }
+    });
+  }
+
+  public void isaPrepComplete(List<Study> studies, String error) {
+    if (error != null) {
+      Styles.notification("Failed to read ISA format.", error, NotificationType.ERROR);
+      view.resetFormatSelection();
+      view.listISAStudies(new ArrayList<Study>());
+    } else {
+      Styles.notification("Upload complete.",
+          "ISA-Tab has been successfully uploaded, please select a study.",
+          NotificationType.SUCCESS);
+      view.listISAStudies(studies);
+    }
+  }
 
   public void init(final String user, final String isaConfigPath) {
     ExperimentImportController control = this;
     Upload upload = new Upload("Upload your file here", uploader);
     MultiUploadComponent multiUpload = new MultiUploadComponent();
-    // final ExperimentImportController controller = this;
+     final ExperimentImportController controller = this;
 
     final AllUploadFinishedHandler allUploadFinishedHandler = new AllUploadFinishedHandler() {
 
@@ -213,20 +218,20 @@ public class ExperimentImportController implements IRegistrationController {
           @Override
           public void run() {
             File folder = multiUpload.getISAFolder();
-            // ISAReader isaParser = new ISAReader(isaConfigPath, new ISAToQBIC());
+            ISAReader isaParser = new ISAReader(isaConfigPath, new ISAToQBIC());
             String error = null;
-            // List<Study> studies = new ArrayList<Study>();
+            List<Study> studies = new ArrayList<Study>();
             try {
-              // studies = isaParser.listStudies(folder);
-              // error = isaParser.getError();
+              studies = isaParser.listStudies(folder);
+              error = isaParser.getError();
             } catch (NullPointerException e) {
               error = "Investigation file not found or not the right format.";
             }
             if (error == null)
-              // initISAHandler(isaParser, folder);
+              initISAHandler(isaParser, folder);
 
-              // UI.getCurrent().access(new ISAParseReady(controller, studies, error));
-              UI.getCurrent().setPollInterval(-1);
+            UI.getCurrent().access(new ISAParseReady(controller, studies, error));
+            UI.getCurrent().setPollInterval(-1);
           }
         });
         UI.getCurrent().setPollInterval(10);
@@ -378,6 +383,7 @@ public class ExperimentImportController implements IRegistrationController {
           }
           String space = projectInfo.getSpace();
           String project = projectInfo.getProjectCode();
+          String description = projectInfo.getDescription();
           String infoExpCode = project + "_INFO";
           String code = project + "000";
           ISampleBean infoSample =
@@ -414,11 +420,22 @@ public class ExperimentImportController implements IRegistrationController {
             default:
               break;
           }
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples,
-              projectInfo.getDescription(), complexExperiments, view.getProgressBar(),
-              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view, control),
-              entitiesToUpdate, projectInfo.isPilot());
 
+          if (questionaire != null && questionaire.hasImagingSupport()) {
+            List<ISampleBean> imagableSamples = new ArrayList<>();
+            for (List<ISampleBean> level : samples) {
+              if (!level.isEmpty()
+                  && level.get(0).getType().equals(SampleType.Q_BIOLOGICAL_SAMPLE)) {
+                imagableSamples.addAll(level);
+              }
+            }
+            omero.registerSamples(project, description, imagableSamples);
+          }
+
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, description,
+              complexExperiments, view.getProgressBar(), view.getProgressLabel(),
+              new RegisteredSamplesReadyRunnable(view, control), entitiesToUpdate,
+              projectInfo.isPilot());
         }
       }
 
@@ -561,12 +578,8 @@ public class ExperimentImportController implements IRegistrationController {
 
   private void findFirstExistingDesignExperimentCodeOrNull(String space, String project) {
     String expID = ExperimentCodeFunctions.getInfoExperimentID(space, project);
-    List<Experiment> experiments = openbis.getExperimentById2(expID);
-    // reset
-    currentDesignExperiment = null;
-    for (Experiment e : experiments) {
-      currentDesignExperiment = e;
-    }
+    // TODO nullcheck?
+    currentDesignExperiment = openbis.getExperimentById(expID);
   }
 
   private void prepareCompletionDialog() {
@@ -852,6 +865,7 @@ public class ExperimentImportController implements IRegistrationController {
             for (ISampleBean b : level) {
               TSVSampleBean t = (TSVSampleBean) b;
 
+//start of new block
               // TODO do this in the parser
               Object extID = t.getMetadata().get("Q_EXTERNALDB_ID");
               boolean noExtID = extID == null || ((String) extID).isEmpty();
@@ -862,6 +876,11 @@ public class ExperimentImportController implements IRegistrationController {
               String uniqueID = createUniqueIDFromSampleMetadata(t);
 
               if (uniqueIDToSample.containsKey(uniqueID)) {
+
+//              String extID = (String) t.getMetadata().get("Q_EXTERNALDB_ID");
+//
+//              if (extIDToSample.containsKey(extID)) {
+
                 existing.add(t);
                 uniqueCodeToBarcode.put(uniqueID, uniqueIDToSample.get(uniqueID).getCode());
                 uniqueNumericIDToUniqueCode.put(t.getCode(), uniqueID);
@@ -1221,8 +1240,7 @@ public class ExperimentImportController implements IRegistrationController {
     firstFreeBarcode = "";// TODO cleanup where not needed
     currentProjectSamples = new ArrayList<Sample>();
     if (openbis.projectExists(space, project)) {
-      currentProjectSamples.addAll(openbis
-          .getSamplesWithParentsAndChildrenOfProjectBySearchService("/" + space + "/" + project));
+      currentProjectSamples.addAll(openbis.getSamplesOfProject("/" + space + "/" + project));
     }
     List<Experiment> experiments = openbis.getExperimentsOfProjectByCode(project);
     for (Experiment e : experiments) {
@@ -1246,7 +1264,7 @@ public class ExperimentImportController implements IRegistrationController {
       String code = s.getCode();
       // collect existing samples by their external id, can create import type-specific unique ids
       // instead
-      TSVSampleBean converted = new TSVSampleBean(code, SampleType.valueOf(s.getSampleTypeCode()),
+      TSVSampleBean converted = new TSVSampleBean(code, SampleType.valueOf(s.getType().getCode()),
           s.getProperties().get("Q_SECONDARY_NAME"), new HashMap<>(s.getProperties()));
       String uniqueSampleID = createUniqueIDFromSampleMetadata(converted);
       boolean emptyID = uniqueSampleID == null || uniqueSampleID.isEmpty();
@@ -1263,7 +1281,7 @@ public class ExperimentImportController implements IRegistrationController {
           if (firstBarcode.equals(firstFreeBarcode))
             throw new TooManySamplesException();
         }
-      } else if (s.getSampleTypeCode().equals(("Q_BIOLOGICAL_ENTITY"))) {
+      } else if (s.getType().getCode().equals(("Q_BIOLOGICAL_ENTITY"))) {
         int num = Integer.parseInt(s.getCode().split("-")[1]);
         if (num >= firstFreeEntityID)
           firstFreeEntityID = num + 1;
@@ -1324,10 +1342,10 @@ public class ExperimentImportController implements IRegistrationController {
         projectName = questionaire.getProjectSecondaryName();
         String id = "/" + space + "/" + project;
         addPeopleAndProjectToDB(id, projectName);
-        // if (getImportType().equals(ExperimentalDesignType.ISA)) {
-        // String protocol = isaStudyInfos.getProtocol();
-        // dbm.changeLongProjectDescription(id, protocol);
-        // }
+         if (getImportType().equals(ExperimentalDesignType.ISA)) {
+         String protocol = isaStudyInfos.getProtocol();
+         dbm.changeLongProjectDescription(id, protocol);
+         }
       }
 
       // TODO

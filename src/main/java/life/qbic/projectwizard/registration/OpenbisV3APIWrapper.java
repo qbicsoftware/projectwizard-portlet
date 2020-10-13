@@ -7,12 +7,14 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ch.ethz.sis.openbis.generic.asapi.v3.IApplicationServerApi;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.TableModel;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.operation.IOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.common.search.SearchResult;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.DataSet;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.fetchoptions.DataSetFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.search.DataSetSearchCriteria;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.dataset.update.DataSetUpdate;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.datastore.id.DataStorePermId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.fetchoptions.ExperimentFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.id.ExperimentIdentifier;
@@ -27,6 +29,8 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.update.ProjectUpdate;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.service.execute.ReportingServiceExecutionOptions;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.service.id.DssServicePermId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.Space;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.fetchoptions.SpaceFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.search.SpaceSearchCriteria;
@@ -91,6 +95,14 @@ public class OpenbisV3APIWrapper {
   public void updateDataSets(List<DataSetUpdate> dSets) {
     checklogin();
     API.updateDataSets(userToken, dSets);
+  }
+
+
+  public TableModel callAggreationService(String name, String dss) {
+    ReportingServiceExecutionOptions options = new ReportingServiceExecutionOptions();
+    DssServicePermId serviceID = new DssServicePermId(name, new DataStorePermId(dss));
+    TableModel table = API.executeReportingService(adminToken, serviceID, options);
+    return table;
   }
 
   private void checklogin() {
@@ -198,10 +210,10 @@ public class OpenbisV3APIWrapper {
 
     ExperimentFetchOptions eOptions = new ExperimentFetchOptions();
     eOptions.withProperties();
-    
+
     cOptions.withExperimentUsing(eOptions);
     cOptions.withChildren();
-    
+
     DataSetFetchOptions dsOptions = new DataSetFetchOptions();
     dsOptions.withType();
     dsOptions.withPhysicalData();
@@ -281,7 +293,6 @@ public class OpenbisV3APIWrapper {
         res.put(t.getCode(), t.getCode());
       }
     }
-
     return res;
   }
 
@@ -324,4 +335,5 @@ public class OpenbisV3APIWrapper {
     else
       return userToken;
   }
+
 }

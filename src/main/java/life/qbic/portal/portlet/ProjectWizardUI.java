@@ -30,6 +30,7 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import life.qbic.datamodel.attachments.AttachmentConfig;
+import life.qbic.omero.BasicOMEROClient;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
 import life.qbic.portal.portlet.QBiCPortletUI;
@@ -43,17 +44,19 @@ import life.qbic.projectwizard.io.DBConfig;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.model.Vocabularies;
 import life.qbic.projectwizard.registration.IOpenbisCreationController;
+import life.qbic.projectwizard.registration.OmeroAdapter;
 import life.qbic.projectwizard.registration.OpenbisCreationController;
 import life.qbic.projectwizard.registration.OpenbisV3APIWrapper;
 import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
 
+
 @Theme("mytheme")
 @Widgetset("life.qbic.portlet.AppWidgetSet")
 public class ProjectWizardUI extends QBiCPortletUI {
 
-  public static boolean development = false;
+  public static boolean development = true;
   public static boolean v3RegistrationAPI = false;
   public static String MSLabelingMethods;
   public static String tmpFolder;
@@ -108,11 +111,14 @@ public class ProjectWizardUI extends QBiCPortletUI {
     // establish connection to the OpenBIS API
     try {
       logger.debug("trying to connect to openbis");
-      this.openbis = new OpenBisClient(config.getDataSourceUser(), config.getDataSourcePassword(),
-          config.getDataSourceUrl());
+
+      final String openbisURL = config.getDataSourceUrl() + "/openbis/openbis";
+
+      this.openbis =
+          new OpenBisClient(config.getDataSourceUser(), config.getDataSourcePassword(), openbisURL);
       this.openbis.login();
 
-      v3 = new OpenbisV3APIWrapper(config.getDataSourceUrl(), config.getDataSourceUser(),
+      v3 = new OpenbisV3APIWrapper(openbisURL, config.getDataSourceUser(),
           config.getDataSourcePassword(), userID);
 
     } catch (Exception e) {
@@ -125,45 +131,37 @@ public class ProjectWizardUI extends QBiCPortletUI {
     if (success) {
       // stuff from openbis
       // OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
-
-      Map<String, String> taxMap = v3.getVocabLabelToCode("Q_NCBI_TAXONOMY");
-      Map<String, String> tissueMap = v3.getVocabLabelToCode("Q_PRIMARY_TISSUES");
-      Map<String, String> deviceMap = v3.getVocabLabelToCode("Q_MS_DEVICES");
-      Map<String, String> cellLinesMap = v3.getVocabLabelToCode("Q_CELL_LINES");
-      Map<String, String> enzymeMap = v3.getVocabLabelToCode("Q_DIGESTION_PROTEASES");
-      Map<String, String> chromTypes = v3.getVocabLabelToCode("Q_CHROMATOGRAPHY_TYPES");
-      Map<String, String> antibodiesWithLabels = v3.getVocabLabelToCode("Q_ANTIBODY");
-      Map<String, String> purificationMethods =
-          v3.getVocabLabelToCode("Q_PROTEIN_PURIFICATION_METHODS");
-      // Map<String, String> taxMap = openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
-      // Map<String, String> tissueMap =
-      // openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
-      // Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
-      // Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
-      // Map<String, String> enzymeMap =
-      // openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES");
-      // Map<String, String> chromTypes2 =
-      // openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
-      // Map<String, String> purificationMethods =
-      // openbis.getVocabCodesAndLabelsForVocab("Q_PROTEIN_PURIFICATION_METHODS");
-      // Map<String, String> antibodiesWithLabels =
-      // openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY");
-
-      List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
+      // System.out.println(Base64.class.getProtectionDomain().getCodeSource().getLocation());
+      Map<String, String> taxMap = openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
+      Map<String, String> tissueMap = openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
+      Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
+      Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
+      Map<String, String> enzymeMap =
+          openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES");
+      Map<String, String> chromTypes =
+          openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
+      Map<String, String> antibodiesWithLabels =
+          openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY");
 
       //// Labeling Type : Q_LABELING_METHOD : Q_LABELING_TYPES
       List<String> labelingTypes = openbis.getVocabCodesForVocab("Q_LABELING_TYPES");
       //// Sample Preparation
-      Map<String, String> samplePreparationMethods = v3.getVocabLabelToCode("Q_SAMPLE_PREPARATION");
-      Map<String, String> digestionMethods = v3.getVocabLabelToCode("Q_DIGESTION_METHODS");
+      Map<String, String> samplePreparationMethods =
+          openbis.getVocabCodesAndLabelsForVocab("Q_SAMPLE_PREPARATION");
+      Map<String, String> digestionMethods =
+          openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_METHODS");
 
+      Map<String, String> purificationMethods =
+          openbis.getVocabCodesAndLabelsForVocab("Q_PROTEIN_PURIFICATION_METHODS");
+
+      List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
       List<String> fractionationTypes =
           openbis.getVocabCodesForVocab("Q_MS_FRACTIONATION_PROTOCOLS");
       List<String> enrichmentTypes = openbis.getVocabCodesForVocab("Q_MS_ENRICHMENT_PROTOCOLS");
       List<String> msProtocols = openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS");
       List<String> lcmsMethods = openbis.getVocabCodesForVocab("Q_MS_LCMS_METHODS");
-      final List<String> spaces = openbis.getUserSpaces(userID);
 
+      final List<String> spaces = openbis.getUserSpaces(userID);
 
       isAdmin = openbis.isUserAdmin(userID);
       // stuff from mysql database
@@ -196,9 +194,18 @@ public class ProjectWizardUI extends QBiCPortletUI {
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
 
-    WizardController mainController = new WizardController(openbis, v3, creationController, dbm,
-        vocabularies, attachConfig, config);
+    BasicOMEROClient omero = null;
+    try {
+      int omeroPort = Integer.parseInt(config.getOmeroPort());
+      omero = new BasicOMEROClient(config.getOmeroUser(), config.getOmeroPassword(),
+          config.getOmeroHostname(), omeroPort);
+    } catch (NumberFormatException | NullPointerException e) {
+      logger.warn("Omero port could not be parsed form the configuration file.");
+    }
+    OmeroAdapter omeroAdapter = new OmeroAdapter(omero);
 
+    WizardController mainController = new WizardController(openbis, omeroAdapter, v3,
+        creationController, dbm, vocabularies, attachConfig, config);
     mainController.init(user);
     Wizard w = mainController.getWizard();
     WizardProgressListener wl = new WizardProgressListener() {
@@ -231,8 +238,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
 
-    ExperimentImportController uc =
-        new ExperimentImportController(creationController, vocabularies, openbis, dbm);
+    ExperimentImportController uc = new ExperimentImportController(creationController, omeroAdapter,
+        vocabularies, openbis, dbm);
     uc.init(user, config.getISAConfigPath());
     tabs.addTab(uc.getView(), "Import Project").setIcon(FontAwesome.FILE);
 
