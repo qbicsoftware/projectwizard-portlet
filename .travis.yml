@@ -59,7 +59,6 @@ deploy:
   provider: script
   script: travis_wait 30 mvn --quiet --activate-profiles !development-build,release-build --settings .travis.settings.xml deploy
   on:
-    branch: master
     tags: true
     condition: '"$TRAVIS_EVENT_TYPE" = "push"'
 
