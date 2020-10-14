@@ -48,7 +48,7 @@ deploy:
   # artifact will be installed in our testing instance if it is a .war file
 - skip_cleanup: true
   provider: script
-  script: travis_wait 30 mvn --quiet --activate-profiles development-build,!release-build --settings .travis.settings.xml deploy
+  script: mvn --quiet --activate-profiles development-build,!release-build --settings .travis.settings.xml deploy
   on:
     branch: development
     condition: '"$TRAVIS_EVENT_TYPE" = "push"'
