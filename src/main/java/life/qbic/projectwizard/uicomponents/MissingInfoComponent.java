@@ -156,7 +156,10 @@ public class MissingInfoComponent extends HorizontalLayout {
   }
 
   public boolean hasImagingSupport() {
-    return projectInfoComponent.hasImagingSupport();
+    if (projectInfoComponent != null) {
+      return projectInfoComponent.hasImagingSupport();
+    }
+    return false;
   }
 
 }
