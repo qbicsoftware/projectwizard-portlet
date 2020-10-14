@@ -4,14 +4,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>projectwizard-portlet</artifactId>
-	<version>1.8.3</version>
+	<version>1.8.4</version>
 	<name>ProjectWizard Portlet</name>
 	<url>http://github.com/qbicsoftware/projectwizard-portlet</url>
 	<packaging>war</packaging>
 	<parent>
 		<groupId>life.qbic</groupId>
 		<artifactId>portlet-parent-pom</artifactId>
-		<version>3.1.1</version>
+		<version>3.1.4</version>
 	</parent>
 	<properties>
 		<vaadin.version>7.7.17</vaadin.version>
