@@ -6,14 +6,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.portal.Styles;
 
@@ -132,6 +130,9 @@ public class MissingInfoComponent extends HorizontalLayout {
   }
 
   public boolean hasImagingSupport() {
-    return projectInfoComponent.hasImagingSupport();
+    if (projectInfoComponent != null) {
+      return projectInfoComponent.hasImagingSupport();
+    }
+    return false;
   }
 }
