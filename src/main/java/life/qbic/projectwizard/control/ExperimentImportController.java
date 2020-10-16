@@ -305,11 +305,11 @@ public class ExperimentImportController implements IRegistrationController {
               boolean readSuccess = prep.processTSV(file, reader, parseGraph);
               boolean vocabValid = false;
               if (readSuccess) {
-                samplePrepProperties = prep.getSpecialExperimentsOfTypeOrNull(
+                samplePrepProperties = prep.transformAndReturnSpecialExperimentsOfTypeOrNull(
                     ExperimentType.Q_SAMPLE_PREPARATION.toString());
                 msProperties = prep
-                    .getSpecialExperimentsOfTypeOrNull(ExperimentType.Q_MS_MEASUREMENT.toString());
-                mhcProperties = prep.getSpecialExperimentsOfTypeOrNull(
+                    .transformAndReturnSpecialExperimentsOfTypeOrNull(ExperimentType.Q_MS_MEASUREMENT.toString());
+                mhcProperties = prep.transformAndReturnSpecialExperimentsOfTypeOrNull(
                     ExperimentType.Q_MHC_LIGAND_EXTRACTION.toString());
                 metadataList = new ArrayList<Map<String, Object>>();
                 if (samplePrepProperties != null)
