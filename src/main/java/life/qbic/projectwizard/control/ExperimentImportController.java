@@ -107,7 +107,7 @@ public class ExperimentImportController implements IRegistrationController {
   private Map<String, Map<String, Object>> mhcProperties;
   private Map<String, Map<String, Object>> samplePrepProperties;
   private Map<String, MHCTyping> dnaSampleCodeToMHCType;
-  private Map<String, Sample> uniqueIDToSample;
+  private Map<String, Sample> uniqueIDToExistingSample;
   private List<OpenbisExperiment> complexExperiments;
 
   private Map<String, String> reverseTaxMap;
@@ -122,7 +122,8 @@ public class ExperimentImportController implements IRegistrationController {
   private String firstFreeBarcode;
   private String nextBarcode;
   private Map<String, String> uniqueCodeToBarcode;
-  private Map<String, String> uniqueNumericIDToUniqueCode;
+  // private Map<String, String> uniqueNumericIDToUniqueCode;
+  private Map<String, String> uniqueNumericIDToBarcode;
 
   private final Logger logger = LogManager.getLogger(ExperimentImportController.class);
   protected String experimentalDesignXML;
@@ -130,7 +131,7 @@ public class ExperimentImportController implements IRegistrationController {
   private ArrayList<Sample> currentProjectSamples;
   private ProjectInformationComponent projectInfoComponent;
   private Set<String> currentDesignTypes;
-   protected ISAStudyInfos isaStudyInfos;
+  protected ISAStudyInfos isaStudyInfos;
 
   public ExperimentImportController(IOpenbisCreationController creationController,
       OmeroAdapter omeroAdapter, Vocabularies vocabularies, IOpenBisClient openbis, DBManager dbm) {
@@ -207,7 +208,7 @@ public class ExperimentImportController implements IRegistrationController {
     ExperimentImportController control = this;
     Upload upload = new Upload("Upload your file here", uploader);
     MultiUploadComponent multiUpload = new MultiUploadComponent();
-     final ExperimentImportController controller = this;
+    final ExperimentImportController controller = this;
 
     final AllUploadFinishedHandler allUploadFinishedHandler = new AllUploadFinishedHandler() {
 
@@ -307,8 +308,8 @@ public class ExperimentImportController implements IRegistrationController {
               if (readSuccess) {
                 samplePrepProperties = prep.transformAndReturnSpecialExperimentsOfTypeOrNull(
                     ExperimentType.Q_SAMPLE_PREPARATION.toString());
-                msProperties = prep
-                    .transformAndReturnSpecialExperimentsOfTypeOrNull(ExperimentType.Q_MS_MEASUREMENT.toString());
+                msProperties = prep.transformAndReturnSpecialExperimentsOfTypeOrNull(
+                    ExperimentType.Q_MS_MEASUREMENT.toString());
                 mhcProperties = prep.transformAndReturnSpecialExperimentsOfTypeOrNull(
                     ExperimentType.Q_MHC_LIGAND_EXTRACTION.toString());
                 metadataList = new ArrayList<Map<String, Object>>();
@@ -533,11 +534,11 @@ public class ExperimentImportController implements IRegistrationController {
   }
 
   private void prepDesignXML(List<TechnologyType> techTypes) {
-    Map<String, String> uniqueNumericToBarcode = new HashMap<>();
-    for (String num : uniqueNumericIDToUniqueCode.keySet()) {
-      uniqueNumericToBarcode.put(num,
-          uniqueCodeToBarcode.get(uniqueNumericIDToUniqueCode.get(num)));
-    }
+    // Map<String, String> uniqueNumericToBarcode = new HashMap<>();
+    // for (String num : uniqueNumericIDToUniqueCode.keySet()) {
+    // uniqueNumericToBarcode.put(num,
+    // uniqueCodeToBarcode.get(uniqueNumericIDToUniqueCode.get(num)));
+    // }
 
     // create Experimental Design XML, first reset both values
     experimentalDesignXML = null;
@@ -547,8 +548,8 @@ public class ExperimentImportController implements IRegistrationController {
         prep.getExperimentalDesignProperties();
     if (uniqueCodeToBarcode != null) {
       Map<String, String> codeMap = uniqueCodeToBarcode;
-      if (!uniqueNumericIDToUniqueCode.isEmpty()) {
-        codeMap = uniqueNumericToBarcode;
+      if (uniqueNumericIDToBarcode != null && !uniqueNumericIDToBarcode.isEmpty()) {
+        codeMap = uniqueNumericIDToBarcode;
       }
       ParserHelpers.translateIdentifiersInExperimentalDesign(codeMap, importedDesignProperties);
     }
@@ -735,8 +736,8 @@ public class ExperimentImportController implements IRegistrationController {
   protected void initMissingInfoListener(Map<String, List<String>> parsedCategoryToValues,
       Map<String, Map<String, String>> catToVocabulary) {
     uniqueCodeToBarcode = new HashMap<>();
-    uniqueNumericIDToUniqueCode = new HashMap<>();
-
+//    uniqueNumericIDToUniqueCode = new HashMap<>();
+    uniqueNumericIDToBarcode = new HashMap<>();
     projectInfoComponent =
         new ProjectInformationComponent(vocabs.getSpaces(), vocabs.getPeople().keySet());
 
@@ -865,25 +866,18 @@ public class ExperimentImportController implements IRegistrationController {
             for (ISampleBean b : level) {
               TSVSampleBean t = (TSVSampleBean) b;
 
-//start of new block
-              // TODO do this in the parser
-              Object extID = t.getMetadata().get("Q_EXTERNALDB_ID");
-              boolean noExtID = extID == null || ((String) extID).isEmpty();
-              if (t.getType().equals(SampleType.Q_MS_RUN) && noExtID) {
-                t.getMetadata().put("Q_EXTERNALDB_ID", t.getMetadata().get("Q_EXTERNALDB_ID"));
-              }
-
+              // start of new block
               String uniqueID = createUniqueIDFromSampleMetadata(t);
 
-              if (uniqueIDToSample.containsKey(uniqueID)) {
+              if (uniqueIDToExistingSample.containsKey(uniqueID)) {
 
-//              String extID = (String) t.getMetadata().get("Q_EXTERNALDB_ID");
-//
-//              if (extIDToSample.containsKey(extID)) {
+                // String extID = (String) t.getMetadata().get("Q_EXTERNALDB_ID");
+                //
+                // if (extIDToSample.containsKey(extID)) {
 
                 existing.add(t);
-                uniqueCodeToBarcode.put(uniqueID, uniqueIDToSample.get(uniqueID).getCode());
-                uniqueNumericIDToUniqueCode.put(t.getCode(), uniqueID);
+                uniqueCodeToBarcode.put(uniqueID, uniqueIDToExistingSample.get(uniqueID).getCode());
+//                uniqueNumericIDToUniqueCode.put(t.getCode(), uniqueID);
               } else {
                 t.setProject(project);
                 t.setSpace(space);
@@ -968,17 +962,27 @@ public class ExperimentImportController implements IRegistrationController {
                     exp = specialExpToExpCode.get(t.getExperiment());
                     // get parent sample for code
                     String parentID = t.getParentIDs().get(0);
-                    if (!uniqueCodeToBarcode.containsKey(parentID)) {
-                      parentID = uniqueNumericIDToUniqueCode.get(parentID);
-                    }
+                    //TODO here! 
+                    System.out.println("ms parent id :" + parentID);
+//                    if (!uniqueCodeToBarcode.containsKey(parentID)) {
+//                      parentID = uniqueNumericIDToUniqueCode.get(parentID);
+//                    }
                     String parentCode = uniqueCodeToBarcode.get(parentID);
+                    if(getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
+                      parentCode = //TODO
+                    }
+                    System.out.println(parentID);
+                    System.out.println(parentCode);
+                    System.out.println("end of translation");
 
                     int msRun = 1;
                     code = "";
                     while (code.isEmpty() || msCodes.contains(code)) {
                       code = "MS" + Integer.toString(msRun) + parentCode;
                       msRun++;
+                      System.out.println(code);
                     }
+                    System.out.println("new ms code found");
                     msCodes.add(code);
                     break;
                   case Q_ATTACHMENT_SAMPLE:
@@ -1055,10 +1059,13 @@ public class ExperimentImportController implements IRegistrationController {
                     break;
                 }
                 String numericID = t.getCode();
+                System.out.println(numericID);
                 uniqueNumericIDToUniqueCode.put(numericID, uniqueID);
                 t.setExperiment(exp);
+                System.out.println("setting code");
                 t.setCode(code);
                 uniqueCodeToBarcode.put(uniqueID, code);
+                System.out.println(uniqueCodeToBarcode);
                 List<String> parents = t.getParentIDs();
                 t.setParents(new ArrayList<ISampleBean>());
                 List<String> newParents = new ArrayList<String>();
@@ -1234,7 +1241,7 @@ public class ExperimentImportController implements IRegistrationController {
   // TODO
   private void countExistingOpenbisEntities(String space, String project)
       throws TooManySamplesException {
-    uniqueIDToSample = new HashMap<String, Sample>();
+    uniqueIDToExistingSample = new HashMap<String, Sample>();
     firstFreeExperimentID = 1;
     firstFreeEntityID = 1;
     firstFreeBarcode = "";// TODO cleanup where not needed
@@ -1268,12 +1275,12 @@ public class ExperimentImportController implements IRegistrationController {
           s.getProperties().get("Q_SECONDARY_NAME"), new HashMap<>(s.getProperties()));
       String uniqueSampleID = createUniqueIDFromSampleMetadata(converted);
       boolean emptyID = uniqueSampleID == null || uniqueSampleID.isEmpty();
-      if (!emptyID && uniqueIDToSample.containsKey(uniqueSampleID)) {
+      if (!emptyID && uniqueIDToExistingSample.containsKey(uniqueSampleID)) {
         logger.warn(uniqueSampleID
             + " was found as a unique id for multiple existing samples. This might"
             + " lead to inconsistencies if new samples are to be attached to this external id.");
       }
-      uniqueIDToSample.put(uniqueSampleID, s);
+      uniqueIDToExistingSample.put(uniqueSampleID, s);
       if (SampleCodeFunctions.isQbicBarcode(code)) {
         if (SampleCodeFunctions.compareSampleCodes(firstFreeBarcode, code) <= 0) {
           firstFreeBarcode = SampleCodeFunctions.incrementSampleCode(code);
@@ -1291,12 +1298,13 @@ public class ExperimentImportController implements IRegistrationController {
 
   private String createUniqueIDFromSampleMetadata(ISampleBean b) {
     String id = (String) b.getMetadata().get("Q_EXTERNALDB_ID");
+    String secID = b.getSecondaryName();
     if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
       // MS import format may contain same name for protein and digested peptide samples, both at
       // the base, pooled and fraction/cycle level
       // thus, we add the sample type to the external db id in order to create unique sample ids:
       if (b.getType().equals(SampleType.Q_TEST_SAMPLE)) {
-        id = id + b.getMetadata().get("Q_SAMPLE_TYPE");
+        id = id + secID + b.getMetadata().get("Q_SAMPLE_TYPE");
       }
       return id;
     } else {
@@ -1342,10 +1350,10 @@ public class ExperimentImportController implements IRegistrationController {
         projectName = questionaire.getProjectSecondaryName();
         String id = "/" + space + "/" + project;
         addPeopleAndProjectToDB(id, projectName);
-         if (getImportType().equals(ExperimentalDesignType.ISA)) {
-         String protocol = isaStudyInfos.getProtocol();
-         dbm.changeLongProjectDescription(id, protocol);
-         }
+        if (getImportType().equals(ExperimentalDesignType.ISA)) {
+          String protocol = isaStudyInfos.getProtocol();
+          dbm.changeLongProjectDescription(id, protocol);
+        }
       }
 
       // TODO
