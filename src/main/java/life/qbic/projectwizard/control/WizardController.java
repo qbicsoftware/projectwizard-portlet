@@ -522,7 +522,7 @@ public class WizardController implements IRegistrationController {
         parameters.put("alt-name", altTitle);
         parameters.put("notes", comments);// TODO do something with this
 
-        openbis.triggerIngestionService("mail-project-inquiry", parameters);
+        openbis.ingest("DSS1", "mail-project-inquiry", parameters);
       }
 
     };

@@ -1134,12 +1134,12 @@ public class ExperimentImportController implements IRegistrationController {
       props.put("filename", space + "_" + code + "_1.alleles");
       List<String> content = dnaSampleCodeToMHCType.get(code).getClassOne();
       props.put("content", content);
-      openbis.triggerIngestionService("create-register-textfile", props);
+      openbis.ingest("DSS1", "create-register-textfile", props);
 
       props.put("filename", space + "_" + code + "_2.alleles");
       content = dnaSampleCodeToMHCType.get(code).getClassTwo();
       props.put("content", content);
-      openbis.triggerIngestionService("create-register-textfile", props);
+      openbis.ingest("DSS1", "create-register-textfile", props);
     }
   }
 
