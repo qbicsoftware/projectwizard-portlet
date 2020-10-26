@@ -122,7 +122,6 @@ public class ExperimentImportController implements IRegistrationController {
   private String firstFreeBarcode;
   private String nextBarcode;
   private Map<String, String> uniqueCodeToBarcode;
-  // private Map<String, String> uniqueNumericIDToUniqueCode;
   private Map<String, String> uniqueNumericIDToBarcode;
 
   private final Logger logger = LogManager.getLogger(ExperimentImportController.class);
@@ -312,6 +311,7 @@ public class ExperimentImportController implements IRegistrationController {
                     ExperimentType.Q_MS_MEASUREMENT.toString());
                 mhcProperties = prep.transformAndReturnSpecialExperimentsOfTypeOrNull(
                     ExperimentType.Q_MHC_LIGAND_EXTRACTION.toString());
+                // resetMetadataChanges();
                 metadataList = new ArrayList<Map<String, Object>>();
                 if (samplePrepProperties != null)
                   metadataList.addAll(samplePrepProperties.values());
@@ -375,7 +375,8 @@ public class ExperimentImportController implements IRegistrationController {
         String src = event.getButton().getCaption();
         if (src.equals("Register All")) {
           List<List<ISampleBean>> samples = view.getSamples();
-          view.getRegisterButton().setEnabled(false);
+          view.setRegEnabled(false);
+          questionaire.setEnabled(false);
           view.showRegistrationProgress();
           // collect experiment information
           complexExperiments = new ArrayList<OpenbisExperiment>();
@@ -401,20 +402,22 @@ public class ExperimentImportController implements IRegistrationController {
           complexExperiments.addAll(
               collectComplexExperiments(mhcProperties, ExperimentType.Q_MHC_LIGAND_EXTRACTION));
 
-          if (experimentalDesignXML != null) {
-            logger.debug("set new xml: >" + experimentalDesignXML + "<");
-
-            Map<String, Object> props = new HashMap<>();
-            props.put("Q_EXPERIMENTAL_SETUP", experimentalDesignXML);
-            complexExperiments
-                .add(new OpenbisExperiment(infoExpCode, ExperimentType.Q_PROJECT_DETAILS, props));
-          }
+          // if (experimentalDesignXML != null) {
+          // logger.debug("set new xml: >" + experimentalDesignXML + "<");
+          //
+          // Map<String, Object> props = new HashMap<>();
+          // props.put("Q_EXPERIMENTAL_SETUP", experimentalDesignXML);
+          // complexExperiments
+          // .add(new OpenbisExperiment(infoExpCode, ExperimentType.Q_PROJECT_DETAILS, props));
+          // }
           List<String> tsv = prep.getOriginalTSV();
           switch (getImportType()) {
             case Standard:
             case MHC_Ligands_Finished:
             case Proteomics_MassSpectrometry:
               String tsvContent = addBarcodesToTSV(tsv, view.getSamples(), getImportType());
+              tsvContent =
+                  replaceChangedMetadata(tsvContent, questionaire.getMetadataReplacements());
               view.setTSVWithBarcodes(tsvContent,
                   uploader.getFileNameWithoutExtension() + "_with_barcodes");
               break;
@@ -433,11 +436,21 @@ public class ExperimentImportController implements IRegistrationController {
             omero.registerSamples(project, description, imagableSamples);
           }
 
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, description,
-              complexExperiments, view.getProgressBar(), view.getProgressLabel(),
-              new RegisteredSamplesReadyRunnable(view, control), entitiesToUpdate,
-              projectInfo.isPilot());
+           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, description,
+           complexExperiments, view.getProgressBar(), view.getProgressLabel(),
+           new RegisteredSamplesReadyRunnable(view, control), entitiesToUpdate,
+           projectInfo.isPilot());
         }
+      }
+
+      private String replaceChangedMetadata(String tsvContent,
+          Map<String, String> metadataReplacements) {
+        String res = tsvContent;
+        for (String userInput : metadataReplacements.keySet()) {
+          String selectedVocabValue = metadataReplacements.get(userInput);
+          res = res.replace(userInput, selectedVocabValue);
+        }
+        return res;
       }
 
       private Map<String, Map<String, Object>> fixSamplePrepProperties(
@@ -469,6 +482,7 @@ public class ExperimentImportController implements IRegistrationController {
 
       private Collection<? extends OpenbisExperiment> collectComplexExperiments(
           Map<String, Map<String, Object>> propsMap, ExperimentType type) {
+        System.out.println(propsMap);
         List<OpenbisExperiment> res = new ArrayList<OpenbisExperiment>();
         if (propsMap != null) {
           for (String code : propsMap.keySet()) {
@@ -534,11 +548,6 @@ public class ExperimentImportController implements IRegistrationController {
   }
 
   private void prepDesignXML(List<TechnologyType> techTypes) {
-    // Map<String, String> uniqueNumericToBarcode = new HashMap<>();
-    // for (String num : uniqueNumericIDToUniqueCode.keySet()) {
-    // uniqueNumericToBarcode.put(num,
-    // uniqueCodeToBarcode.get(uniqueNumericIDToUniqueCode.get(num)));
-    // }
 
     // create Experimental Design XML, first reset both values
     experimentalDesignXML = null;
@@ -736,7 +745,6 @@ public class ExperimentImportController implements IRegistrationController {
   protected void initMissingInfoListener(Map<String, List<String>> parsedCategoryToValues,
       Map<String, Map<String, String>> catToVocabulary) {
     uniqueCodeToBarcode = new HashMap<>();
-//    uniqueNumericIDToUniqueCode = new HashMap<>();
     uniqueNumericIDToBarcode = new HashMap<>();
     projectInfoComponent =
         new ProjectInformationComponent(vocabs.getSpaces(), vocabs.getPeople().keySet());
@@ -765,7 +773,7 @@ public class ExperimentImportController implements IRegistrationController {
               List<String> newVal = new ArrayList<String>();
               for (String v : val.split(", ")) {
                 v = v.trim();
-                String translation = questionaire.getVocabularyLabelForValue(cat, v);
+                String translation = questionaire.getVocabularyLabelForImportValue(cat, v);
                 if (translation == null)
                   translation = reverseTissueMap.get(v);
                 if (translation == null)
@@ -801,20 +809,33 @@ public class ExperimentImportController implements IRegistrationController {
 
             for (Map<String, Object> props : metadataList) {
               Map<String, String> newProps = new HashMap<>();
-              for (String key : props.keySet()) {
-                if (keyToFields.containsKey(key)) {
-                  for (String vocabCode : keyToFields.get(key)) {
-                    if (props.get(key) instanceof String) {
-                      String entry = (String) props.get(key);
+              for (String openBISPropertyKey : props.keySet()) {
+                System.out.println("key: " + openBISPropertyKey);
+                if (keyToFields.containsKey(openBISPropertyKey)) {
+
+                  for (String vocabCode : keyToFields.get(openBISPropertyKey)) {
+                    System.out.println("vocab: " + vocabCode);
+                    if (props.get(openBISPropertyKey) instanceof String) {
+                      String oldEntry = (String) props.get(openBISPropertyKey);
+                      System.out.println("old: " + oldEntry);
+
                       // String newLabel = questionaire.getVocabularyLabelForValue(val, entry);//
-                      // TODO?
-                      String newVal = questionaire.getVocabularyCodeForValue(vocabCode, entry);
+                      // TODO remember old replacements, replace in tsv, use helper class
+                      String newVal = questionaire.getVocabularyCodeForValue(vocabCode, oldEntry);
+                      System.out.println(newVal);
                       if (newVal != null) {
-                        props.put(key, newVal);
+                        props.put(openBISPropertyKey, newVal);
+                        System.out.println("replacing");
+
+                        //
+                        // MetadataReplacementHelper.addNewReplacement(openBISPropertyKey, )
                       }
-                    } else if (props.get(key) instanceof List<?>) {
+                      System.out.println();
+                    } else if (props.get(openBISPropertyKey) instanceof List<?>) {
+                      System.out.println("is list");
                       List<String> newPropList = new ArrayList<>();
-                      List<String> propList = (List<String>) (List<?>) props.get(key);
+                      List<String> propList =
+                          (List<String>) (List<?>) props.get(openBISPropertyKey);
                       for (String entry : propList) {
                         String newEntry = questionaire.getVocabularyCodeForValue(vocabCode, entry);
                         if (newEntry != null) {
@@ -823,7 +844,8 @@ public class ExperimentImportController implements IRegistrationController {
                           newPropList.add(entry);
                         }
                       }
-                      props.put(key, newPropList);
+                      System.out.println("--");
+                      props.put(openBISPropertyKey, newPropList);
                     }
                   }
                 }
@@ -877,7 +899,6 @@ public class ExperimentImportController implements IRegistrationController {
 
                 existing.add(t);
                 uniqueCodeToBarcode.put(uniqueID, uniqueIDToExistingSample.get(uniqueID).getCode());
-//                uniqueNumericIDToUniqueCode.put(t.getCode(), uniqueID);
               } else {
                 t.setProject(project);
                 t.setSpace(space);
@@ -886,13 +907,13 @@ public class ExperimentImportController implements IRegistrationController {
                 switch (t.getType()) {
                   case Q_BIOLOGICAL_ENTITY:
                     code = project + "ENTITY-" + entityNum;
-                    String newVal = questionaire.getVocabularyLabelForValue("Species",
+                    String newVal = questionaire.getVocabularyLabelForImportValue("Species",
                         props.get("Q_NCBI_ORGANISM"));
                     props.put("Q_NCBI_ORGANISM", vocabs.getTaxMap().get(newVal));
 
                     if (props.containsKey("Q_EXPRESSION_SYSTEM")) {
                       if (!props.get("Q_EXPRESSION_SYSTEM").equals("")) {
-                        String newExprVal = questionaire.getVocabularyLabelForValue(
+                        String newExprVal = questionaire.getVocabularyLabelForImportValue(
                             "Expression System", props.get("Q_EXPRESSION_SYSTEM"));
                         props.put("Q_EXPRESSION_SYSTEM", vocabs.getTaxMap().get(newExprVal));
                       }
@@ -907,7 +928,7 @@ public class ExperimentImportController implements IRegistrationController {
                     }
                     code = nextBarcode;
 
-                    newVal = questionaire.getVocabularyLabelForValue("Tissue",
+                    newVal = questionaire.getVocabularyLabelForImportValue("Tissue",
                         props.get("Q_PRIMARY_TISSUE"));
 
                     props.put("Q_PRIMARY_TISSUE", vocabs.getTissueMap().get(newVal));
@@ -924,7 +945,7 @@ public class ExperimentImportController implements IRegistrationController {
                     }
                     exp = specialExpToExpCode.get(t.getExperiment());
 
-                    newVal = questionaire.getVocabularyLabelForValue("Analyte",
+                    newVal = questionaire.getVocabularyLabelForImportValue("Analyte",
                         props.get("Q_SAMPLE_TYPE"));
                     props.put("Q_SAMPLE_TYPE", newVal);
                     // TODO check if this is not too unspecific for ligandomics
@@ -962,27 +983,19 @@ public class ExperimentImportController implements IRegistrationController {
                     exp = specialExpToExpCode.get(t.getExperiment());
                     // get parent sample for code
                     String parentID = t.getParentIDs().get(0);
-                    //TODO here! 
-                    System.out.println("ms parent id :" + parentID);
-//                    if (!uniqueCodeToBarcode.containsKey(parentID)) {
-//                      parentID = uniqueNumericIDToUniqueCode.get(parentID);
-//                    }
+
                     String parentCode = uniqueCodeToBarcode.get(parentID);
-                    if(getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
-                      parentCode = //TODO
+                    if (getImportType()
+                        .equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
+                      parentCode = uniqueNumericIDToBarcode.get(parentID);
                     }
-                    System.out.println(parentID);
-                    System.out.println(parentCode);
-                    System.out.println("end of translation");
 
                     int msRun = 1;
                     code = "";
                     while (code.isEmpty() || msCodes.contains(code)) {
                       code = "MS" + Integer.toString(msRun) + parentCode;
                       msRun++;
-                      System.out.println(code);
                     }
-                    System.out.println("new ms code found");
                     msCodes.add(code);
                     break;
                   case Q_ATTACHMENT_SAMPLE:
@@ -1059,27 +1072,29 @@ public class ExperimentImportController implements IRegistrationController {
                     break;
                 }
                 String numericID = t.getCode();
-                System.out.println(numericID);
-                uniqueNumericIDToUniqueCode.put(numericID, uniqueID);
                 t.setExperiment(exp);
-                System.out.println("setting code");
                 t.setCode(code);
                 uniqueCodeToBarcode.put(uniqueID, code);
-                System.out.println(uniqueCodeToBarcode);
+                uniqueNumericIDToBarcode.put(numericID, code);
                 List<String> parents = t.getParentIDs();
                 t.setParents(new ArrayList<ISampleBean>());
                 List<String> newParents = new ArrayList<String>();
                 for (String parentID : parents) {
-                  if (!uniqueCodeToBarcode.containsKey(parentID)
-                      && uniqueNumericIDToUniqueCode.containsKey(parentID)) {
-                    parentID = uniqueNumericIDToUniqueCode.get(parentID);
+                  if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
+                    if (uniqueNumericIDToBarcode.containsKey(parentID)) {
+                      newParents.add(uniqueNumericIDToBarcode.get(parentID));
+                    } else
+                      logger.warn(
+                          "Parent could not be translated, because no id to code mapping was found for id "
+                              + parentID);
+                  } else {
+                    if (uniqueCodeToBarcode.containsKey(parentID))
+                      newParents.add(uniqueCodeToBarcode.get(parentID));
+                    else
+                      logger.warn(
+                          "Parent could not be translated, because no id to code mapping was found for id "
+                              + parentID);
                   }
-                  if (uniqueCodeToBarcode.containsKey(parentID))
-                    newParents.add(uniqueCodeToBarcode.get(parentID));
-                  else
-                    logger.warn(
-                        "Parent could not be translated, because no id to code mapping was found for id "
-                            + parentID);
                 }
                 for (String p : newParents) {
                   t.addParentID(p);
