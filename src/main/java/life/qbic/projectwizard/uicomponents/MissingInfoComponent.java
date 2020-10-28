@@ -45,12 +45,6 @@ public class MissingInfoComponent extends HorizontalLayout {
   }
 
   public String getVocabularyCodeForValue(String cat, String entry) {
-    // {Precellys=[Proteomic]
-    // xxxPRECELLYS
-    // yyySample Preparation
-    System.out.println(currentMappingToCaptions);
-    System.out.println("xxx" + entry);
-    System.out.println("yyy" + cat);
     Map<String, String> labelToCodeVocabulary = catToVocabulary.get(cat);
 
     String label = getVocabularyLabelForImportValue(cat, entry);
