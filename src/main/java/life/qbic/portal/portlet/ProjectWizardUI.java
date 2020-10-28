@@ -130,8 +130,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     }
     if (success) {
       // stuff from openbis
-      // OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
-      // System.out.println(Base64.class.getProtectionDomain().getCodeSource().getLocation());
+      // OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);       
       Map<String, String> taxMap = openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
       Map<String, String> tissueMap = openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
       Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
@@ -185,8 +184,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
 
     IOpenbisCreationController creationController = new OpenbisCreationController(openbis, user);
 
-
-
     if (v3RegistrationAPI) {
       creationController = new OpenbisV3CreationController(openbis, user, v3);
     }
@@ -205,7 +202,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     OmeroAdapter omeroAdapter = new OmeroAdapter(omero);
 
     WizardController mainController = new WizardController(openbis, omeroAdapter, v3,
-        creationController, dbm, vocabularies, attachConfig, config);
+        creationController, dbm, vocabularies, attachConfig);
     mainController.init(user);
     Wizard w = mainController.getWizard();
     WizardProgressListener wl = new WizardProgressListener() {
@@ -239,7 +236,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
 
     ExperimentImportController uc = new ExperimentImportController(creationController, omeroAdapter,
-        vocabularies, openbis, dbm);
+        vocabularies, openbis, dbm, attachConfig);
     uc.init(user, config.getISAConfigPath());
     tabs.addTab(uc.getView(), "Import Project").setIcon(FontAwesome.FILE);
 

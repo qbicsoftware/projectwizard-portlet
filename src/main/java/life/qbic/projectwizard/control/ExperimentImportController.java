@@ -51,6 +51,7 @@ import com.wcs.wcslib.vaadin.widget.multifileupload.ui.AllUploadFinishedHandler;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.experiment.Experiment;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.Project;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
+import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.datamodel.experiments.ExperimentType;
 import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
@@ -77,6 +78,7 @@ import life.qbic.isatab.ISAReader;
 import life.qbic.isatab.ISAStudyInfos;
 import life.qbic.isatab.ISAToQBIC;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
+import life.qbic.projectwizard.io.AttachmentMover;
 import life.qbic.projectwizard.io.DBManager;
 import life.qbic.projectwizard.model.MHCTyping;
 import life.qbic.projectwizard.model.Vocabularies;
@@ -90,6 +92,7 @@ import life.qbic.projectwizard.views.ExperimentImportView;
 import life.qbic.xml.study.TechnologyType;
 import life.qbic.portal.Styles;
 import life.qbic.portal.Styles.NotificationType;
+import life.qbic.portal.portlet.ProjectWizardUI;
 import life.qbic.projectwizard.uicomponents.MultiUploadComponent;
 
 
@@ -130,10 +133,14 @@ public class ExperimentImportController implements IRegistrationController {
   private ArrayList<Sample> currentProjectSamples;
   private ProjectInformationComponent projectInfoComponent;
   private Set<String> currentDesignTypes;
+  private AttachmentMover attachMover;
+  private String currentTSVContent;
+  private String user;
   protected ISAStudyInfos isaStudyInfos;
 
   public ExperimentImportController(IOpenbisCreationController creationController,
-      OmeroAdapter omeroAdapter, Vocabularies vocabularies, IOpenBisClient openbis, DBManager dbm) {
+      OmeroAdapter omeroAdapter, Vocabularies vocabularies, IOpenBisClient openbis, DBManager dbm,
+      AttachmentConfig attachConfig) {
 
     view = new ExperimentImportView();
     this.omero = omeroAdapter;
@@ -150,6 +157,7 @@ public class ExperimentImportController implements IRegistrationController {
       this.reverseTissueMap.put(entry.getValue(), entry.getKey());
     }
     this.openbisCreator = creationController;
+    this.attachMover = new AttachmentMover(ProjectWizardUI.tmpFolder, attachConfig);
   }
 
 
@@ -204,6 +212,7 @@ public class ExperimentImportController implements IRegistrationController {
   }
 
   public void init(final String user, final String isaConfigPath) {
+    this.user = user;
     ExperimentImportController control = this;
     Upload upload = new Upload("Upload your file here", uploader);
     MultiUploadComponent multiUpload = new MultiUploadComponent();
@@ -418,6 +427,7 @@ public class ExperimentImportController implements IRegistrationController {
               String tsvContent = addBarcodesToTSV(tsv, view.getSamples(), getImportType());
               tsvContent =
                   replaceChangedMetadata(tsvContent, questionaire.getMetadataReplacements());
+              currentTSVContent = tsvContent;
               view.setTSVWithBarcodes(tsvContent,
                   uploader.getFileNameWithoutExtension() + "_with_barcodes");
               break;
@@ -436,10 +446,10 @@ public class ExperimentImportController implements IRegistrationController {
             omero.registerSamples(project, description, imagableSamples);
           }
 
-           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, description,
-           complexExperiments, view.getProgressBar(), view.getProgressLabel(),
-           new RegisteredSamplesReadyRunnable(view, control), entitiesToUpdate,
-           projectInfo.isPilot());
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, description,
+              complexExperiments, view.getProgressBar(), view.getProgressLabel(),
+              new RegisteredSamplesReadyRunnable(view, control), entitiesToUpdate,
+              projectInfo.isPilot());
         }
       }
 
@@ -482,7 +492,6 @@ public class ExperimentImportController implements IRegistrationController {
 
       private Collection<? extends OpenbisExperiment> collectComplexExperiments(
           Map<String, Map<String, Object>> propsMap, ExperimentType type) {
-        System.out.println(propsMap);
         List<OpenbisExperiment> res = new ArrayList<OpenbisExperiment>();
         if (propsMap != null) {
           for (String code : propsMap.keySet()) {
@@ -810,29 +819,22 @@ public class ExperimentImportController implements IRegistrationController {
             for (Map<String, Object> props : metadataList) {
               Map<String, String> newProps = new HashMap<>();
               for (String openBISPropertyKey : props.keySet()) {
-                System.out.println("key: " + openBISPropertyKey);
                 if (keyToFields.containsKey(openBISPropertyKey)) {
 
                   for (String vocabCode : keyToFields.get(openBISPropertyKey)) {
-                    System.out.println("vocab: " + vocabCode);
                     if (props.get(openBISPropertyKey) instanceof String) {
                       String oldEntry = (String) props.get(openBISPropertyKey);
-                      System.out.println("old: " + oldEntry);
 
                       // String newLabel = questionaire.getVocabularyLabelForValue(val, entry);//
                       // TODO remember old replacements, replace in tsv, use helper class
                       String newVal = questionaire.getVocabularyCodeForValue(vocabCode, oldEntry);
-                      System.out.println(newVal);
                       if (newVal != null) {
                         props.put(openBISPropertyKey, newVal);
-                        System.out.println("replacing");
 
                         //
                         // MetadataReplacementHelper.addNewReplacement(openBISPropertyKey, )
                       }
-                      System.out.println();
                     } else if (props.get(openBISPropertyKey) instanceof List<?>) {
-                      System.out.println("is list");
                       List<String> newPropList = new ArrayList<>();
                       List<String> propList =
                           (List<String>) (List<?>) props.get(openBISPropertyKey);
@@ -844,7 +846,6 @@ public class ExperimentImportController implements IRegistrationController {
                           newPropList.add(entry);
                         }
                       }
-                      System.out.println("--");
                       props.put(openBISPropertyKey, newPropList);
                     }
                   }
@@ -1368,6 +1369,11 @@ public class ExperimentImportController implements IRegistrationController {
         if (getImportType().equals(ExperimentalDesignType.ISA)) {
           String protocol = isaStudyInfos.getProtocol();
           dbm.changeLongProjectDescription(id, protocol);
+        }
+        if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
+          logger.info("Moving imported file to project attachments.");
+          attachMover.createAttachmentFromStringMoveAndMarker(currentTSVContent, uploader.getBaseFileName(),
+              "Proteomics Format Import", "Experimental Design", user, project + "000");
         }
       }
 
