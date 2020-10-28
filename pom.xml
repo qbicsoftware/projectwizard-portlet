@@ -79,7 +79,7 @@
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>experimental-design-lib</artifactId>
-			<version>0.17.0-20201020.094528-1</version>
+			<version>0.17.0-20201027.181059-1</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
@@ -123,6 +123,7 @@
 			<artifactId>sardine</artifactId>
 			<version>5.8</version>
 		</dependency>
+
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>omero-client-lib</artifactId>
