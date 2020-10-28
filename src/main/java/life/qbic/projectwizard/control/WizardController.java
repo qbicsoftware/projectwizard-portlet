@@ -113,36 +113,32 @@ public class WizardController implements IRegistrationController {
 
   private Logger logger = LogManager.getLogger(WizardController.class);
 
-  private AttachmentConfig attachConfig;
   protected Map<String, Map<String, Object>> entitiesToUpdate;
   private OpenbisV3APIWrapper v3API;
+  private AttachmentConfig attachmentConfig;
 
   /**
    * 
-   * @param openbis OpenBisClient API
+   * @param openbis
+   * @param omeroAdapter
    * @param v3
    * @param creationController
    * @param dbm
-   * @param taxMap Map containing the NCBI taxonomy (labels and ids) taken from openBIS
-   * @param tissueMap Map containing the tissue
-   * @param sampleTypes List containing the different sample (technology) types
-   * @param spaces List of space names existing in openBIS
-   * @param dataMoverFolder for attachment upload
-   * @param uploadSize
+   * @param vocabularies
+   * @param attachConfig 
    */
 
   public WizardController(IOpenBisClient openbis, OmeroAdapter omeroAdapter, OpenbisV3APIWrapper v3,
-      IOpenbisCreationController creationController, DBManager dbm, Vocabularies vocabularies,
-      AttachmentConfig attachmentConfig, ConfigurationManager configManager) {
+      IOpenbisCreationController creationController, DBManager dbm, Vocabularies vocabularies, AttachmentConfig attachConfig) {
 
     this.openbis = openbis;
     this.v3API = v3;
     this.dbm = dbm;
     this.openbisCreator = creationController;
     this.vocabularies = vocabularies;
-    this.attachConfig = attachmentConfig;
     this.designExperimentTypes = vocabularies.getExperimentTypes();
     this.omeroAdapter = omeroAdapter;
+    this.attachmentConfig = attachConfig;
   }
 
   // Functions to add steps to the wizard depending on context
@@ -306,7 +302,7 @@ public class WizardController implements IRegistrationController {
     final SummaryRegisterStep regStep = new SummaryRegisterStep();
     final PoolingStep poolStep1 = new PoolingStep(Steps.Extract_Pooling);
     final PoolingStep poolStep2 = new PoolingStep(Steps.Test_Sample_Pooling);
-    final FinishStep finishStep = new FinishStep(w, attachConfig, openbisCreator);
+    final FinishStep finishStep = new FinishStep(w, attachmentConfig, openbisCreator);
 
     final MSAnalyteStep protFracStep = new MSAnalyteStep(vocabularies, "PROTEINS");
     final MSAnalyteStep pepFracStep = new MSAnalyteStep(vocabularies, "PEPTIDES");
