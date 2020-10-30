@@ -453,16 +453,6 @@ public class ExperimentImportController implements IRegistrationController {
         }
       }
 
-      private String replaceChangedMetadata(String tsvContent,
-          Map<String, String> metadataReplacements) {
-        String res = tsvContent;
-        for (String userInput : metadataReplacements.keySet()) {
-          String selectedVocabValue = metadataReplacements.get(userInput);
-          res = res.replace(userInput, selectedVocabValue);
-        }
-        return res;
-      }
-
       private Map<String, Map<String, Object>> fixSamplePrepProperties(
           Map<String, Map<String, Object>> samplePrepProperties) {
         Map<String, Map<String, Object>> res = new HashMap<>();
@@ -502,6 +492,27 @@ public class ExperimentImportController implements IRegistrationController {
       }
     };
     view.getRegisterButton().addClickListener(cl);
+  }
+
+  private String replaceChangedMetadata(String tsvContent,
+      Map<String, String> metadataReplacements) {
+    String res = tsvContent;
+    for (String userInput : metadataReplacements.keySet()) {
+      String selectedVocabValue = metadataReplacements.get(userInput);
+      String in = "(\\t|\\+)" + userInput + "(\\t|\\+)";
+      res = res.replaceAll(in, "$1" + selectedVocabValue + "$2");
+    }
+    return res;
+  }
+
+  public static void main(String[] args) {
+    String res =
+        "R2.raw\tp1\t1\t sec\tR2\tasdadsad\tHomo sapiens\tLiver\tf1\tOffgel\tin gel\tTrypsin+X\tLFQ\tHPLC\tHFX\t180min_something\tE. coli\tpuri";
+    String selectedVocabValue = "Factor XA";
+    String in = "(\\t|\\+)" + "X" + "(\\t|\\+)";
+    System.out.println(res);
+    res = res.replaceAll(in, "$1" + selectedVocabValue + "$2");
+    System.out.println(res);
   }
 
   // TODO this should be done while the samples are read
@@ -656,6 +667,12 @@ public class ExperimentImportController implements IRegistrationController {
       //// TODO
       //// Expression System : Q_EXPRESSION_SYSTEM = Q_NCBI_TAXONOMY
       catToVocabulary.put("Expression System", vocabs.getTaxMap());
+
+      Map<String, String> labelMap = new HashMap<>();
+      for (String label : vocabs.getAllIsotopeLabels()) {
+        labelMap.put(label, label);
+      }
+      catToVocabulary.put("Label", labelMap);
       //// Digestion Method : (Q_DIGESTION_METHOD) : Q_DIGESTION_PROTOCOL
       catToVocabulary.put("Digestion Method", vocabs.getDigestionMethodsMap());
       //// Labeling Type : Q_LABELING_METHOD : Q_LABELING_TYPES
@@ -668,8 +685,8 @@ public class ExperimentImportController implements IRegistrationController {
       Map<String, String> samplePrepMap = vocabs.getSamplePreparationMethods();
       catToVocabulary.put("Sample Preparation", samplePrepMap);
 
-      parsedCategoryToValues = prep.getParsedCategoriesToValues(
-          new ArrayList<String>(Arrays.asList("Expression System", "LC Column", "MS Device",
+      parsedCategoryToValues = prep.getParsedCategoriesToValues(new ArrayList<String>(
+          Arrays.asList("Label", "Expression System", "LC Column", "MS Device",
               "Fractionation Type", "Enrichment Method", "Labeling Type", "LCMS Method",
               "Digestion Method", "Digestion Enzyme", "Sample Preparation", "Species", "Tissue")));
     }
@@ -949,6 +966,16 @@ public class ExperimentImportController implements IRegistrationController {
                     newVal = questionaire.getVocabularyLabelForImportValue("Analyte",
                         props.get("Q_SAMPLE_TYPE"));
                     props.put("Q_SAMPLE_TYPE", newVal);
+
+                    if (props.containsKey("Q_MOLECULAR_LABEL")) {
+                      if (!props.get("Q_MOLECULAR_LABEL").equals("")) {
+                        String newExprVal = questionaire.getVocabularyLabelForImportValue("Label",
+                            props.get("Q_MOLECULAR_LABEL"));
+                        props.put("Q_MOLECULAR_LABEL", newExprVal);
+                        System.out.println(newExprVal);
+                      }
+                    }
+
                     // TODO check if this is not too unspecific for ligandomics
                     TechnologyType ttype = ParserHelpers.typeToTechnology.get(newVal);
                     if (ttype != null) {
@@ -1372,8 +1399,9 @@ public class ExperimentImportController implements IRegistrationController {
         }
         if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
           logger.info("Moving imported file to project attachments.");
-          attachMover.createAttachmentFromStringMoveAndMarker(currentTSVContent, uploader.getBaseFileName(),
-              "Proteomics Format Import", "Experimental Design", user, project + "000");
+          attachMover.createAttachmentFromStringMoveAndMarker(currentTSVContent,
+              uploader.getBaseFileName(), "Proteomics Format Import", "Experimental Design", user,
+              project + "000");
         }
       }
 
