@@ -318,7 +318,7 @@ public class MetadataUploadView extends VerticalLayout {
     parameters.put("identifier", designExperiment.getIdentifier());
     parameters.put("properties", props);
     logger.info("updating experimental design xml");
-    openbis.triggerIngestionService("update-experiment-metadata", parameters);
+    openbis.ingest("DSS1", "update-experiment-metadata", parameters);
   }
 
   public Table getActiveTable() {
