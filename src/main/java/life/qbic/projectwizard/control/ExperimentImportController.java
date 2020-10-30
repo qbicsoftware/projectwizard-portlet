@@ -455,6 +455,9 @@ public class ExperimentImportController implements IRegistrationController {
 
       private Map<String, Map<String, Object>> fixSamplePrepProperties(
           Map<String, Map<String, Object>> samplePrepProperties) {
+        if (samplePrepProperties == null) {
+          return null;
+        }
         Map<String, Map<String, Object>> res = new HashMap<>();
         for (String exp : samplePrepProperties.keySet()) {
           Map<String, Object> props = samplePrepProperties.get(exp);
