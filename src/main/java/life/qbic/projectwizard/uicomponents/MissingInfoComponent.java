@@ -84,10 +84,24 @@ public class MissingInfoComponent extends HorizontalLayout {
 
   public boolean isValid() {
     boolean boxesValid = true;
-    for (List<ComboBox> list : catToBoxes.values())
-      for (ComboBox b : list)
+    for (List<ComboBox> list : catToBoxes.values()) {
+      for (ComboBox b : list) {
         boxesValid &= (b.getValue() != null);
-    return boxesValid && projectInfoComponent.isValid(false);
+      }
+    }
+    boolean valid = boxesValid && projectInfoComponent.isValid(false);
+    if (valid) {
+      lockAllBoxes();
+    }
+    return valid;
+  }
+
+  private void lockAllBoxes() {
+    for (List<ComboBox> boxes : catToBoxes.values()) {
+      for (ComboBox b : boxes) {
+        b.setEnabled(false);
+      }
+    }
   }
 
   public String getSpaceCode() {
@@ -178,7 +192,6 @@ public class MissingInfoComponent extends HorizontalLayout {
                   currentMappingToCaptions.put(newValue,
                       new ArrayList<>(Collections.singletonList(b.getCaption())));
                 }
-                b.setEnabled(false);
               }
             }
           };
