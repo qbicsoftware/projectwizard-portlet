@@ -15,9 +15,14 @@
  *******************************************************************************/
 package life.qbic.projectwizard.model;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import life.qbic.portal.portlet.ProjectWizardUI;
+import life.qbic.projectwizard.io.QuantificationMethodVocabularyParser;
+import life.qbic.projectwizard.uicomponents.LabelingMethod;
 
 
 public class Vocabularies {
@@ -42,6 +47,8 @@ public class Vocabularies {
   private List<String> labelingTypes;
   private Map<String, String> samplePreparations;
   private Map<String, String> digestionMethods;
+  private List<LabelingMethod> labelingMethods;
+  private List<String> isotopeLabels;
 
   public Vocabularies(Map<String, String> taxMap, Map<String, String> tissueMap,
       Map<String, String> cellLinesMap, List<String> measureTypes, List<String> spaces,
@@ -72,6 +79,17 @@ public class Vocabularies {
     this.labelingTypes = labelingTypes;
     this.samplePreparations = samplePreparations;
     this.digestionMethods = digestionMethods;
+
+    QuantificationMethodVocabularyParser p = new QuantificationMethodVocabularyParser();
+    this.labelingMethods =
+        p.parseQuantificationMethods(new File(ProjectWizardUI.MSLabelingMethods));
+    List<String> labels = new ArrayList<>();
+    for (LabelingMethod m : labelingMethods) {
+      labels.addAll(m.getReagents());
+    }
+    Collections.sort(labels);
+    labels.add("Mix");
+    this.isotopeLabels = labels;
   }
 
   public List<String> getLabelingTypes() {
@@ -156,6 +174,14 @@ public class Vocabularies {
 
   public Map<String, String> getDigestionMethodsMap() {
     return digestionMethods;
+  }
+
+  public List<String> getAllIsotopeLabels() {
+    return isotopeLabels;
+  }
+
+  public List<LabelingMethod> getLabelingMethods() {
+    return labelingMethods;
   }
 
 }

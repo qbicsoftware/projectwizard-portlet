@@ -294,7 +294,7 @@ public class WizardController implements IRegistrationController {
         new ConditionInstanceStep(vocabularies.getTaxMap().keySet(), "Species", "Biol. Variables");
     final TailoringStep tailoringStep1 = new TailoringStep("Sample Sources", false);
     final ExtractionStep extrStep = new ExtractionStep(vocabularies.getTissueMap(),
-        vocabularies.getCellLinesMap(), vocabularies.getPeople().keySet());
+        vocabularies.getCellLinesMap(), vocabularies.getPeople().keySet(), vocabularies.getLabelingMethods());
     final ConditionInstanceStep extrCondInstStep = new ConditionInstanceStep(
         vocabularies.getTissueMap().keySet(), "Tissues", "Extr. Variables");
     final TailoringStep tailoringStep2 = new TailoringStep("Sample Extracts", true);
