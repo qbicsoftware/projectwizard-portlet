@@ -15,9 +15,14 @@
  *******************************************************************************/
 package life.qbic.projectwizard.model;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import life.qbic.portal.portlet.ProjectWizardUI;
+import life.qbic.projectwizard.io.QuantificationMethodVocabularyParser;
+import life.qbic.projectwizard.uicomponents.LabelingMethod;
 
 
 public class Vocabularies {
@@ -39,12 +44,20 @@ public class Vocabularies {
   private List<String> fractionationTypes;
   private List<String> enrichmentTypes;
 
+  private List<String> labelingTypes;
+  private Map<String, String> samplePreparations;
+  private Map<String, String> digestionMethods;
+  private List<LabelingMethod> labelingMethods;
+  private List<String> isotopeLabels;
+
   public Vocabularies(Map<String, String> taxMap, Map<String, String> tissueMap,
       Map<String, String> cellLinesMap, List<String> measureTypes, List<String> spaces,
       Map<String, Integer> piMap, List<String> experimentTypes, Map<String, String> enzymeMap,
       Map<String, String> antibodiesWithDescriptions, Map<String, String> deviceMap,
       List<String> msProtocols, List<String> lcmsMethods, Map<String, String> chromTypes2,
-      List<String> fractionationTypes, List<String> enrichmentTypes, Map<String, String> purificationMethods) {
+      List<String> fractionationTypes, List<String> enrichmentTypes,
+      Map<String, String> purificationMethods, Map<String, String> samplePreparations,
+      List<String> labelingTypes, Map<String, String> digestionMethods) {
     this.taxMap = taxMap;
     this.tissueMap = tissueMap;
     this.cellLinesMap = cellLinesMap;
@@ -62,6 +75,29 @@ public class Vocabularies {
     this.proteinPurificationMethods = purificationMethods;
     this.enzymes = new ArrayList<String>();
     enzymes.addAll(enzymeMap.keySet());
+
+    this.labelingTypes = labelingTypes;
+    this.samplePreparations = samplePreparations;
+    this.digestionMethods = digestionMethods;
+
+    QuantificationMethodVocabularyParser p = new QuantificationMethodVocabularyParser();
+    this.labelingMethods =
+        p.parseQuantificationMethods(new File(ProjectWizardUI.MSLabelingMethods));
+    List<String> labels = new ArrayList<>();
+    for (LabelingMethod m : labelingMethods) {
+      labels.addAll(m.getReagents());
+    }
+    Collections.sort(labels);
+    labels.add("Mix");
+    this.isotopeLabels = labels;
+  }
+
+  public List<String> getLabelingTypes() {
+    return labelingTypes;
+  }
+
+  public Map<String, String> getSamplePreparationMethods() {
+    return samplePreparations;
   }
 
   public List<String> getFractionationTypes() {
@@ -120,7 +156,7 @@ public class Vocabularies {
     return lcmsMethods;
   }
 
-  public Map<String,String> getChromTypesMap() {
+  public Map<String, String> getChromTypesMap() {
     return chromTypes;
   }
 
@@ -134,6 +170,18 @@ public class Vocabularies {
 
   public void setSpaces(List<String> userSpaces) {
     this.spaces = userSpaces;
+  }
+
+  public Map<String, String> getDigestionMethodsMap() {
+    return digestionMethods;
+  }
+
+  public List<String> getAllIsotopeLabels() {
+    return isotopeLabels;
+  }
+
+  public List<LabelingMethod> getLabelingMethods() {
+    return labelingMethods;
   }
 
 }

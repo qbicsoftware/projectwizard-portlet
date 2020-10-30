@@ -85,9 +85,10 @@ public class ExtractionStep implements WizardStep {
    * 
    * @param tissueMap A map of available tissues (codes and labels)
    * @param cellLinesMap
+   * @param labelingMethods 
    */
   public ExtractionStep(Map<String, String> tissueMap, Map<String, String> cellLinesMap,
-      Set<String> people) {
+      Set<String> people, List<LabelingMethod> labelingMethods) {
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
@@ -125,7 +126,7 @@ public class ExtractionStep implements WizardStep {
         "Are extracted cells labeled by isotope labeling (e.g. for Mass Spectrometry)?",
         "Isotope Labeling"));
 
-    labelingMethods = initLabelingMethods();
+    this.labelingMethods = labelingMethods;
 
     isotopeTypes = new ComboBox();
     isotopeTypes.setVisible(false);
@@ -219,11 +220,6 @@ public class ExtractionStep implements WizardStep {
 
   public TextField getExpNameField() {
     return expName;
-  }
-
-  private List<LabelingMethod> initLabelingMethods() {
-    QuantificationMethodVocabularyParser p = new QuantificationMethodVocabularyParser();
-    return p.parseQuantificationMethods(new File(ProjectWizardUI.MSLabelingMethods));
   }
 
   @Override

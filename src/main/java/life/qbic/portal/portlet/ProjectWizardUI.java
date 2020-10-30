@@ -117,7 +117,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
       this.openbis =
           new OpenBisClient(config.getDataSourceUser(), config.getDataSourcePassword(), openbisURL);
       this.openbis.login();
-      
+
       v3 = new OpenbisV3APIWrapper(openbisURL, config.getDataSourceUser(),
           config.getDataSourcePassword(), userID);
 
@@ -130,24 +130,36 @@ public class ProjectWizardUI extends QBiCPortletUI {
     }
     if (success) {
       // stuff from openbis
-      // OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);
-//      System.out.println(Base64.class.getProtectionDomain().getCodeSource().getLocation());
+      // OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);       
       Map<String, String> taxMap = openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
       Map<String, String> tissueMap = openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
       Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
       Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
-      Map<String, String> enzymeMap = openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES");
-      Map<String, String> chromTypes = openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
-      Map<String, String> antibodiesWithLabels = openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY");
+      Map<String, String> enzymeMap =
+          openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES");
+      Map<String, String> chromTypes =
+          openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
+      Map<String, String> antibodiesWithLabels =
+          openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY");
+
+      //// Labeling Type : Q_LABELING_METHOD : Q_LABELING_TYPES
+      List<String> labelingTypes = openbis.getVocabCodesForVocab("Q_LABELING_TYPES");
+      //// Sample Preparation
+      Map<String, String> samplePreparationMethods =
+          openbis.getVocabCodesAndLabelsForVocab("Q_SAMPLE_PREPARATION");
+      Map<String, String> digestionMethods =
+          openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_METHODS");
+
       Map<String, String> purificationMethods =
           openbis.getVocabCodesAndLabelsForVocab("Q_PROTEIN_PURIFICATION_METHODS");
 
-       List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
-       List<String> fractionationTypes =
-       openbis.getVocabCodesForVocab("Q_MS_FRACTIONATION_PROTOCOLS");
-       List<String> enrichmentTypes = openbis.getVocabCodesForVocab("Q_MS_ENRICHMENT_PROTOCOLS");
-       List<String> msProtocols = openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS");
-       List<String> lcmsMethods = openbis.getVocabCodesForVocab("Q_MS_LCMS_METHODS");
+      List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
+      List<String> fractionationTypes =
+          openbis.getVocabCodesForVocab("Q_MS_FRACTIONATION_PROTOCOLS");
+      List<String> enrichmentTypes = openbis.getVocabCodesForVocab("Q_MS_ENRICHMENT_PROTOCOLS");
+      List<String> msProtocols = openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS");
+      List<String> lcmsMethods = openbis.getVocabCodesForVocab("Q_MS_LCMS_METHODS");
+
       final List<String> spaces = openbis.getUserSpaces(userID);
 
       isAdmin = openbis.isUserAdmin(userID);
@@ -158,7 +170,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
       Map<String, Integer> peopleMap = dbm.fetchPeople();
       Vocabularies vocabs = new Vocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes, spaces,
           peopleMap, expTypes, enzymeMap, antibodiesWithLabels, deviceMap, msProtocols, lcmsMethods,
-          chromTypes, fractionationTypes, enrichmentTypes, purificationMethods);
+          chromTypes, fractionationTypes, enrichmentTypes, purificationMethods,
+          samplePreparationMethods, labelingTypes, digestionMethods);
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
       initView(dbm, vocabs, userID);
       layout.addComponent(tabs);
@@ -170,8 +183,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
     tabs.removeAllComponents();
 
     IOpenbisCreationController creationController = new OpenbisCreationController(openbis, user);
-
-
 
     if (v3RegistrationAPI) {
       creationController = new OpenbisV3CreationController(openbis, user, v3);
@@ -191,7 +202,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     OmeroAdapter omeroAdapter = new OmeroAdapter(omero);
 
     WizardController mainController = new WizardController(openbis, omeroAdapter, v3,
-        creationController, dbm, vocabularies, attachConfig, config);
+        creationController, dbm, vocabularies, attachConfig);
     mainController.init(user);
     Wizard w = mainController.getWizard();
     WizardProgressListener wl = new WizardProgressListener() {
@@ -225,7 +236,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
 
     ExperimentImportController uc = new ExperimentImportController(creationController, omeroAdapter,
-        vocabularies, openbis, dbm);
+        vocabularies, openbis, dbm, attachConfig);
     uc.init(user, config.getISAConfigPath());
     tabs.addTab(uc.getView(), "Import Project").setIcon(FontAwesome.FILE);
 

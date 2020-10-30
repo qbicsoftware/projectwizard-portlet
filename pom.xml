@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>projectwizard-portlet</artifactId>
-	<version>1.8.5</version>
+	<version>1.9.0</version>
 	<name>ProjectWizard Portlet</name>
 	<url>http://github.com/qbicsoftware/projectwizard-portlet</url>
 	<packaging>war</packaging>
@@ -79,7 +79,7 @@
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>experimental-design-lib</artifactId>
-			<version>0.16.3</version>
+			<version>0.17.0</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
@@ -123,6 +123,7 @@
 			<artifactId>sardine</artifactId>
 			<version>5.8</version>
 		</dependency>
+
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>omero-client-lib</artifactId>

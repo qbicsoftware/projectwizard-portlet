@@ -18,11 +18,9 @@ package life.qbic.projectwizard.views;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.isatools.isacreator.model.Study;
-
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.ExternalResource;
@@ -45,7 +43,6 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
-
 import life.qbic.datamodel.samples.ISampleBean;
 import life.qbic.expdesign.model.ExperimentalDesignType;
 import life.qbic.expdesign.model.SampleSummaryBean;
@@ -91,7 +88,8 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
 
 
     importOptions = new OptionGroup("Import Format");
-    importOptions.addItems("QBiC", "Standard", "ISA-Tab (prototype)", "MHC Ligandomics (measured)");
+    importOptions.addItems("QBiC", "Standard", "ISA-Tab (prototype)", "MHC Ligandomics",
+        "Mass Spec Proteomics");
 
     importOptions.addValueChangeListener(new ValueChangeListener() {
       @Override
@@ -114,6 +112,8 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
         Styles.getPopupViewContaining(createTSVDownloadComponent(ExperimentalDesignType.ISA)));
     infos.addComponent(Styles.getPopupViewContaining(
         createTSVDownloadComponent(ExperimentalDesignType.MHC_Ligands_Finished)));
+    infos.addComponent(Styles.getPopupViewContaining(
+        createTSVDownloadComponent(ExperimentalDesignType.Proteomics_MassSpectrometry)));
   }
 
   protected void enableMultiUpload(boolean enable) {
@@ -142,9 +142,9 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
       layout.addComponent(ok);
       isaStudyBox.setVisible(true);
       isaBox.addComponent(isaStudyBox);
-//      String baseDir = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath();
-      // src/main/webapp
-      Resource res = new ExternalResource(ProjectWizardUI.getPathToVaadinFolder()+"img/isatools.png");
+
+      Resource res =
+          new ExternalResource(ProjectWizardUI.getPathToVaadinFolder() + "img/isatools.png");
       Image imNotYourC_Pal = new Image(null, res);
       layout.addComponent(imNotYourC_Pal);
 
@@ -184,7 +184,7 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
     preview = new Button("Preview Sample Graph");
     preview.setEnabled(false);
     addComponent(preview);
-    
+
     // missing info input layout
     addComponent(questionaire);
 
@@ -212,8 +212,8 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
       VerticalLayout v = new VerticalLayout();
       Label l = new Label("For the ISA specification see:");
       Link link = new Link("http://isa-specs.readthedocs.io/en/latest/isatab.html",
-              new ExternalResource("http://isa-specs.readthedocs.io/en/latest/isatab.html"));
-   // Open the URL in a new window/tab
+          new ExternalResource("http://isa-specs.readthedocs.io/en/latest/isatab.html"));
+      // Open the URL in a new window/tab
       link.setTargetName("_blank");
       v.addComponent(l);
       v.addComponent(link);
@@ -267,6 +267,7 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
       register.setEnabled(false);
       switch (getSelectedDesignOption()) {
         case Standard:
+        case Proteomics_MassSpectrometry:
         case MHC_Ligands_Finished:
           downloadTSV.setEnabled(true);
           break;
@@ -310,8 +311,10 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
           return ExperimentalDesignType.Standard;
         case "MHC Ligandomics (preparation)":
           return ExperimentalDesignType.MHC_Ligands_Plan;
-        case "MHC Ligandomics (measured)":
+        case "MHC Ligandomics":
           return ExperimentalDesignType.MHC_Ligands_Finished;
+        case "Mass Spec Proteomics":
+          return ExperimentalDesignType.Proteomics_MassSpectrometry;
         case "ISA-Tab (prototype)":
           return ExperimentalDesignType.ISA;
         default:
@@ -323,7 +326,8 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
 
   public MissingInfoComponent initMissingInfoComponent(
       ProjectInformationComponent projectInfoComponent,
-      Map<String, List<String>> missingCategoryToValues, Map<String, List<String>> catToVocabulary,
+      Map<String, List<String>> missingCategoryToValues,
+      Map<String, Map<String, String>> catToVocabulary,
       ValueChangeListener missingInfoFilledListener) {
     MissingInfoComponent newQ = new MissingInfoComponent();
     newQ.init(projectInfoComponent, missingCategoryToValues, catToVocabulary,
