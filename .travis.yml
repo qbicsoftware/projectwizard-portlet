@@ -42,13 +42,16 @@ after_success:
 - travis_wait 30 mvn --quiet --activate-profiles !development-build,!release-build --settings .travis.settings.xml site
 
 # upload to maven
+before deploy:
+- pip install travis-wait-improved
+
 deploy:
   # as agreed in our SOP, builds on development branch will deploy to our maven repository after validating
   # the artifact has a proper SNAPSHOT version
   # artifact will be installed in our testing instance if it is a .war file
 - skip_cleanup: true
   provider: script
-  script: travis_wait 30 mvn --quiet --activate-profiles development-build,!release-build --settings .travis.settings.xml deploy
+  script: travis-wait-improved --timeout 30m mvn --quiet --activate-profiles development-build,!release-build --settings .travis.settings.xml deploy
   on:
     branch: development
     condition: '"$TRAVIS_EVENT_TYPE" = "push"'
