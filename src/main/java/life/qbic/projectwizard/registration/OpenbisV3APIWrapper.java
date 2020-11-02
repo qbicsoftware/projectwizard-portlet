@@ -29,6 +29,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.update.ProjectUpdate;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.Sample;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions.SampleFetchOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.search.SampleSearchCriteria;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.update.SampleUpdate;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.service.execute.ReportingServiceExecutionOptions;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.service.id.DssServicePermId;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.Space;
@@ -92,6 +93,11 @@ public class OpenbisV3APIWrapper {
     API.updateExperiments(userToken, exps);
   }
 
+  public void updateSamples(List<SampleUpdate> samples) {
+    checklogin();
+    API.updateSamples(userToken, samples);
+  }
+  
   public void updateDataSets(List<DataSetUpdate> dSets) {
     checklogin();
     API.updateDataSets(userToken, dSets);
@@ -335,5 +341,6 @@ public class OpenbisV3APIWrapper {
     else
       return userToken;
   }
+
 
 }
