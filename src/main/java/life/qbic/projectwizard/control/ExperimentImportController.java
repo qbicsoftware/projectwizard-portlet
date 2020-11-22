@@ -126,6 +126,7 @@ public class ExperimentImportController implements IRegistrationController {
   private String nextBarcode;
   private Map<String, String> uniqueCodeToBarcode;
   private Map<String, String> uniqueNumericIDToBarcode;
+  private Map<String, TSVSampleBean> importCodeToSampleBean;
 
   private final Logger logger = LogManager.getLogger(ExperimentImportController.class);
   protected String experimentalDesignXML;
@@ -159,7 +160,6 @@ public class ExperimentImportController implements IRegistrationController {
     this.openbisCreator = creationController;
     this.attachMover = new AttachmentMover(ProjectWizardUI.tmpFolder, attachConfig);
   }
-
 
   public void initISAHandler(ISAReader isaParser, File folder) {
     ComboBox isaStudyBox = view.getISAStudyBox();
@@ -506,16 +506,6 @@ public class ExperimentImportController implements IRegistrationController {
       res = res.replaceAll(in, "$1" + selectedVocabValue + "$2");
     }
     return res;
-  }
-
-  public static void main(String[] args) {
-    String res =
-        "R2.raw\tp1\t1\t sec\tR2\tasdadsad\tHomo sapiens\tLiver\tf1\tOffgel\tin gel\tTrypsin+X\tLFQ\tHPLC\tHFX\t180min_something\tE. coli\tpuri";
-    String selectedVocabValue = "Factor XA";
-    String in = "(\\t|\\+)" + "X" + "(\\t|\\+)";
-    System.out.println(res);
-    res = res.replaceAll(in, "$1" + selectedVocabValue + "$2");
-    System.out.println(res);
   }
 
   // TODO this should be done while the samples are read
@@ -899,8 +889,10 @@ public class ExperimentImportController implements IRegistrationController {
           Set<TechnologyType> techTypes = new HashSet<>();
           techTypes.addAll(prep.getTechnologyTypes());
 
+          importCodeToSampleBean = new HashMap<>();
           for (List<ISampleBean> level : processed) {
             SampleType type = level.get(0).getType();
+            logger.warn("type of level: " + type);
             String exp = "";
             if (!type.equals(SampleType.Q_MS_RUN) && !type.equals(SampleType.Q_MHC_LIGAND_EXTRACT))
               exp = getNextExperiment(project);// TODO
@@ -909,6 +901,7 @@ public class ExperimentImportController implements IRegistrationController {
             for (ISampleBean b : level) {
               TSVSampleBean t = (TSVSampleBean) b;
 
+              importCodeToSampleBean.put(t.getCode(), t);
               // start of new block
               String uniqueID = createUniqueIDFromSampleMetadata(t);
 
@@ -975,7 +968,6 @@ public class ExperimentImportController implements IRegistrationController {
                         String newExprVal = questionaire.getVocabularyLabelForImportValue("Label",
                             props.get("Q_MOLECULAR_LABEL"));
                         props.put("Q_MOLECULAR_LABEL", newExprVal);
-                        System.out.println(newExprVal);
                       }
                     }
 
@@ -1319,31 +1311,36 @@ public class ExperimentImportController implements IRegistrationController {
       // instead
       TSVSampleBean converted = new TSVSampleBean(code, SampleType.valueOf(s.getType().getCode()),
           s.getProperties().get("Q_SECONDARY_NAME"), new HashMap<>(s.getProperties()));
-      String uniqueSampleID = createUniqueIDFromSampleMetadata(converted);
-      boolean emptyID = uniqueSampleID == null || uniqueSampleID.isEmpty();
-      if (!emptyID && uniqueIDToExistingSample.containsKey(uniqueSampleID)) {
-        logger.warn(uniqueSampleID
-            + " was found as a unique id for multiple existing samples. This might"
-            + " lead to inconsistencies if new samples are to be attached to this external id.");
-      }
-      uniqueIDToExistingSample.put(uniqueSampleID, s);
-      if (SampleCodeFunctions.isQbicBarcode(code)) {
-        if (SampleCodeFunctions.compareSampleCodes(firstFreeBarcode, code) <= 0) {
-          firstFreeBarcode = SampleCodeFunctions.incrementSampleCode(code);
-          String firstBarcode = project + "001A" + SampleCodeFunctions.checksum(project + "001A");
-          if (firstBarcode.equals(firstFreeBarcode))
-            throw new TooManySamplesException();
+      if (!converted.getType().equals(SampleType.Q_ATTACHMENT_SAMPLE)) {
+        String uniqueSampleID = createUniqueIDFromSampleMetadata(converted);
+        boolean emptyID = uniqueSampleID == null || uniqueSampleID.isEmpty();
+        if (!emptyID && uniqueIDToExistingSample.containsKey(uniqueSampleID)) {
+          logger.warn(uniqueSampleID
+              + " was found as a unique id for multiple existing samples. This might"
+              + " lead to inconsistencies if new samples are to be attached to this external id.");
         }
-      } else if (s.getType().getCode().equals(("Q_BIOLOGICAL_ENTITY"))) {
-        int num = Integer.parseInt(s.getCode().split("-")[1]);
-        if (num >= firstFreeEntityID)
-          firstFreeEntityID = num + 1;
+        uniqueIDToExistingSample.put(uniqueSampleID, s);
+        if (SampleCodeFunctions.isQbicBarcode(code)) {
+          if (SampleCodeFunctions.compareSampleCodes(firstFreeBarcode, code) <= 0) {
+            firstFreeBarcode = SampleCodeFunctions.incrementSampleCode(code);
+            String firstBarcode = project + "001A" + SampleCodeFunctions.checksum(project + "001A");
+            if (firstBarcode.equals(firstFreeBarcode))
+              throw new TooManySamplesException();
+          }
+        } else if (s.getType().getCode().equals(("Q_BIOLOGICAL_ENTITY"))) {
+          int num = Integer.parseInt(s.getCode().split("-")[1]);
+          if (num >= firstFreeEntityID)
+            firstFreeEntityID = num + 1;
+        }
       }
     }
   }
 
   private String createUniqueIDFromSampleMetadata(ISampleBean b) {
-    String id = (String) b.getMetadata().get("Q_EXTERNALDB_ID");
+    String id = null;
+    if (b.getMetadata().get("Q_EXTERNALDB_ID") != null) {
+      id = (String) b.getMetadata().get("Q_EXTERNALDB_ID");
+    }
     String secID = b.getSecondaryName();
     if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
       // MS import format may contain same name for protein and digested peptide samples, both at
@@ -1351,11 +1348,22 @@ public class ExperimentImportController implements IRegistrationController {
       // thus, we add the sample type to the external db id in order to create unique sample ids:
       if (b.getType().equals(SampleType.Q_TEST_SAMPLE)) {
         id = id + secID + b.getMetadata().get("Q_SAMPLE_TYPE");
+        for (String parentCode : b.getParentIDs()) {
+          if (importCodeToSampleBean.containsKey(parentCode)) {
+            id = createUniqueIDFromSampleMetadata(importCodeToSampleBean.get(parentCode)) + id;
+          } else {
+            // TODO use sample object from barcode?
+            id = parentCode + id;
+          }
+          logger.debug("recursive id: " + id);
+          break;
+        }
       }
-      return id;
-    } else {
-      return id;
     }
+    if (id == null) {
+      return b.getCode();
+    }
+    return id;
   }
 
 

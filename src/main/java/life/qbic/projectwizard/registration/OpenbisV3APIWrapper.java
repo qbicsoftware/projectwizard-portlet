@@ -103,7 +103,6 @@ public class OpenbisV3APIWrapper {
     API.updateDataSets(userToken, dSets);
   }
 
-
   public TableModel callAggreationService(String name, String dss) {
     ReportingServiceExecutionOptions options = new ReportingServiceExecutionOptions();
     DssServicePermId serviceID = new DssServicePermId(name, new DataStorePermId(dss));
