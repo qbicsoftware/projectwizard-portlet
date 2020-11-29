@@ -288,6 +288,8 @@ public class ExperimentImportController implements IRegistrationController {
                   new HashSet<String>(vocabs.getDeviceMap().values()));
               experimentTypeVocabularies.put("Q_MS_LCMS_METHOD",
                   new HashSet<String>(vocabs.getLcmsMethods()));
+              experimentTypeVocabularies.put("Q_MS_PURIFICATION_METHOD",
+                  new HashSet<String>(vocabs.getProteinPurificationMethodsMap().values()));
 
               VocabularyValidator validator = new VocabularyValidator(experimentTypeVocabularies);
 
@@ -499,6 +501,7 @@ public class ExperimentImportController implements IRegistrationController {
 
   private String replaceChangedMetadata(String tsvContent,
       Map<String, String> metadataReplacements) {
+    logger.debug("upload string replacement map: "+metadataReplacements);
     String res = tsvContent;
     for (String userInput : metadataReplacements.keySet()) {
       String selectedVocabValue = metadataReplacements.get(userInput);
@@ -656,9 +659,10 @@ public class ExperimentImportController implements IRegistrationController {
       //// MC Device : Q_MS_DEVICE : Q_MS_DEVICES
       catToVocabulary.put("MS Device", vocabs.getDeviceMap());
       //// Sample Cleanup (peptide) : Q_PROTEIN_PURIFICATION_METHODS
+      catToVocabulary.put("Sample Cleanup (Protein)", vocabs.getProteinPurificationMethodsMap());
       //// Sample Cleanup (protein) : Q_PROTEIN_PURIFICATION_METHODS
-      //// TODO
-      //// Expression System : Q_EXPRESSION_SYSTEM = Q_NCBI_TAXONOMY
+      catToVocabulary.put("Sample Cleanup (Peptide)", vocabs.getProteinPurificationMethodsMap());
+
       catToVocabulary.put("Expression System", vocabs.getTaxMap());
 
       Map<String, String> labelMap = new HashMap<>();
@@ -678,10 +682,11 @@ public class ExperimentImportController implements IRegistrationController {
       Map<String, String> samplePrepMap = vocabs.getSamplePreparationMethods();
       catToVocabulary.put("Sample Preparation", samplePrepMap);
 
-      parsedCategoryToValues = prep.getParsedCategoriesToValues(new ArrayList<String>(
-          Arrays.asList("Label", "Expression System", "LC Column", "MS Device",
-              "Fractionation Type", "Enrichment Method", "Labeling Type", "LCMS Method",
-              "Digestion Method", "Digestion Enzyme", "Sample Preparation", "Species", "Tissue")));
+      parsedCategoryToValues = prep.getParsedCategoriesToValues(
+          new ArrayList<String>(Arrays.asList("Label", "Expression System", "LC Column",
+              "MS Device", "Fractionation Type", "Enrichment Method", "Labeling Type",
+              "LCMS Method", "Digestion Method", "Digestion Enzyme", "Sample Preparation",
+              "Species", "Tissue", "Sample Cleanup (Protein)", "Sample Cleanup (Peptide)")));
     }
 
     if (!parsedCategoryToValues.containsKey("Species"))
@@ -698,7 +703,6 @@ public class ExperimentImportController implements IRegistrationController {
       ExperimentalDesignType designType) {
     Set<String> barcodeColumnNames = new HashSet<>(Arrays.asList("QBiC Code", "QBiC Barcode"));
     logger.info("adding barcodes to tsv");
-    logger.info("design type: " + designType);
     String fileNameHeader = "Filename";
     StringBuilder builder = new StringBuilder(5000);
     switch (designType) {
@@ -821,43 +825,39 @@ public class ExperimentImportController implements IRegistrationController {
             keyToFields.put("Q_MS_DEVICE", new HashSet<>(Arrays.asList("MS Device")));
             keyToFields.put("Q_CHROMATOGRAPHY_TYPE", new HashSet<>(Arrays.asList("LC Column")));
             keyToFields.put("Q_MS_LCMS_METHOD", new HashSet<>(Arrays.asList("LCMS Method")));
-            // keyToFields.put("Q_MS_PURIFICATION_METHOD",
-            // new HashSet<>(Arrays.asList("Sample Cleanup (protein)")));
-            // keyToFields.put("Q_MS_PURIFICATION_METHOD",
-            // new HashSet<>(Arrays.asList("Sample Cleanup (peptide)")));
+            keyToFields.put("Q_MS_PURIFICATION_METHOD", new HashSet<>(
+                Arrays.asList("Sample Cleanup (Protein)", "Sample Cleanup (Peptide)")));
+            // TODO collisions between cleanup
 
             for (Map<String, Object> props : metadataList) {
               Map<String, String> newProps = new HashMap<>();
               for (String openBISPropertyKey : props.keySet()) {
                 if (keyToFields.containsKey(openBISPropertyKey)) {
 
-                  for (String vocabCode : keyToFields.get(openBISPropertyKey)) {
-                    if (props.get(openBISPropertyKey) instanceof String) {
-                      String oldEntry = (String) props.get(openBISPropertyKey);
+                  Set<String> columnNames = keyToFields.get(openBISPropertyKey);
+                  if (props.get(openBISPropertyKey) instanceof String) {
+                    String oldEntry = (String) props.get(openBISPropertyKey);
 
-                      // String newLabel = questionaire.getVocabularyLabelForValue(val, entry);//
-                      // TODO remember old replacements, replace in tsv, use helper class
-                      String newVal = questionaire.getVocabularyCodeForValue(vocabCode, oldEntry);
-                      if (newVal != null) {
-                        props.put(openBISPropertyKey, newVal);
+                    // String newLabel = questionaire.getVocabularyLabelForValue(val, entry);//
+                    String newVal = questionaire.getVocabularyCodeForValue(columnNames, oldEntry);
+                    if (newVal != null) {
+                      props.put(openBISPropertyKey, newVal);
 
-                        //
-                        // MetadataReplacementHelper.addNewReplacement(openBISPropertyKey, )
-                      }
-                    } else if (props.get(openBISPropertyKey) instanceof List<?>) {
-                      List<String> newPropList = new ArrayList<>();
-                      List<String> propList =
-                          (List<String>) (List<?>) props.get(openBISPropertyKey);
-                      for (String entry : propList) {
-                        String newEntry = questionaire.getVocabularyCodeForValue(vocabCode, entry);
-                        if (newEntry != null) {
-                          newPropList.add(newEntry);
-                        } else {
-                          newPropList.add(entry);
-                        }
-                      }
-                      props.put(openBISPropertyKey, newPropList);
+                      //
+                      // MetadataReplacementHelper.addNewReplacement(openBISPropertyKey, )
                     }
+                  } else if (props.get(openBISPropertyKey) instanceof List<?>) {
+                    List<String> newPropList = new ArrayList<>();
+                    List<String> propList = (List<String>) (List<?>) props.get(openBISPropertyKey);
+                    for (String entry : propList) {
+                      String newEntry = questionaire.getVocabularyCodeForValue(columnNames, entry);
+                      if (newEntry != null) {
+                        newPropList.add(newEntry);
+                      } else {
+                        newPropList.add(entry);
+                      }
+                    }
+                    props.put(openBISPropertyKey, newPropList);
                   }
                 }
               }
@@ -892,7 +892,6 @@ public class ExperimentImportController implements IRegistrationController {
           importCodeToSampleBean = new HashMap<>();
           for (List<ISampleBean> level : processed) {
             SampleType type = level.get(0).getType();
-            logger.warn("type of level: " + type);
             String exp = "";
             if (!type.equals(SampleType.Q_MS_RUN) && !type.equals(SampleType.Q_MHC_LIGAND_EXTRACT))
               exp = getNextExperiment(project);// TODO
@@ -1355,7 +1354,6 @@ public class ExperimentImportController implements IRegistrationController {
             // TODO use sample object from barcode?
             id = parentCode + id;
           }
-          logger.debug("recursive id: " + id);
           break;
         }
       }
