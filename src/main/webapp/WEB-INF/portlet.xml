@@ -7,9 +7,9 @@
 	version="2.0">
 
 	<portlet>
-		<description>Create hierarchical experiments using factorial design.</description>
+		<description>${project.description}</description>
 		<portlet-name>${project.artifactId}</portlet-name>
-		<display-name>ProjectWizard Portlet</display-name>
+		<display-name>${project.name}</display-name>
 
 		<portlet-class>com.vaadin.server.VaadinPortlet</portlet-class>
 
@@ -30,9 +30,9 @@
 
 
 		<portlet-info>
-			<title>ProjectWizard Portlet</title>
-			<short-title>ProjectWizard Portlet</short-title>
-			<keywords>Vaadin 7</keywords>
+			<title>${project.name}</title>
+			<short-title>${project.description}</short-title>
+			<keywords>Vaadin 7, QBiC, Big Data, Bioinformatics</keywords>
 		</portlet-info>
 
 		<security-role-ref>

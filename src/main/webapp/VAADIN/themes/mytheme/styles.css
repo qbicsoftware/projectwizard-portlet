@@ -9248,7 +9248,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .v-table-body {
 	border: 1px solid #d4d4d4;
-	overflow-anchor: none;
 	-webkit-user-select: text;
 	-moz-user-select: text;
 	-ms-user-select: text;
