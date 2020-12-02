@@ -79,7 +79,7 @@
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>experimental-design-lib</artifactId>
-			<version>0.17.0</version>
+			<version>0.18.0</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
