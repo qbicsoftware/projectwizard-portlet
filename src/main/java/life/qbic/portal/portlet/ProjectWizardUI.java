@@ -130,7 +130,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
     }
     if (success) {
       // stuff from openbis
-      // OpenbisV3ReadController readController = new OpenbisV3ReadController(v3);       
       Map<String, String> taxMap = openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
       Map<String, String> tissueMap = openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
       Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
@@ -185,8 +184,10 @@ public class ProjectWizardUI extends QBiCPortletUI {
     IOpenbisCreationController creationController = new OpenbisCreationController(openbis, user);
 
     if (v3RegistrationAPI) {
-      creationController = new OpenbisV3CreationController(openbis, user, v3);
+      OpenbisV3CreationController v3c = new OpenbisV3CreationController(openbis, user, v3);
+      creationController = v3c;
     }
+
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());

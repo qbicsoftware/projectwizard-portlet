@@ -1031,7 +1031,9 @@ public class WizardDataAggregator {
   public String createTSV() throws FileNotFoundException, UnsupportedEncodingException {
     List<AOpenbisSample> samples = new ArrayList<AOpenbisSample>();
     samples.addAll(entities);
-    samples.addAll(backgroundEntities);
+    if (backgroundEntities != null) {
+      samples.addAll(backgroundEntities);
+    }
     samples.addAll(extracts);
     samples.addAll(tests);
     if (testPools != null)
@@ -1076,7 +1078,7 @@ public class WizardDataAggregator {
     if (experiments != null) {
       allExperiments.addAll(experiments);
     }
-    if (!infectantSpecies.isEmpty()) {
+    if (infectantSpecies != null && !infectantSpecies.isEmpty()) {
       allExperiments.add(infectantExperiment);
     }
     // TODO reuse this in the refactored version, it's not stupid
@@ -1152,7 +1154,7 @@ public class WizardDataAggregator {
     if (experiments != null) {
       allExperiments.addAll(experiments);
     }
-    if (!infectantSpecies.isEmpty()) {
+    if (infectantSpecies != null && !infectantSpecies.isEmpty()) {
       allExperiments.add(infectantExperiment);
     }
     // TODO reuse this in the refactored version, it's not stupid

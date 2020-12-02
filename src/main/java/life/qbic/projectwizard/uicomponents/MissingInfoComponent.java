@@ -25,7 +25,7 @@ public class MissingInfoComponent extends HorizontalLayout {
   private Map<String, List<ComboBox>> catToBoxes;
   private ProjectInformationComponent projectInfoComponent;
   private Map<String, Map<String, String>> catToVocabulary;
-  // store mappings in case users make more than one change. for each mapping
+  // store mappings to replace in uploaded tsv
   private Map<String, List<String>> currentMappingToCaptions;
 
   private final Logger logger = LogManager.getLogger(MissingInfoComponent.class);
@@ -44,18 +44,44 @@ public class MissingInfoComponent extends HorizontalLayout {
     }
   }
 
-  public String getVocabularyCodeForValue(String cat, String entry) {
-    Map<String, String> labelToCodeVocabulary = catToVocabulary.get(cat);
+  public String getVocabularyCodeForValue(Set<String> columnNames, String entry) {
+//    logger.debug("searching code for value");
+//    logger.debug(columnNames);
+//    logger.debug(entry);
+    Map<String, String> labelToCodeVocabulary = null;
+    String label = null;
+    for (String colName : columnNames) {
+      labelToCodeVocabulary = catToVocabulary.get(colName);
+//      logger.debug(labelToCodeVocabulary);
 
-    String label = getVocabularyLabelForImportValue(cat, entry);
+      String newLabel = getVocabularyLabelForImportValue(colName, entry);
+      if(newLabel==null) {
+//        logger.debug(catToBoxes.keySet());
+//        logger.debug("catboxes contain "+colName+" for value "+entry+"? "+catToBoxes.containsKey(colName));
+      }
+      if (newLabel != null) {
+        label = newLabel;
+      }
+    }
+//    logger.debug(label);
 
     if (label == null) {
       Set<String> codes = new HashSet<>(currentMappingToCaptions.keySet());
       for (String code : codes) {
+
         if (labelToCodeVocabulary.containsKey(code)) {
+          //TODO removal of changes?
+//          logger.debug("REMOVING");
+//          logger.debug(code);
           List<String> oldEntries = currentMappingToCaptions.remove(code);
+//          logger.debug("REMOVED");
           String firstHit = oldEntries.get(0);
-          label = getVocabularyLabelForImportValue(cat, firstHit);
+          for (String colName : columnNames) {
+            String newLabel = getVocabularyLabelForImportValue(colName, firstHit);
+            if (newLabel != null) {
+              label = newLabel;
+            }
+          }
           if (oldEntries.size() > 1) {
             logger.warn("more than one entry found: " + oldEntries);
             // one entry needed for next category
@@ -72,6 +98,8 @@ public class MissingInfoComponent extends HorizontalLayout {
   }
 
   public String getVocabularyLabelForImportValue(String cat, Object object) {
+    if (!catToBoxes.containsKey(cat))
+      return null;
     for (ComboBox b : catToBoxes.get(cat))
       if (b.getCaption().equals(object))
         return b.getValue().toString();
@@ -220,6 +248,7 @@ public class MissingInfoComponent extends HorizontalLayout {
   }
 
   public Map<String, String> getMetadataReplacements() {
+    logger.debug(currentMappingToCaptions);
     Map<String, String> replacements = new HashMap<>();
     for (String vocabValue : currentMappingToCaptions.keySet()) {
       for (String userInput : currentMappingToCaptions.get(vocabValue)) {

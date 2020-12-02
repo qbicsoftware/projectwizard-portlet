@@ -33,6 +33,7 @@ import ch.ethz.sis.openbis.generic.asapi.v3.dto.project.update.ProjectUpdate;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.create.CreateSamplesOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.create.SampleCreation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id.SampleIdentifier;
+import ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.update.SampleUpdate;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.create.CreateSpacesOperation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.create.SpaceCreation;
 import ch.ethz.sis.openbis.generic.asapi.v3.dto.space.id.SpacePermId;
@@ -444,7 +445,7 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
       DataSetSearchCriteria criteria = new DataSetSearchCriteria();
       criteria.withOrOperator();
       criteria.withSample().withCode().thatEquals(code);
-      criteria.withType().withCode().thatEquals("MY_SAMPLE_TYPE_CODE");
+      // criteria.withType().withCode().thatEquals("MY_SAMPLE_TYPE_CODE");
 
       DataSetFetchOptions fetchOptions = new DataSetFetchOptions();
 
@@ -487,6 +488,56 @@ public class OpenbisV3CreationController implements IOpenbisCreationController {
     logger.info("updating dataset metadata for: " + ids);
 
     api.updateDataSets(updates);
+  }
+
+  /**
+   * if identifier is found in parent id map, parent samples missing from the values list of the map
+   * are removed
+   * 
+   * @param ids
+   * @param idsToProps
+   * @param idsToParentIDs
+   */
+  public void updateSamples(List<SampleIdentifier> ids,
+      Map<SampleIdentifier, Map<String, Object>> idsToProps,
+      Map<SampleIdentifier, List<SampleIdentifier>> idsToParentIDs) {
+    List<SampleUpdate> updates = new ArrayList<>();
+    for (SampleIdentifier id : ids) {
+      SampleUpdate sampleUpdate = new SampleUpdate();
+      sampleUpdate.setSampleId(id);
+
+      if (!openbis.sampleExists(id.getIdentifier())) {
+        logger
+            .warn("sample " + id.getIdentifier() + " cannot be updated because it does not exist.");
+        return;
+      }
+
+      // parents to update?
+      if (idsToParentIDs.containsKey(id)) {
+        System.out.println("updating id " + id);
+
+        List<SampleIdentifier> newParents = idsToParentIDs.get(id);
+        System.out.println("parents: " + newParents);
+        sampleUpdate.getParentIds()
+            .set(newParents.toArray(new SampleIdentifier[newParents.size()]));
+        System.out.println(sampleUpdate);
+      }
+
+      // props to update?
+      if (idsToProps.containsKey(id)) {
+        Map<String, String> props = new HashMap<>();
+        Map<String, Object> map = idsToProps.get(id);
+        for (String key : map.keySet()) {
+          props.put(key, map.get(key).toString());
+        }
+        sampleUpdate.setProperties(props);
+      }
+
+      updates.add(sampleUpdate);
+    }
+    logger.info("updating sample metadata for: " + ids);
+
+    api.updateSamples(updates);
   }
 
   @Override
