@@ -45,12 +45,14 @@ public class MissingInfoComponent extends HorizontalLayout {
   }
 
   public String getVocabularyCodeForValue(Set<String> columnNames, String entry) {
+    System.out.println(catToVocabulary.keySet());
 //    logger.debug("searching code for value");
 //    logger.debug(columnNames);
 //    logger.debug(entry);
     Map<String, String> labelToCodeVocabulary = null;
     String label = null;
     for (String colName : columnNames) {
+      System.out.println(colName);
       labelToCodeVocabulary = catToVocabulary.get(colName);
 //      logger.debug(labelToCodeVocabulary);
 
@@ -68,12 +70,14 @@ public class MissingInfoComponent extends HorizontalLayout {
     if (label == null) {
       Set<String> codes = new HashSet<>(currentMappingToCaptions.keySet());
       for (String code : codes) {
-
+        logger.warn(code);
+        logger.warn("checking labeltocodevocab: "+labelToCodeVocabulary);
         if (labelToCodeVocabulary.containsKey(code)) {
+          logger.warn("does contain code");
           //TODO removal of changes?
 //          logger.debug("REMOVING");
 //          logger.debug(code);
-          List<String> oldEntries = currentMappingToCaptions.remove(code);
+          List<String> oldEntries = currentMappingToCaptions.remove(code);//TODO
 //          logger.debug("REMOVED");
           String firstHit = oldEntries.get(0);
           for (String colName : columnNames) {
@@ -190,6 +194,7 @@ public class MissingInfoComponent extends HorizontalLayout {
     catToBoxes = new HashMap<String, List<ComboBox>>();
     this.catToVocabulary = catToVocabulary;
     for (String cat : missingCategoryToValues.keySet()) {
+
       List<ComboBox> boxes = new ArrayList<ComboBox>();
       for (String value : missingCategoryToValues.get(cat)) {
 
@@ -214,12 +219,16 @@ public class MissingInfoComponent extends HorizontalLayout {
             public void valueChange(ValueChangeEvent event) {
               if (b.getValue() != null) {
                 String newValue = b.getValue().toString();
+                logger.warn("val change: "+newValue);
                 if (currentMappingToCaptions.containsKey(newValue)) {
+                  logger.warn("key exists");
                   currentMappingToCaptions.get(newValue).add(b.getCaption());
                 } else {
+                  logger.warn("new key");
                   currentMappingToCaptions.put(newValue,
                       new ArrayList<>(Collections.singletonList(b.getCaption())));
                 }
+                logger.warn(currentMappingToCaptions);
               }
             }
           };
@@ -248,7 +257,7 @@ public class MissingInfoComponent extends HorizontalLayout {
   }
 
   public Map<String, String> getMetadataReplacements() {
-    logger.debug(currentMappingToCaptions);
+    logger.warn("mapping to captions: "+currentMappingToCaptions);
     Map<String, String> replacements = new HashMap<>();
     for (String vocabValue : currentMappingToCaptions.keySet()) {
       for (String userInput : currentMappingToCaptions.get(vocabValue)) {
