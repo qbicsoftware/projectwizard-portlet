@@ -45,14 +45,14 @@ public class MissingInfoComponent extends HorizontalLayout {
   }
 
   public String getVocabularyCodeForValue(Set<String> columnNames, String entry) {
-    System.out.println(catToVocabulary.keySet());
+//    logger.warn(catToVocabulary.keySet());
 //    logger.debug("searching code for value");
 //    logger.debug(columnNames);
 //    logger.debug(entry);
     Map<String, String> labelToCodeVocabulary = null;
     String label = null;
     for (String colName : columnNames) {
-      System.out.println(colName);
+//      logger.warn(colName);
       labelToCodeVocabulary = catToVocabulary.get(colName);
 //      logger.debug(labelToCodeVocabulary);
 
