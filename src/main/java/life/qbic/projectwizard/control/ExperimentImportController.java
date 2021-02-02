@@ -58,7 +58,6 @@ import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.datamodel.identifiers.TooManySamplesException;
-import life.qbic.datamodel.people.Person;
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.projects.ProjectInfo;
 import life.qbic.datamodel.samples.ISampleBean;
