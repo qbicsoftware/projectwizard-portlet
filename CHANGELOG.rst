@@ -12,6 +12,10 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Fixed**
 
+- Use new experimental design lib, fixing handling of Peptide Cleanup (PTX import)
+- Fix: when replacing user inputs with vocabulary values in the uploaded file, special characters like brackets are now handled
+- Fix: importing into an existing project would sometimes fail to create new barcodes
+
 **Dependencies**
 
 **Deprecated**
