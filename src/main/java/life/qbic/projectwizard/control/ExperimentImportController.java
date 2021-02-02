@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.isatools.isacreator.model.Study;
+import com.google.re2j.Pattern;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.CompositeValidator;
@@ -57,6 +58,7 @@ import life.qbic.datamodel.experiments.OpenbisExperiment;
 import life.qbic.datamodel.identifiers.ExperimentCodeFunctions;
 import life.qbic.datamodel.identifiers.SampleCodeFunctions;
 import life.qbic.datamodel.identifiers.TooManySamplesException;
+import life.qbic.datamodel.people.Person;
 import life.qbic.datamodel.persons.PersonType;
 import life.qbic.datamodel.projects.ProjectInfo;
 import life.qbic.datamodel.samples.ISampleBean;
@@ -430,6 +432,8 @@ public class ExperimentImportController implements IRegistrationController {
               tsvContent =
                   replaceChangedMetadata(tsvContent, questionaire.getMetadataReplacements());
               currentTSVContent = tsvContent;
+              logger.warn("tsv with replacements and barcodes:");
+              logger.warn(currentTSVContent);
               view.setTSVWithBarcodes(tsvContent,
                   uploader.getFileNameWithoutExtension() + "_with_barcodes");
               break;
@@ -447,7 +451,6 @@ public class ExperimentImportController implements IRegistrationController {
             }
             omero.registerSamples(project, description, imagableSamples);
           }
-
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, description,
               complexExperiments, view.getProgressBar(), view.getProgressLabel(),
               new RegisteredSamplesReadyRunnable(view, control), entitiesToUpdate,
@@ -501,11 +504,17 @@ public class ExperimentImportController implements IRegistrationController {
 
   private String replaceChangedMetadata(String tsvContent,
       Map<String, String> metadataReplacements) {
-    logger.debug("upload string replacement map: "+metadataReplacements);
+    logger.warn("Debug: String replacement");
     String res = tsvContent;
     for (String userInput : metadataReplacements.keySet()) {
       String selectedVocabValue = metadataReplacements.get(userInput);
-      String in = "(\\t|\\+)" + userInput + "(\\t|\\+)";
+
+      // special characters have to be escaped for replaceAll to work
+      String cleanedInput = Pattern.quote(userInput);
+
+      logger.warn("raw: " + userInput + ", cleaned input: " + cleanedInput);
+
+      String in = "(\\t|\\+)" + cleanedInput + "(\\t|\\+)";
       res = res.replaceAll(in, "$1" + selectedVocabValue + "$2");
     }
     return res;
@@ -687,6 +696,7 @@ public class ExperimentImportController implements IRegistrationController {
               "MS Device", "Fractionation Type", "Enrichment Method", "Labeling Type",
               "LCMS Method", "Digestion Method", "Digestion Enzyme", "Sample Preparation",
               "Species", "Tissue", "Sample Cleanup (Protein)", "Sample Cleanup (Peptide)")));
+      // logger.warn(parsedCategoryToValues);
     }
 
     if (!parsedCategoryToValues.containsKey("Species"))
@@ -900,11 +910,18 @@ public class ExperimentImportController implements IRegistrationController {
             for (ISampleBean b : level) {
               TSVSampleBean t = (TSVSampleBean) b;
 
+
               importCodeToSampleBean.put(t.getCode(), t);
               // start of new block
               String uniqueID = createUniqueIDFromSampleMetadata(t);
 
+              // if (t.getType().equals(SampleType.Q_MS_RUN)) {
+              // logger.warn(t);
+              // logger.warn("unique: " + uniqueID);
+              // }
               if (uniqueIDToExistingSample.containsKey(uniqueID)) {
+                // logger.warn("contained");
+                // logger.warn(uniqueIDToExistingSample.get(uniqueID));
 
                 // String extID = (String) t.getMetadata().get("Q_EXTERNALDB_ID");
                 //
@@ -1178,6 +1195,7 @@ public class ExperimentImportController implements IRegistrationController {
         }
       }
     };
+    // logger.warn(parsedCategoryToValues);
     questionaire = view.initMissingInfoComponent(projectInfoComponent, parsedCategoryToValues,
         catToVocabulary, missingInfoFilledListener);
     // view.addComponent(questionaire);
@@ -1356,6 +1374,9 @@ public class ExperimentImportController implements IRegistrationController {
           }
           break;
         }
+      }
+      if (b.getType().equals(SampleType.Q_MS_RUN)) {
+        id = b.getType() + b.getCode();
       }
     }
     if (id == null) {
