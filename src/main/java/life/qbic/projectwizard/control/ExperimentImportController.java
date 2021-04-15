@@ -70,6 +70,7 @@ import life.qbic.expdesign.io.EasyDesignReader;
 import life.qbic.expdesign.io.IExperimentalDesignReader;
 import life.qbic.expdesign.io.MHCLigandDesignReader;
 import life.qbic.expdesign.io.MSDesignReader;
+import life.qbic.expdesign.io.MetaboDesignReader;
 import life.qbic.expdesign.io.QBiCDesignReader;
 import life.qbic.expdesign.model.ExperimentalDesignPropertyWrapper;
 import life.qbic.expdesign.model.ExperimentalDesignType;
@@ -177,10 +178,10 @@ public class ExperimentImportController implements IRegistrationController {
           prep = new SamplePreparator();
           readSuccess = prep.processTSV(folder, isaParser, true);
         } catch (IOException e) {
-          // TODO Auto-generated catch block
+          logger.error("IO Error while reading ISA-Tab");
           e.printStackTrace();
         } catch (JAXBException e) {
-          // TODO Auto-generated catch block
+          logger.error("JAXB Error while reading ISA-Tab");
           e.printStackTrace();
         }
         if (readSuccess) {
@@ -286,7 +287,7 @@ public class ExperimentImportController implements IRegistrationController {
               experimentTypeVocabularies.put("Q_CHROMATOGRAPHY_TYPE",
                   new HashSet<String>(vocabs.getChromTypesMap().values()));
               experimentTypeVocabularies.put("Q_MS_DEVICE",
-                  new HashSet<String>(vocabs.getDeviceMap().values()));
+                  new HashSet<String>(vocabs.getMSDeviceMap().values()));
               experimentTypeVocabularies.put("Q_MS_LCMS_METHOD",
                   new HashSet<String>(vocabs.getLcmsMethods()));
               experimentTypeVocabularies.put("Q_MS_PURIFICATION_METHOD",
@@ -310,6 +311,10 @@ public class ExperimentImportController implements IRegistrationController {
                 case Proteomics_MassSpectrometry:
                   experimentVocabCorrectionAllowed = true;
                   reader = new MSDesignReader();
+                  break;
+                case Metabolomics_LCMS:
+                  experimentVocabCorrectionAllowed = true;
+                  reader = new MetaboDesignReader();
                 default:
                   break;
               }
@@ -427,6 +432,7 @@ public class ExperimentImportController implements IRegistrationController {
             case Standard:
             case MHC_Ligands_Finished:
             case Proteomics_MassSpectrometry:
+            case Metabolomics_LCMS:
               String tsvContent = addBarcodesToTSV(tsv, view.getSamples(), getImportType());
               tsvContent =
                   replaceChangedMetadata(tsvContent, questionaire.getMetadataReplacements());
@@ -562,6 +568,7 @@ public class ExperimentImportController implements IRegistrationController {
         // // MHC Ligands that have already been measured (Filenames exist)
       case MHC_Ligands_Finished:
       case Proteomics_MassSpectrometry:
+      case Metabolomics_LCMS:
         prepareCompletionDialog();
         break;
       default:
@@ -604,7 +611,7 @@ public class ExperimentImportController implements IRegistrationController {
         experimentalDesignXML =
             ParserHelpers.createDesignXML(importedDesignProperties, techTypes, currentDesignTypes);
       } catch (JAXBException e) {
-        // TODO Auto-generated catch block
+        logger.error("JAXB Error while creating experimental design XML");
         e.printStackTrace();
       }
     }
@@ -629,6 +636,63 @@ public class ExperimentImportController implements IRegistrationController {
     Map<String, List<String>> parsedCategoryToValues = new HashMap<>();
 
     // allow users to correct
+    if (getImportType().equals(ExperimentalDesignType.Metabolomics_LCMS)) {
+      logger.info("Before replacement");
+      logger.info(metadataList);
+
+      catToVocabulary.put("Biospecimen", vocabs.getTissueMap());
+
+      //// Medium : Q_CULTURE_MEDIUM : Q_CULTURE_MEDIA
+      catToVocabulary.put("Medium", vocabs.getCultureMedia());
+
+      //// Havesting conditions : Q_CELL_HARVESTING_METHOD : Q_CELL_HARVESTING_METHODS
+      Map<String, String> harvestMap = new HashMap<>();
+      for (String method : vocabs.getHarvestingMethods()) {
+        harvestMap.put(method, method);
+      }
+      catToVocabulary.put("Harvesting conditions", harvestMap);
+
+      //// Cell lysis : Q_CELL_LYSIS_METHOD : Q_CELL_LYSIS_TYPES
+      Map<String, String> lysisMap = new HashMap<>();
+      for (String method : vocabs.getLysisTypes()) {
+        lysisMap.put(method, method);
+      }
+      catToVocabulary.put("Cell lysis", lysisMap);
+
+      //// LC Device : Q_LC_DEVICE : Q_LC_DEVICES
+      catToVocabulary.put("LC device", vocabs.getLCDeviceMap());
+
+      //// LC detection method : Q_LC_DETECTION_METHOD : Q_LC_DETECTION_METHODS
+      Map<String, String> detectionMethods = new HashMap<>();
+      for (String method : vocabs.getLCDetectionMethods()) {
+        detectionMethods.put(method, method);
+      }
+      catToVocabulary.put("LC detection method", detectionMethods);
+
+      //// MS ion mode : Q_IONIZATION_MODE : Q_IONIZATION_MODES
+      Map<String, String> ionModeMap = new HashMap<>();
+      for (String method : vocabs.getMSIonModes()) {
+        ionModeMap.put(method, method);
+      }
+      catToVocabulary.put("MS ion mode", ionModeMap);
+
+      //// LCMS method name : Q_MS_LCMS_METHOD : Q_MS_LCMS_METHODS
+      Map<String, String> lcmsMap = new HashMap<>();
+      for (String method : vocabs.getLcmsMethods()) {
+        lcmsMap.put(method, method);
+      }
+      catToVocabulary.put("LCMS method name", lcmsMap);
+      //// MC Device : Q_MS_DEVICE : Q_MS_DEVICES
+      catToVocabulary.put("MS device", vocabs.getMSDeviceMap());
+
+      catToVocabulary.put("Expression system", vocabs.getTaxMap());
+
+      parsedCategoryToValues =
+          prep.getParsedCategoriesToValues(new ArrayList<String>(Arrays.asList("Expression system",
+              "Species", "Biospecimen", "Medium", "Harvesting conditions", "Cell lysis",
+              "LCMS method name", "LC detection method", "LC device", "MS device", "MS ion mode")));
+    }
+    // TODO TESTS
     if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
 
       // Map<String, Set<String>> pretransformedProperties = new HashMap<>();
@@ -665,7 +729,7 @@ public class ExperimentImportController implements IRegistrationController {
       }
       catToVocabulary.put("LCMS Method", lcmsMap);
       //// MC Device : Q_MS_DEVICE : Q_MS_DEVICES
-      catToVocabulary.put("MS Device", vocabs.getDeviceMap());
+      catToVocabulary.put("MS Device", vocabs.getMSDeviceMap());
       //// Sample Cleanup (peptide) : Q_PROTEIN_PURIFICATION_METHODS
       catToVocabulary.put("Sample Cleanup (Protein)", vocabs.getProteinPurificationMethodsMap());
       //// Sample Cleanup (protein) : Q_PROTEIN_PURIFICATION_METHODS
@@ -697,13 +761,14 @@ public class ExperimentImportController implements IRegistrationController {
               "Species", "Tissue", "Sample Cleanup (Protein)", "Sample Cleanup (Peptide)")));
       // logger.warn(parsedCategoryToValues);
     }
-
-    if (!parsedCategoryToValues.containsKey("Species"))
-      parsedCategoryToValues.put("Species", new ArrayList<String>(prep.getSpeciesSet()));
-    if (!parsedCategoryToValues.containsKey("Analyte"))
-      parsedCategoryToValues.put("Analyte", new ArrayList<String>(prep.getAnalyteSet()));
-    if (!parsedCategoryToValues.containsKey("Tissue"))
-      parsedCategoryToValues.put("Tissue", new ArrayList<String>(prep.getTissueSet()));
+    if (!getImportType().equals(ExperimentalDesignType.Metabolomics_LCMS)) {
+      if (!parsedCategoryToValues.containsKey("Species"))
+        parsedCategoryToValues.put("Species", new ArrayList<String>(prep.getSpeciesSet()));
+      if (!parsedCategoryToValues.containsKey("Analyte"))
+        parsedCategoryToValues.put("Analyte", new ArrayList<String>(prep.getAnalyteSet()));
+      if (!parsedCategoryToValues.containsKey("Tissue"))
+        parsedCategoryToValues.put("Tissue", new ArrayList<String>(prep.getTissueSet()));
+    }
 
     initMissingInfoListener(parsedCategoryToValues, catToVocabulary);
   }
@@ -735,6 +800,8 @@ public class ExperimentImportController implements IRegistrationController {
         break;
       case Proteomics_MassSpectrometry:
         fileNameHeader = "File Name";
+      case Metabolomics_LCMS:
+        fileNameHeader = "Secondary name";
       case MHC_Ligands_Finished:
         Map<String, String> fileNameToBarcode = new HashMap<String, String>();
         for (List<ISampleBean> samples : levels) {
@@ -796,9 +863,12 @@ public class ExperimentImportController implements IRegistrationController {
             String cat = "";
             if (b.getSampleType().contains("Source"))
               cat = "Species";
-            else if (b.getSampleType().contains("Sample Extract"))
+            else if (b.getSampleType().contains("Sample Extract")) {
               cat = "Tissue";
-            else if (b.getSampleType().contains("Preparations"))
+              if (getImportType().equals(ExperimentalDesignType.Metabolomics_LCMS)) {
+                cat = "Biospecimen";
+              }
+            } else if (b.getSampleType().contains("Preparations"))
               cat = "Analyte";
             if (parsedCategoryToValues.containsKey(cat)) {
               String val = b.getFullSampleContent();
@@ -816,6 +886,74 @@ public class ExperimentImportController implements IRegistrationController {
             }
           }
           // TODO enable for all types
+          // TEST THIS
+          if (getImportType().equals(ExperimentalDesignType.Metabolomics_LCMS)) {
+            Map<String, Set<String>> keyToFields = new HashMap<>();
+
+            // sample prep experiments
+            keyToFields.put("Q_CULTURE_MEDIUM", new HashSet<>(Arrays.asList("Medium")));
+            keyToFields.put("Q_CELL_HARVESTING_METHOD",
+                new HashSet<>(Arrays.asList("Harvesting conditions")));
+            keyToFields.put("Q_CELL_LYSIS", new HashSet<>(Arrays.asList("Cell lysis")));
+
+            keyToFields.put("Q_SAMPLE_PREPARATION_METHOD",
+                new HashSet<>(Arrays.asList("Sample Preparation")));
+            keyToFields.put("Q_MS_FRACTIONATION_METHOD",
+                new HashSet<>(Arrays.asList("Fractionation Type")));
+            keyToFields.put("Q_MS_ENRICHMENT_METHOD",
+                new HashSet<>(Arrays.asList("Enrichment Method")));
+            keyToFields.put("Q_LABELING_METHOD", new HashSet<>(Arrays.asList("Labeling Type")));
+            keyToFields.put("Q_DIGESTION_METHOD", new HashSet<>(Arrays.asList("Digestion Method")));
+            keyToFields.put("Q_DIGESTION_ENZYMES",
+                new HashSet<>(Arrays.asList("Digestion Enzyme")));
+            // ms experiments
+            keyToFields.put("Q_MS_DEVICE", new HashSet<>(Arrays.asList("MS device")));
+            keyToFields.put("Q_CHROMATOGRAPHY_TYPE", new HashSet<>(Arrays.asList("LC column")));
+            keyToFields.put("Q_MS_LCMS_METHOD", new HashSet<>(Arrays.asList("LCMS method name")));
+            keyToFields.put("Q_LC_DEVICE", new HashSet<>(Arrays.asList("LC device")));
+            keyToFields.put("Q_LC_DETECTION_METHOD",
+                new HashSet<>(Arrays.asList("LC detection method")));
+            keyToFields.put("Q_IONIZATION_MODE", new HashSet<>(Arrays.asList("MS ion mode")));
+
+            for (Map<String, Object> props : metadataList) {
+              Map<String, String> newProps = new HashMap<>();
+              for (String openBISPropertyKey : props.keySet()) {
+                if (keyToFields.containsKey(openBISPropertyKey)) {
+
+                  Set<String> columnNames = keyToFields.get(openBISPropertyKey);
+                  if (props.get(openBISPropertyKey) instanceof String) {
+                    String oldEntry = (String) props.get(openBISPropertyKey);
+
+                    // String newLabel = questionaire.getVocabularyLabelForValue(val, entry);//
+                    String newVal = questionaire.getVocabularyCodeForValue(columnNames, oldEntry);
+                    if (newVal != null) {
+                      props.put(openBISPropertyKey, newVal);
+
+                      //
+                      // MetadataReplacementHelper.addNewReplacement(openBISPropertyKey, )
+                    }
+                  } else if (props.get(openBISPropertyKey) instanceof List<?>) {
+                    List<String> newPropList = new ArrayList<>();
+                    List<String> propList = (List<String>) (List<?>) props.get(openBISPropertyKey);
+                    for (String entry : propList) {
+                      String newEntry = questionaire.getVocabularyCodeForValue(columnNames, entry);
+                      if (newEntry != null) {
+                        newPropList.add(newEntry);
+                      } else {
+                        newPropList.add(entry);
+                      }
+                    }
+                    props.put(openBISPropertyKey, newPropList);
+                  }
+                }
+              }
+              for (String newProp : newProps.keySet()) {
+                props.put(newProp, newProps.get(newProp));
+              }
+            }
+            logger.info("after replacement:");
+            logger.info(metadataList);
+          }
           if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
             Map<String, Set<String>> keyToFields = new HashMap<>();
 
@@ -884,7 +1022,8 @@ public class ExperimentImportController implements IRegistrationController {
           try {
             countExistingOpenbisEntities(space, project);
           } catch (TooManySamplesException e1) {
-            // TODO Auto-generated catch block
+            logger.error(
+                "Warning: too many samples in this project. User won't be able to register new samples.");
             overflow = true;
           }
 
@@ -957,7 +1096,11 @@ public class ExperimentImportController implements IRegistrationController {
                     }
                     code = nextBarcode;
 
-                    newVal = questionaire.getVocabularyLabelForImportValue("Tissue",
+                    String tissueCatName = "Tissue";
+                    if (getImportType().equals(ExperimentalDesignType.Metabolomics_LCMS)) {
+                      tissueCatName = "Biospecimen";
+                    }
+                    newVal = questionaire.getVocabularyLabelForImportValue(tissueCatName,
                         props.get("Q_PRIMARY_TISSUE"));
 
                     props.put("Q_PRIMARY_TISSUE", vocabs.getTissueMap().get(newVal));
@@ -973,10 +1116,11 @@ public class ExperimentImportController implements IRegistrationController {
                       specialExpToExpCode.put(t.getExperiment(), getNextExperiment(project));
                     }
                     exp = specialExpToExpCode.get(t.getExperiment());
-
                     newVal = questionaire.getVocabularyLabelForImportValue("Analyte",
                         props.get("Q_SAMPLE_TYPE"));
-                    props.put("Q_SAMPLE_TYPE", newVal);
+                    if (newVal != null) {
+                      props.put("Q_SAMPLE_TYPE", newVal);
+                    }
 
                     if (props.containsKey("Q_MOLECULAR_LABEL")) {
                       if (!props.get("Q_MOLECULAR_LABEL").equals("")) {
@@ -1023,8 +1167,8 @@ public class ExperimentImportController implements IRegistrationController {
                     String parentID = t.getParentIDs().get(0);
 
                     String parentCode = uniqueCodeToBarcode.get(parentID);
-                    if (getImportType()
-                        .equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
+                    if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)
+                        || getImportType().equals(ExperimentalDesignType.Metabolomics_LCMS)) {
                       parentCode = uniqueNumericIDToBarcode.get(parentID);
                     }
 
@@ -1118,7 +1262,8 @@ public class ExperimentImportController implements IRegistrationController {
                 t.setParents(new ArrayList<ISampleBean>());
                 List<String> newParents = new ArrayList<String>();
                 for (String parentID : parents) {
-                  if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
+                  if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)
+                      || getImportType().equals(ExperimentalDesignType.Metabolomics_LCMS)) {
                     if (uniqueNumericIDToBarcode.containsKey(parentID)) {
                       newParents.add(uniqueNumericIDToBarcode.get(parentID));
                     } else
@@ -1298,7 +1443,7 @@ public class ExperimentImportController implements IRegistrationController {
     uniqueIDToExistingSample = new HashMap<String, Sample>();
     firstFreeExperimentID = 1;
     firstFreeEntityID = 1;
-    firstFreeBarcode = "";// TODO cleanup where not needed
+    firstFreeBarcode = "";
     currentProjectSamples = new ArrayList<Sample>();
     if (openbis.projectExists(space, project)) {
       currentProjectSamples.addAll(openbis.getSamplesOfProject("/" + space + "/" + project));
@@ -1430,6 +1575,12 @@ public class ExperimentImportController implements IRegistrationController {
           logger.info("Moving imported file to project attachments.");
           attachMover.createAttachmentFromStringMoveAndMarker(currentTSVContent,
               uploader.getBaseFileName(), "Proteomics Format Import", "Experimental Design", user,
+              project + "000");
+        }
+        if (getImportType().equals(ExperimentalDesignType.Metabolomics_LCMS)) {
+          logger.info("Moving imported file to project attachments.");
+          attachMover.createAttachmentFromStringMoveAndMarker(currentTSVContent,
+              uploader.getBaseFileName(), "Metabolomics Format Import", "Experimental Design", user,
               project + "000");
         }
       }

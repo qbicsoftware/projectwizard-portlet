@@ -130,36 +130,9 @@ public class ProjectWizardUI extends QBiCPortletUI {
     }
     if (success) {
       // stuff from openbis
-      Map<String, String> taxMap = openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
-      Map<String, String> tissueMap = openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
-      Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
-      Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
-      Map<String, String> enzymeMap =
-          openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES");
-      Map<String, String> chromTypes =
-          openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
-      Map<String, String> antibodiesWithLabels =
-          openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY");
+      Vocabularies vocabs = new Vocabularies();
 
-      //// Labeling Type : Q_LABELING_METHOD : Q_LABELING_TYPES
-      List<String> labelingTypes = openbis.getVocabCodesForVocab("Q_LABELING_TYPES");
-      //// Sample Preparation
-      Map<String, String> samplePreparationMethods =
-          openbis.getVocabCodesAndLabelsForVocab("Q_SAMPLE_PREPARATION");
-      Map<String, String> digestionMethods =
-          openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_METHODS");
-
-      Map<String, String> purificationMethods =
-          openbis.getVocabCodesAndLabelsForVocab("Q_PROTEIN_PURIFICATION_METHODS");
-
-      List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
-      List<String> fractionationTypes =
-          openbis.getVocabCodesForVocab("Q_MS_FRACTIONATION_PROTOCOLS");
-      List<String> enrichmentTypes = openbis.getVocabCodesForVocab("Q_MS_ENRICHMENT_PROTOCOLS");
-      List<String> msProtocols = openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS");
-      List<String> lcmsMethods = openbis.getVocabCodesForVocab("Q_MS_LCMS_METHODS");
-
-      final List<String> spaces = openbis.getUserSpaces(userID);
+      prepareVocabularies(vocabs);
 
       isAdmin = openbis.isUserAdmin(userID);
       // stuff from mysql database
@@ -167,15 +140,46 @@ public class ProjectWizardUI extends QBiCPortletUI {
           config.getMysqlDB(), config.getMysqlUser(), config.getMysqlPass());
       DBManager dbm = new DBManager(mysqlConfig);
       Map<String, Integer> peopleMap = dbm.fetchPeople();
-      Vocabularies vocabs = new Vocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes, spaces,
-          peopleMap, expTypes, enzymeMap, antibodiesWithLabels, deviceMap, msProtocols, lcmsMethods,
-          chromTypes, fractionationTypes, enrichmentTypes, purificationMethods,
-          samplePreparationMethods, labelingTypes, digestionMethods);
+      vocabs.setPeople(peopleMap);
+      vocabs.setSpaces(openbis.getUserSpaces(userID));
+
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
       initView(dbm, vocabs, userID);
       layout.addComponent(tabs);
     }
     return layout;
+  }
+
+  private void prepareVocabularies(Vocabularies vocabs) {
+    vocabs.setTaxMap(openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY"));
+    vocabs.setTissueMap(openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES"));
+    vocabs.setMSDeviceMap(openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES"));
+    vocabs.setCellLinesMap(openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES"));
+    vocabs.setEnzymes(openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES"));
+    vocabs.setChromTypes(openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES"));
+    vocabs.setAntibodies(openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY"));
+
+    //// Labeling Type : Q_LABELING_METHOD : Q_LABELING_TYPES
+    vocabs.setLabelingTypes(openbis.getVocabCodesForVocab("Q_LABELING_TYPES"));
+    //// Sample Preparation
+    vocabs.setSamplePreparations(openbis.getVocabCodesAndLabelsForVocab("Q_SAMPLE_PREPARATION"));
+    vocabs.setDigestionMethods(openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_METHODS"));
+
+    vocabs.setProteinPurificationMethods(
+        openbis.getVocabCodesAndLabelsForVocab("Q_PROTEIN_PURIFICATION_METHODS"));
+
+    vocabs.setMeasureTypes(openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES"));
+    vocabs.setFractionationTypes(openbis.getVocabCodesForVocab("Q_MS_FRACTIONATION_PROTOCOLS"));
+    vocabs.setEnrichmentTypes(openbis.getVocabCodesForVocab("Q_MS_ENRICHMENT_PROTOCOLS"));
+    vocabs.setMsProtocols(openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS"));
+    vocabs.setLcmsMethods(openbis.getVocabCodesForVocab("Q_MS_LCMS_METHODS"));
+
+    vocabs.setCultureMedia(openbis.getVocabCodesAndLabelsForVocab("Q_CULTURE_MEDIA"));
+    vocabs.setHarvestingMethods(openbis.getVocabCodesForVocab("Q_CELL_HARVESTING_METHODS"));
+    vocabs.setLysisTypes(openbis.getVocabCodesForVocab("Q_CELL_LYSIS_TYPES"));
+    vocabs.setLCDeviceMap(openbis.getVocabCodesAndLabelsForVocab("Q_LC_DEVICES"));
+    vocabs.setLCDetectionMethods(openbis.getVocabCodesForVocab("Q_LC_DETECTION_METHODS"));
+    vocabs.setMSIonModes(openbis.getVocabCodesForVocab("Q_IONIZATION_MODES"));
   }
 
   private void initView(final DBManager dbm, final Vocabularies vocabularies, final String user) {

@@ -89,7 +89,7 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
 
     importOptions = new OptionGroup("Import Format");
     importOptions.addItems("QBiC", "Standard", "ISA-Tab (prototype)", "MHC Ligandomics",
-        "Mass Spec Proteomics");
+        "Mass Spec Proteomics", "Metabolomics");
 
     importOptions.addValueChangeListener(new ValueChangeListener() {
       @Override
@@ -114,6 +114,8 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
         createTSVDownloadComponent(ExperimentalDesignType.MHC_Ligands_Finished)));
     infos.addComponent(Styles.getPopupViewContaining(
         createTSVDownloadComponent(ExperimentalDesignType.Proteomics_MassSpectrometry)));
+    infos.addComponent(Styles.getPopupViewContaining(
+        createTSVDownloadComponent(ExperimentalDesignType.Metabolomics_LCMS)));
   }
 
   protected void enableMultiUpload(boolean enable) {
@@ -226,7 +228,6 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
       v.addComponent(l);
       Button button = new Button("Download Example");
       v.addComponent(button);
-
       final File example = new File(
           getClass().getClassLoader().getResource("examples/" + type.getFileName()).getFile());
       FileDownloader tsvDL = new FileDownloader(new FileResource(example));
@@ -268,6 +269,7 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
       switch (getSelectedDesignOption()) {
         case Standard:
         case Proteomics_MassSpectrometry:
+        case Metabolomics_LCMS:
         case MHC_Ligands_Finished:
           downloadTSV.setEnabled(true);
           break;
@@ -315,6 +317,8 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
           return ExperimentalDesignType.MHC_Ligands_Finished;
         case "Mass Spec Proteomics":
           return ExperimentalDesignType.Proteomics_MassSpectrometry;
+        case "Metabolomics":
+          return ExperimentalDesignType.Metabolomics_LCMS;
         case "ISA-Tab (prototype)":
           return ExperimentalDesignType.ISA;
         default:
