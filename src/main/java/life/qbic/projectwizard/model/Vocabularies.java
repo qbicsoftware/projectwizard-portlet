@@ -56,6 +56,7 @@ public class Vocabularies {
   private Map<String, String> digestionMethods;
   private List<LabelingMethod> labelingMethods;
   private List<String> isotopeLabels;
+  private Map<String, String> msDissociationMethods;
 
   public Vocabularies() {
     QuantificationMethodVocabularyParser p = new QuantificationMethodVocabularyParser();
@@ -113,6 +114,10 @@ public class Vocabularies {
 
   public void setMsProtocols(List<String> msProtocols) {
     this.msProtocols = msProtocols;
+  }
+
+  public void setMsDissociationMethods(Map<String, String> dissociationMethodsMap) {
+    this.msDissociationMethods = dissociationMethodsMap;
   }
 
   public void setLcmsMethods(List<String> lcmsMethods) {
@@ -289,6 +294,10 @@ public class Vocabularies {
 
   public List<String> getMSIonModes() {
     return msIonModes;
+  }
+
+  public Map<String, String> getMSDissociationMethods() {
+    return msDissociationMethods;
   }
 
 }

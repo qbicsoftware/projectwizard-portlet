@@ -56,7 +56,7 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 @Widgetset("life.qbic.portlet.AppWidgetSet")
 public class ProjectWizardUI extends QBiCPortletUI {
 
-  public static boolean development = false;
+  public static boolean development = true;
   public static boolean v3RegistrationAPI = false;
   public static String MSLabelingMethods;
   public static String tmpFolder;
@@ -174,6 +174,8 @@ public class ProjectWizardUI extends QBiCPortletUI {
     vocabs.setMsProtocols(openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS"));
     vocabs.setLcmsMethods(openbis.getVocabCodesForVocab("Q_MS_LCMS_METHODS"));
 
+    vocabs.setMsDissociationMethods(
+        openbis.getVocabCodesAndLabelsForVocab("Q_MS_DISSOCIATION_METHODS"));
     vocabs.setCultureMedia(openbis.getVocabCodesAndLabelsForVocab("Q_CULTURE_MEDIA"));
     vocabs.setHarvestingMethods(openbis.getVocabCodesForVocab("Q_CELL_HARVESTING_METHODS"));
     vocabs.setLysisTypes(openbis.getVocabCodesForVocab("Q_CELL_LYSIS_TYPES"));
@@ -191,7 +193,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
       OpenbisV3CreationController v3c = new OpenbisV3CreationController(openbis, user, v3);
       creationController = v3c;
     }
-
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
