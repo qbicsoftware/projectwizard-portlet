@@ -615,7 +615,6 @@ public class ExperimentImportController implements IRegistrationController {
   }
 
   private void prepDesignXML(List<TechnologyType> techTypes) {
-
     // create Experimental Design XML, first reset both values
     experimentalDesignXML = null;
     entitiesToUpdate = new HashMap<String, Map<String, Object>>();
@@ -948,7 +947,7 @@ public class ExperimentImportController implements IRegistrationController {
                 if (keyToFields.containsKey(openBISPropertyKey)) {
 
                   Set<String> columnNames = keyToFields.get(openBISPropertyKey);
-                  
+
                   if (props.get(openBISPropertyKey) instanceof String) {
                     String oldEntry = (String) props.get(openBISPropertyKey);
 
@@ -961,13 +960,13 @@ public class ExperimentImportController implements IRegistrationController {
                       // MetadataReplacementHelper.addNewReplacement(openBISPropertyKey, )
                     }
                   } else if (props.get(openBISPropertyKey) instanceof List<?>) {
-                    
+
                     List<String> newPropList = new ArrayList<>();
                     List<String> propList = (List<String>) (List<?>) props.get(openBISPropertyKey);
-                    
+
                     for (String entry : propList) {
                       String newEntry = questionaire.getVocabularyCodeForValue(columnNames, entry);
-                      
+
                       if (newEntry != null) {
                         newPropList.add(newEntry);
                       } else {
@@ -1492,6 +1491,7 @@ public class ExperimentImportController implements IRegistrationController {
     firstFreeEntityID = 1;
     firstFreeBarcode = "";
     currentProjectSamples = new ArrayList<Sample>();
+    currentDesignExperiment = null;
     if (openbis.projectExists(space, project)) {
       currentProjectSamples.addAll(openbis.getSamplesOfProject("/" + space + "/" + project));
     }

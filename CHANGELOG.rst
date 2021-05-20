@@ -4,7 +4,7 @@ Changelog
 
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
-1.11.0-SNAPSHOT (2021-05-19)
+1.11.0-SNAPSHOT (2021-05-20)
 ----------------------------
 
 **Added**
@@ -16,6 +16,7 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 **Fixed**
 
 - Help/Examples symbols for import formats are now places directly next to the respective options
+- When importing multiple different formats, the project and experimental design are now correctly reset
 
 **Dependencies**
 
