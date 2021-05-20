@@ -64,7 +64,7 @@
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>  @Widgetset(<span class="jxr_string">"life.qbic.portlet.AppWidgetSet"</span>)
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="ProjectWizardUI" href="../../../../life/qbic/portal/portlet/ProjectWizardUI.html#ProjectWizardUI">ProjectWizardUI</a> <strong class="jxr_keyword">extends</strong> QBiCPortletUI {
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> development = false;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> development = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> v3RegistrationAPI = false;
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String MSLabelingMethods;
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String tmpFolder;
@@ -138,188 +138,193 @@
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>     }
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>     <strong class="jxr_keyword">if</strong> (success) {
 <a class="jxr_linenumber" name="L132" href="#L132">132</a>       <em class="jxr_comment">// stuff from openbis</em>
-<a class="jxr_linenumber" name="L133" href="#L133">133</a>       Map&lt;String, String&gt; taxMap = openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_NCBI_TAXONOMY"</span>);
-<a class="jxr_linenumber" name="L134" href="#L134">134</a>       Map&lt;String, String&gt; tissueMap = openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_PRIMARY_TISSUES"</span>);
-<a class="jxr_linenumber" name="L135" href="#L135">135</a>       Map&lt;String, String&gt; deviceMap = openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_MS_DEVICES"</span>);
-<a class="jxr_linenumber" name="L136" href="#L136">136</a>       Map&lt;String, String&gt; cellLinesMap = openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_CELL_LINES"</span>);
-<a class="jxr_linenumber" name="L137" href="#L137">137</a>       Map&lt;String, String&gt; enzymeMap =
-<a class="jxr_linenumber" name="L138" href="#L138">138</a>           openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_DIGESTION_PROTEASES"</span>);
-<a class="jxr_linenumber" name="L139" href="#L139">139</a>       Map&lt;String, String&gt; chromTypes =
-<a class="jxr_linenumber" name="L140" href="#L140">140</a>           openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_CHROMATOGRAPHY_TYPES"</span>);
-<a class="jxr_linenumber" name="L141" href="#L141">141</a>       Map&lt;String, String&gt; antibodiesWithLabels =
-<a class="jxr_linenumber" name="L142" href="#L142">142</a>           openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_ANTIBODY"</span>);
-<a class="jxr_linenumber" name="L143" href="#L143">143</a> 
-<a class="jxr_linenumber" name="L144" href="#L144">144</a>       <em class="jxr_comment">//// Labeling Type : Q_LABELING_METHOD : Q_LABELING_TYPES</em>
-<a class="jxr_linenumber" name="L145" href="#L145">145</a>       List&lt;String&gt; labelingTypes = openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_LABELING_TYPES"</span>);
-<a class="jxr_linenumber" name="L146" href="#L146">146</a>       <em class="jxr_comment">//// Sample Preparation</em>
-<a class="jxr_linenumber" name="L147" href="#L147">147</a>       Map&lt;String, String&gt; samplePreparationMethods =
-<a class="jxr_linenumber" name="L148" href="#L148">148</a>           openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_SAMPLE_PREPARATION"</span>);
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>       Map&lt;String, String&gt; digestionMethods =
-<a class="jxr_linenumber" name="L150" href="#L150">150</a>           openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_DIGESTION_METHODS"</span>);
-<a class="jxr_linenumber" name="L151" href="#L151">151</a> 
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>       Map&lt;String, String&gt; purificationMethods =
-<a class="jxr_linenumber" name="L153" href="#L153">153</a>           openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_PROTEIN_PURIFICATION_METHODS"</span>);
-<a class="jxr_linenumber" name="L154" href="#L154">154</a> 
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>       List&lt;String&gt; sampleTypes = openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_SAMPLE_TYPES"</span>);
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>       List&lt;String&gt; fractionationTypes =
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>           openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_MS_FRACTIONATION_PROTOCOLS"</span>);
-<a class="jxr_linenumber" name="L158" href="#L158">158</a>       List&lt;String&gt; enrichmentTypes = openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_MS_ENRICHMENT_PROTOCOLS"</span>);
-<a class="jxr_linenumber" name="L159" href="#L159">159</a>       List&lt;String&gt; msProtocols = openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_MS_PROTOCOLS"</span>);
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>       List&lt;String&gt; lcmsMethods = openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_MS_LCMS_METHODS"</span>);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>       <a name="Vocabularies" href="../../../../life/qbic/projectwizar<a name="Vocabularies" href="../../../../life/qbic/projectwizard/model/Vocabularies.html#Vocabularies">Vocabularies</a>bularies.html#Vocabularies">Vocabularies</a> vocabs = <strong class="jxr_keyword">new</strong> <a name="Vocabularies" href="../../../../life/qbic/projectwizard/model/Vocabularies.html#Vocabularies">Vocabularies</a>();
+<a class="jxr_linenumber" name="L134" href="#L134">134</a> 
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>       prepareVocabularies(vocabs);
+<a class="jxr_linenumber" name="L136" href="#L136">136</a> 
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>       isAdmin = openbis.isUserAdmin(userID);
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>       <em class="jxr_comment">// stuff from mysql database</em>
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>       <a name="DBConfig" href="../../../../life/qbic/projectwizard/io/<a name="DBConfig" href="../../../../life/qbic/projectwizard/io/DBConfig.html#DBConfig">DBConfig</a>.html#DBConfig">DBConfig</a> mysqlConfig = <strong class="jxr_keyword">new</strong> <a name="DBConfig" href="../../../../life/qbic/projectwizard/io/DBConfig.html#DBConfig">DBConfig</a>(config.getMysqlHost(), config.getMysqlPort(),
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>           config.getMysqlDB(), config.getMysqlUser(), config.getMysqlPass());
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>       <a name="DBManager" href="../../../../life/qbic/projectwi<a name="DBManager" href="../../../../life/qbic/projectwizard/io/DBManager.html#DBManager">DBManager</a>BManager.html#DBManager">DBManager</a> dbm = <strong class="jxr_keyword">new</strong> <a name="DBManager" href="../../../../life/qbic/projectwizard/io/DBManager.html#DBManager">DBManager</a>(mysqlConfig);
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>       Map&lt;String, Integer&gt; peopleMap = dbm.fetchPeople();
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>       vocabs.setPeople(peopleMap);
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>       vocabs.setSpaces(openbis.getUserSpaces(userID));
+<a class="jxr_linenumber" name="L145" href="#L145">145</a> 
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>       <em class="jxr_comment">// initialize the View with sample types, spaces and the dictionaries of tissues and species</em>
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>       initView(dbm, vocabs, userID);
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>       layout.addComponent(tabs);
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>     }
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>     <strong class="jxr_keyword">return</strong> layout;
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>   }
+<a class="jxr_linenumber" name="L152" href="#L152">152</a> 
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> prepareVocabularies(<a name="Vocabularies" href="../../../../life/qbic/projectwizard/model/Vocabularies.html#Vocabularies">Vocabularies</a> vocabs) {
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>     vocabs.setTaxMap(openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_NCBI_TAXONOMY"</span>));
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>     vocabs.setTissueMap(openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_PRIMARY_TISSUES"</span>));
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>     vocabs.setMSDeviceMap(openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_MS_DEVICES"</span>));
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>     vocabs.setCellLinesMap(openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_CELL_LINES"</span>));
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>     vocabs.setEnzymes(openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_DIGESTION_PROTEASES"</span>));
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>     vocabs.setChromTypes(openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_CHROMATOGRAPHY_TYPES"</span>));
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>     vocabs.setAntibodies(openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_ANTIBODY"</span>));
 <a class="jxr_linenumber" name="L161" href="#L161">161</a> 
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>       <strong class="jxr_keyword">final</strong> List&lt;String&gt; spaces = openbis.getUserSpaces(userID);
-<a class="jxr_linenumber" name="L163" href="#L163">163</a> 
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>       isAdmin = openbis.isUserAdmin(userID);
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>       <em class="jxr_comment">// stuff from mysql database</em>
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>       <a name="DBConfig" href="../../../../life/qbic/projectwizard/io/<a name="DBConfig" href="../../../../life/qbic/projectwizard/io/DBConfig.html#DBConfig">DBConfig</a>.html#DBConfig">DBConfig</a> mysqlConfig = <strong class="jxr_keyword">new</strong> <a name="DBConfig" href="../../../../life/qbic/projectwizard/io/DBConfig.html#DBConfig">DBConfig</a>(config.getMysqlHost(), config.getMysqlPort(),
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>           config.getMysqlDB(), config.getMysqlUser(), config.getMysqlPass());
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>       <a name="DBManager" href="../../../../life/qbic/projectwi<a name="DBManager" href="../../../../life/qbic/projectwizard/io/DBManager.html#DBManager">DBManager</a>BManager.html#DBManager">DBManager</a> dbm = <strong class="jxr_keyword">new</strong> <a name="DBManager" href="../../../../life/qbic/projectwizard/io/DBManager.html#DBManager">DBManager</a>(mysqlConfig);
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>       Map&lt;String, Integer&gt; peopleMap = dbm.fetchPeople();
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>       <a name="Vocabularies" href="../../../../life/qbic/projectwizar<a name="Vocabularies" href="../../../../life/qbic/projectwizard/model/Vocabularies.html#Vocabularies">Vocabularies</a>bularies.html#Vocabularies">Vocabularies</a> vocabs = <strong class="jxr_keyword">new</strong> <a name="Vocabularies" href="../../../../life/qbic/projectwizard/model/Vocabularies.html#Vocabularies">Vocabularies</a>(taxMap, tissueMap, cellLinesMap, sampleTypes, spaces,
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>           peopleMap, expTypes, enzymeMap, antibodiesWithLabels, deviceMap, msProtocols, lcmsMethods,
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>           chromTypes, fractionationTypes, enrichmentTypes, purificationMethods,
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>           samplePreparationMethods, labelingTypes, digestionMethods);
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>       <em class="jxr_comment">// initialize the View with sample types, spaces and the dictionaries of tissues and species</em>
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>       initView(dbm, vocabs, userID);
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>       layout.addComponent(tabs);
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>     }
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>     <strong class="jxr_keyword">return</strong> layout;
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>   }
-<a class="jxr_linenumber" name="L180" href="#L180">180</a> 
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> initView(<strong class="jxr_keyword">final</strong> <a name="DBManager" href="../../../../life/qbic/projectwizard/io/DBManager.html#DBManager">DBManager</a> dbm, <strong class="jxr_keyword">final</strong> <a name="Vocabularies" href="../../../../life/qbic/projectwizard/model/Vocabularies.html#Vocabularies">Vocabularies</a> vocabularies, <strong class="jxr_keyword">final</strong> String user) {
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>     tabs.removeAllComponents();
-<a class="jxr_linenumber" name="L183" href="#L183">183</a> 
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>     <a name="IOpenbisCreationController" href="../../../../life/qbic/projectwizard/registration/IOpenbisCreationController.html#IOpenbisCreationController">IOpenbisCreationController</a> creationController = <strong class="jxr_keyword">new</strong> <a name="OpenbisCreationController" href="../../../../life/qbic/projectwizard/registration/OpenbisCreationController.html#OpenbisCreationController">OpenbisCreationController</a>(openbis, user);
-<a class="jxr_linenumber" name="L185" href="#L185">185</a> 
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>     <strong class="jxr_keyword">if</strong> (v3RegistrationAPI) {
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>       <a name="OpenbisV3CreationController" href="../../../../life/qbic/projectwi<a name="OpenbisV3CreationController" href="../../../../life/qbic/projectwizard/registration/OpenbisV3CreationController.html#OpenbisV3CreationController">OpenbisV3CreationController</a>CreationController.html#OpenbisV3CreationController">OpenbisV3CreationController</a> v3c = <strong class="jxr_keyword">new</strong> <a name="OpenbisV3CreationController" href="../../../../life/qbic/projectwizard/registration/OpenbisV3CreationController.html#OpenbisV3CreationController">OpenbisV3CreationController</a>(openbis, user, v3);
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>       creationController = v3c;
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>     }
-<a class="jxr_linenumber" name="L190" href="#L190">190</a> 
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>     AttachmentConfig attachConfig =
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>         <strong class="jxr_keyword">new</strong> AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
-<a class="jxr_linenumber" name="L194" href="#L194">194</a> 
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>     BasicOMEROClient omero = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>       <strong class="jxr_keyword">int</strong> omeroPort = Integer.parseInt(config.getOmeroPort());
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>       omero = <strong class="jxr_keyword">new</strong> BasicOMEROClient(config.getOmeroUser(), config.getOmeroPassword(),
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>           config.getOmeroHostname(), omeroPort);
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>     } <strong class="jxr_keyword">catch</strong> (NumberFormatException | NullPointerException e) {
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>       logger.warn(<span class="jxr_string">"Omero port could not be parsed form the configuration file."</span>);
-<a class="jxr_linenumber" name="L202" href="#L202">202</a>     }
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>     <a name="OmeroAdapter" href="../../../../life/qbic/projectwizard/regi<a name="OmeroAdapter" href="../../../../life/qbic/projectwizard/registration/OmeroAdapter.html#OmeroAdapter">OmeroAdapter</a>roAdapter.html#OmeroAdapter">OmeroAdapter</a> omeroAdapter = <strong class="jxr_keyword">new</strong> <a name="OmeroAdapter" href="../../../../life/qbic/projectwizard/registration/OmeroAdapter.html#OmeroAdapter">OmeroAdapter</a>(omero);
-<a class="jxr_linenumber" name="L204" href="#L204">204</a> 
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>     <a name="WizardController" href="../../../../life/qbic/projectwizard/contro<a name="WizardController" href="../../../../life/qbic/projectwizard/control/WizardController.html#WizardController">WizardController</a>er.html#WizardController">WizardController</a> mainController = <strong class="jxr_keyword">new</strong> <a name="WizardController" href="../../../../life/qbic/projectwizard/control/WizardController.html#WizardController">WizardController</a>(openbis, omeroAdapter, v3,
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>         creationController, dbm, vocabularies, attachConfig);
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>     mainController.init(user);
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>     Wizard w = mainController.getWizard();
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>     WizardProgressListener wl = <strong class="jxr_keyword">new</strong> WizardProgressListener() {
-<a class="jxr_linenumber" name="L210" href="#L210">210</a> 
-<a class="jxr_linenumber" name="L211" href="#L211">211</a>       @Override
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> activeStepChanged(WizardStepActivationEvent event) {}
-<a class="jxr_linenumber" name="L213" href="#L213">213</a> 
-<a class="jxr_linenumber" name="L214" href="#L214">214</a>       @Override
-<a class="jxr_linenumber" name="L215" href="#L215">215</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> stepSetChanged(WizardStepSetChangedEvent event) {}
-<a class="jxr_linenumber" name="L216" href="#L216">216</a> 
-<a class="jxr_linenumber" name="L217" href="#L217">217</a>       @Override
-<a class="jxr_linenumber" name="L218" href="#L218">218</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> wizardCompleted(WizardCompletedEvent event) {
-<a class="jxr_linenumber" name="L219" href="#L219">219</a>         vocabularies.setPeople(dbm.fetchPeople());
-<a class="jxr_linenumber" name="L220" href="#L220">220</a>         vocabularies.setSpaces(openbis.getUserSpaces(user));
-<a class="jxr_linenumber" name="L221" href="#L221">221</a>         initView(dbm, vocabularies, user);
-<a class="jxr_linenumber" name="L222" href="#L222">222</a>       }
-<a class="jxr_linenumber" name="L223" href="#L223">223</a> 
-<a class="jxr_linenumber" name="L224" href="#L224">224</a>       @Override
-<a class="jxr_linenumber" name="L225" href="#L225">225</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> wizardCancelled(WizardCancelledEvent event) {
-<a class="jxr_linenumber" name="L226" href="#L226">226</a>         vocabularies.setPeople(dbm.fetchPeople());
-<a class="jxr_linenumber" name="L227" href="#L227">227</a>         vocabularies.setSpaces(openbis.getUserSpaces(user));
-<a class="jxr_linenumber" name="L228" href="#L228">228</a>         initView(dbm, vocabularies, user);
-<a class="jxr_linenumber" name="L229" href="#L229">229</a>       }
-<a class="jxr_linenumber" name="L230" href="#L230">230</a> 
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>     };
-<a class="jxr_linenumber" name="L232" href="#L232">232</a>     w.addListener(wl);
-<a class="jxr_linenumber" name="L233" href="#L233">233</a>     VerticalLayout wLayout = <strong class="jxr_keyword">new</strong> VerticalLayout();
-<a class="jxr_linenumber" name="L234" href="#L234">234</a>     wLayout.addComponent(w);
-<a class="jxr_linenumber" name="L235" href="#L235">235</a>     wLayout.setMargin(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L236" href="#L236">236</a> 
-<a class="jxr_linenumber" name="L237" href="#L237">237</a>     tabs.addTab(wLayout, <span class="jxr_string">"Create Project"</span>).setIcon(FontAwesome.FLASK);
-<a class="jxr_linenumber" name="L238" href="#L238">238</a> 
-<a class="jxr_linenumber" name="L239" href="#L239">239</a>     <a name="ExperimentImportController" href="../../../../life/qbic/projectw<a name="ExperimentImportController" href="../../../../life/qbic/projectwizard/control/ExperimentImportController.html#ExperimentImportController">ExperimentImportController</a>portController.html#ExperimentImportController">ExperimentImportController</a> uc = <strong class="jxr_keyword">new</strong> <a name="ExperimentImportController" href="../../../../life/qbic/projectwizard/control/ExperimentImportController.html#ExperimentImportController">ExperimentImportController</a>(creationController, omeroAdapter,
-<a class="jxr_linenumber" name="L240" href="#L240">240</a>         vocabularies, openbis, dbm, attachConfig);
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>     uc.init(user, config.getISAConfigPath());
-<a class="jxr_linenumber" name="L242" href="#L242">242</a>     tabs.addTab(uc.getView(), <span class="jxr_string">"Import Project"</span>).setIcon(FontAwesome.FILE);
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>     <em class="jxr_comment">//// Labeling Type : Q_LABELING_METHOD : Q_LABELING_TYPES</em>
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>     vocabs.setLabelingTypes(openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_LABELING_TYPES"</span>));
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>     <em class="jxr_comment">//// Sample Preparation</em>
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>     vocabs.setSamplePreparations(openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_SAMPLE_PREPARATION"</span>));
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>     vocabs.setDigestionMethods(openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_DIGESTION_METHODS"</span>));
+<a class="jxr_linenumber" name="L167" href="#L167">167</a> 
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>     vocabs.setProteinPurificationMethods(
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>         openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_PROTEIN_PURIFICATION_METHODS"</span>));
+<a class="jxr_linenumber" name="L170" href="#L170">170</a> 
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>     vocabs.setMeasureTypes(openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_SAMPLE_TYPES"</span>));
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>     vocabs.setFractionationTypes(openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_MS_FRACTIONATION_PROTOCOLS"</span>));
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>     vocabs.setEnrichmentTypes(openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_MS_ENRICHMENT_PROTOCOLS"</span>));
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>     vocabs.setMsProtocols(openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_MS_PROTOCOLS"</span>));
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>     vocabs.setLcmsMethods(openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_MS_LCMS_METHODS"</span>));
+<a class="jxr_linenumber" name="L176" href="#L176">176</a> 
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>     vocabs.setMsDissociationMethods(
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_MS_DISSOCIATION_METHODS"</span>));
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>     vocabs.setCultureMedia(openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_CULTURE_MEDIA"</span>));
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>     vocabs.setHarvestingMethods(openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_CELL_HARVESTING_METHODS"</span>));
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>     vocabs.setLysisTypes(openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_CELL_LYSIS_TYPES"</span>));
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>     vocabs.setLCDeviceMap(openbis.getVocabCodesAndLabelsForVocab(<span class="jxr_string">"Q_LC_DEVICES"</span>));
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>     vocabs.setLCDetectionMethods(openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_LC_DETECTION_METHODS"</span>));
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>     vocabs.setMSIonModes(openbis.getVocabCodesForVocab(<span class="jxr_string">"Q_IONIZATION_MODES"</span>));
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>   }
+<a class="jxr_linenumber" name="L186" href="#L186">186</a> 
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> initView(<strong class="jxr_keyword">final</strong> <a name="DBManager" href="../../../../life/qbic/projectwizard/io/DBManager.html#DBManager">DBManager</a> dbm, <strong class="jxr_keyword">final</strong> <a name="Vocabularies" href="../../../../life/qbic/projectwizard/model/Vocabularies.html#Vocabularies">Vocabularies</a> vocabularies, <strong class="jxr_keyword">final</strong> String user) {
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>     tabs.removeAllComponents();
+<a class="jxr_linenumber" name="L189" href="#L189">189</a> 
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>     <a name="IOpenbisCreationController" href="../../../../life/qbic/projectwizard/registration/IOpenbisCreationController.html#IOpenbisCreationController">IOpenbisCreationController</a> creationController = <strong class="jxr_keyword">new</strong> <a name="OpenbisCreationController" href="../../../../life/qbic/projectwizard/registration/OpenbisCreationController.html#OpenbisCreationController">OpenbisCreationController</a>(openbis, user);
+<a class="jxr_linenumber" name="L191" href="#L191">191</a> 
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>     <strong class="jxr_keyword">if</strong> (v3RegistrationAPI) {
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>       <a name="OpenbisV3CreationController" href="../../../../life/qbic/projectwi<a name="OpenbisV3CreationController" href="../../../../life/qbic/projectwizard/registration/OpenbisV3CreationController.html#OpenbisV3CreationController">OpenbisV3CreationController</a>CreationController.html#OpenbisV3CreationController">OpenbisV3CreationController</a> v3c = <strong class="jxr_keyword">new</strong> <a name="OpenbisV3CreationController" href="../../../../life/qbic/projectwizard/registration/OpenbisV3CreationController.html#OpenbisV3CreationController">OpenbisV3CreationController</a>(openbis, user, v3);
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>       creationController = v3c;
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>     }
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>     AttachmentConfig attachConfig =
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         <strong class="jxr_keyword">new</strong> AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>             config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
+<a class="jxr_linenumber" name="L199" href="#L199">199</a> 
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>     BasicOMEROClient omero = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>       <strong class="jxr_keyword">int</strong> omeroPort = Integer.parseInt(config.getOmeroPort());
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>       omero = <strong class="jxr_keyword">new</strong> BasicOMEROClient(config.getOmeroUser(), config.getOmeroPassword(),
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>           config.getOmeroHostname(), omeroPort);
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>     } <strong class="jxr_keyword">catch</strong> (NumberFormatException | NullPointerException e) {
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>       logger.warn(<span class="jxr_string">"Omero port could not be parsed form the configuration file."</span>);
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>     }
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>     <a name="OmeroAdapter" href="../../../../life/qbic/projectwizard/regi<a name="OmeroAdapter" href="../../../../life/qbic/projectwizard/registration/OmeroAdapter.html#OmeroAdapter">OmeroAdapter</a>roAdapter.html#OmeroAdapter">OmeroAdapter</a> omeroAdapter = <strong class="jxr_keyword">new</strong> <a name="OmeroAdapter" href="../../../../life/qbic/projectwizard/registration/OmeroAdapter.html#OmeroAdapter">OmeroAdapter</a>(omero);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a> 
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>     <a name="WizardController" href="../../../../life/qbic/projectwizard/contro<a name="WizardController" href="../../../../life/qbic/projectwizard/control/WizardController.html#WizardController">WizardController</a>er.html#WizardController">WizardController</a> mainController = <strong class="jxr_keyword">new</strong> <a name="WizardController" href="../../../../life/qbic/projectwizard/control/WizardController.html#WizardController">WizardController</a>(openbis, omeroAdapter, v3,
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>         creationController, dbm, vocabularies, attachConfig);
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>     mainController.init(user);
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>     Wizard w = mainController.getWizard();
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>     WizardProgressListener wl = <strong class="jxr_keyword">new</strong> WizardProgressListener() {
+<a class="jxr_linenumber" name="L215" href="#L215">215</a> 
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>       @Override
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> activeStepChanged(WizardStepActivationEvent event) {}
+<a class="jxr_linenumber" name="L218" href="#L218">218</a> 
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>       @Override
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> stepSetChanged(WizardStepSetChangedEvent event) {}
+<a class="jxr_linenumber" name="L221" href="#L221">221</a> 
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>       @Override
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> wizardCompleted(WizardCompletedEvent event) {
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>         vocabularies.setPeople(dbm.fetchPeople());
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>         vocabularies.setSpaces(openbis.getUserSpaces(user));
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>         initView(dbm, vocabularies, user);
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>       }
+<a class="jxr_linenumber" name="L228" href="#L228">228</a> 
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>       @Override
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> wizardCancelled(WizardCancelledEvent event) {
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>         vocabularies.setPeople(dbm.fetchPeople());
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         vocabularies.setSpaces(openbis.getUserSpaces(user));
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>         initView(dbm, vocabularies, user);
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>       }
+<a class="jxr_linenumber" name="L235" href="#L235">235</a> 
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>     };
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>     w.addListener(wl);
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>     VerticalLayout wLayout = <strong class="jxr_keyword">new</strong> VerticalLayout();
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>     wLayout.addComponent(w);
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>     wLayout.setMargin(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L241" href="#L241">241</a> 
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>     tabs.addTab(wLayout, <span class="jxr_string">"Create Project"</span>).setIcon(FontAwesome.FLASK);
 <a class="jxr_linenumber" name="L243" href="#L243">243</a> 
-<a class="jxr_linenumber" name="L244" href="#L244">244</a>     <strong class="jxr_keyword">boolean</strong> overwriteAllowed = isAdmin || canOverwrite();
-<a class="jxr_linenumber" name="L245" href="#L245">245</a>     tabs.addTab(<strong class="jxr_keyword">new</strong> <a name="MetadataUploadView" href="../../../../life/qbic/projectwizard/views/MetadataUploadView.html#MetadataUploadView">MetadataUploadView</a>(openbis, vocabularies, overwriteAllowed, user),
-<a class="jxr_linenumber" name="L246" href="#L246">246</a>         <span class="jxr_string">"Update Metadata"</span>).setIcon(FontAwesome.PENCIL);;
-<a class="jxr_linenumber" name="L247" href="#L247">247</a>     <strong class="jxr_keyword">if</strong> (isAdmin) {
-<a class="jxr_linenumber" name="L248" href="#L248">248</a>       logger.info(<span class="jxr_string">"User is "</span> + user + <span class="jxr_string">" and can see admin panel."</span>);
-<a class="jxr_linenumber" name="L249" href="#L249">249</a>       VerticalLayout adminTab = <strong class="jxr_keyword">new</strong> VerticalLayout();
-<a class="jxr_linenumber" name="L250" href="#L250">250</a>       adminTab.setMargin(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>       adminTab.addComponent(
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>           <strong class="jxr_keyword">new</strong> <a name="AdminView" href="../../../../life/qbic/projectwizard/views/AdminView.html#AdminView">AdminView</a>(openbis, vocabularies, mainController, creationController, user));
-<a class="jxr_linenumber" name="L253" href="#L253">253</a>       tabs.addTab(adminTab, <span class="jxr_string">"Admin Functions"</span>).setIcon(FontAwesome.WRENCH);
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>     }
-<a class="jxr_linenumber" name="L255" href="#L255">255</a>     <strong class="jxr_keyword">if</strong> (overwriteAllowed)
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>       logger.info(<span class="jxr_string">"User can overwrite existing metadata for their project."</span>);
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>   }
-<a class="jxr_linenumber" name="L258" href="#L258">258</a> 
-<a class="jxr_linenumber" name="L259" href="#L259">259</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> canOverwrite() {
-<a class="jxr_linenumber" name="L260" href="#L260">260</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>       User user = PortalUtils.getUser();
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>       <strong class="jxr_keyword">for</strong> (UserGroup grp : user.getUserGroups()) {
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>         String group = grp.getName();
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>         <strong class="jxr_keyword">if</strong> (config.getMetadataWriteGrp().contains(group)) {
-<a class="jxr_linenumber" name="L265" href="#L265">265</a>           logger.info(<span class="jxr_string">"User "</span> + user.getScreenName()
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>               + <span class="jxr_string">" can overwrite metadata because they are part of "</span> + group);
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>           <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>         }
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>       }
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>     } <strong class="jxr_keyword">catch</strong> (Exception e) {
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>       e.printStackTrace();
-<a class="jxr_linenumber" name="L272" href="#L272">272</a>       logger.error(<span class="jxr_string">"Could not fetch user groups. User won't be able to overwrite metadata."</span>);
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>     }
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>     <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>   }
-<a class="jxr_linenumber" name="L276" href="#L276">276</a> 
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getPathToVaadinFolder() {
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>     StringBuilder pathBuilder = <strong class="jxr_keyword">new</strong> StringBuilder();
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>     <strong class="jxr_keyword">if</strong> (PortalUtils.isLiferayPortlet()) {
-<a class="jxr_linenumber" name="L280" href="#L280">280</a>       Properties prop = <strong class="jxr_keyword">new</strong> Properties();
-<a class="jxr_linenumber" name="L281" href="#L281">281</a>       <em class="jxr_comment">// workaround</em>
-<a class="jxr_linenumber" name="L282" href="#L282">282</a>       <a name="GraphPage" href="../../../../life/qbic/portal/<a name="GraphPage" href="../../../../life/qbic/portal/samplegraph/GraphPage.html#GraphPage">GraphPage</a>ph/GraphPage.html#GraphPage">GraphPage</a> p = <strong class="jxr_keyword">new</strong> <a name="GraphPage" href="../../../../life/qbic/portal/samplegraph/GraphPage.html#GraphPage">GraphPage</a>();
-<a class="jxr_linenumber" name="L283" href="#L283">283</a>       InputStream in = p.getClass().getClassLoader()
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>           .getResourceAsStream(<span class="jxr_string">"WEB-INF/liferay-plugin-package.properties"</span>);
-<a class="jxr_linenumber" name="L285" href="#L285">285</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L286" href="#L286">286</a>         prop.load(in);
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>         in.close();
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>       } <strong class="jxr_keyword">catch</strong> (IOException e1) {
-<a class="jxr_linenumber" name="L289" href="#L289">289</a>         <em class="jxr_comment">// TODO Auto-generated catch block</em>
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>         e1.printStackTrace();
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>       }
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>       String portletName = prop.getProperty(<span class="jxr_string">"name"</span>);
-<a class="jxr_linenumber" name="L293" href="#L293">293</a> 
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>       URI location = UI.getCurrent().getPage().getLocation();
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>       <em class="jxr_comment">// http</em>
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>       pathBuilder.append(location.getScheme());
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>       pathBuilder.append(<span class="jxr_string">"://"</span>);
-<a class="jxr_linenumber" name="L298" href="#L298">298</a>       <em class="jxr_comment">// host+port</em>
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>       pathBuilder.append(location.getAuthority());
-<a class="jxr_linenumber" name="L300" href="#L300">300</a> 
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>       String port = (Integer.toString(location.getPort()));
-<a class="jxr_linenumber" name="L302" href="#L302">302</a>       <strong class="jxr_keyword">if</strong> (location.toString().contains(port)) {
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>         pathBuilder.append(<span class="jxr_string">":"</span>);
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>         pathBuilder.append(port);
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>       }
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>       pathBuilder.append(<span class="jxr_string">"/"</span>);
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>       pathBuilder.append(portletName);
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>     }
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>     pathBuilder.append(<span class="jxr_string">"/VAADIN/"</span>);
-<a class="jxr_linenumber" name="L310" href="#L310">310</a>     <strong class="jxr_keyword">return</strong> pathBuilder.toString();
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>   }
-<a class="jxr_linenumber" name="L312" href="#L312">312</a> }
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>     <a name="ExperimentImportController" href="../../../../life/qbic/projectw<a name="ExperimentImportController" href="../../../../life/qbic/projectwizard/control/ExperimentImportController.html#ExperimentImportController">ExperimentImportController</a>portController.html#ExperimentImportController">ExperimentImportController</a> uc = <strong class="jxr_keyword">new</strong> <a name="ExperimentImportController" href="../../../../life/qbic/projectwizard/control/ExperimentImportController.html#ExperimentImportController">ExperimentImportController</a>(creationController, omeroAdapter,
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>         vocabularies, openbis, dbm, attachConfig);
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>     uc.init(user, config.getISAConfigPath());
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>     tabs.addTab(uc.getView(), <span class="jxr_string">"Import Project"</span>).setIcon(FontAwesome.FILE);
+<a class="jxr_linenumber" name="L248" href="#L248">248</a> 
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>     <strong class="jxr_keyword">boolean</strong> overwriteAllowed = isAdmin || canOverwrite();
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>     tabs.addTab(<strong class="jxr_keyword">new</strong> <a name="MetadataUploadView" href="../../../../life/qbic/projectwizard/views/MetadataUploadView.html#MetadataUploadView">MetadataUploadView</a>(openbis, vocabularies, overwriteAllowed, user),
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>         <span class="jxr_string">"Update Metadata"</span>).setIcon(FontAwesome.PENCIL);;
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>     <strong class="jxr_keyword">if</strong> (isAdmin) {
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>       logger.info(<span class="jxr_string">"User is "</span> + user + <span class="jxr_string">" and can see admin panel."</span>);
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>       VerticalLayout adminTab = <strong class="jxr_keyword">new</strong> VerticalLayout();
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>       adminTab.setMargin(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>       adminTab.addComponent(
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>           <strong class="jxr_keyword">new</strong> <a name="AdminView" href="../../../../life/qbic/projectwizard/views/AdminView.html#AdminView">AdminView</a>(openbis, vocabularies, mainController, creationController, user));
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>       tabs.addTab(adminTab, <span class="jxr_string">"Admin Functions"</span>).setIcon(FontAwesome.WRENCH);
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>     }
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>     <strong class="jxr_keyword">if</strong> (overwriteAllowed)
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>       logger.info(<span class="jxr_string">"User can overwrite existing metadata for their project."</span>);
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>   }
+<a class="jxr_linenumber" name="L263" href="#L263">263</a> 
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> canOverwrite() {
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>       User user = PortalUtils.getUser();
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>       <strong class="jxr_keyword">for</strong> (UserGroup grp : user.getUserGroups()) {
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>         String group = grp.getName();
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>         <strong class="jxr_keyword">if</strong> (config.getMetadataWriteGrp().contains(group)) {
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>           logger.info(<span class="jxr_string">"User "</span> + user.getScreenName()
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>               + <span class="jxr_string">" can overwrite metadata because they are part of "</span> + group);
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>           <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         }
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>       }
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>     } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>       e.printStackTrace();
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>       logger.error(<span class="jxr_string">"Could not fetch user groups. User won't be able to overwrite metadata."</span>);
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>     }
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>     <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>   }
+<a class="jxr_linenumber" name="L281" href="#L281">281</a> 
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getPathToVaadinFolder() {
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>     StringBuilder pathBuilder = <strong class="jxr_keyword">new</strong> StringBuilder();
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>     <strong class="jxr_keyword">if</strong> (PortalUtils.isLiferayPortlet()) {
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>       Properties prop = <strong class="jxr_keyword">new</strong> Properties();
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>       <em class="jxr_comment">// workaround</em>
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>       <a name="GraphPage" href="../../../../life/qbic/portal/<a name="GraphPage" href="../../../../life/qbic/portal/samplegraph/GraphPage.html#GraphPage">GraphPage</a>ph/GraphPage.html#GraphPage">GraphPage</a> p = <strong class="jxr_keyword">new</strong> <a name="GraphPage" href="../../../../life/qbic/portal/samplegraph/GraphPage.html#GraphPage">GraphPage</a>();
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>       InputStream in = p.getClass().getClassLoader()
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>           .getResourceAsStream(<span class="jxr_string">"WEB-INF/liferay-plugin-package.properties"</span>);
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>         prop.load(in);
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>         in.close();
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>       } <strong class="jxr_keyword">catch</strong> (IOException e1) {
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>         <em class="jxr_comment">// TODO Auto-generated catch block</em>
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>         e1.printStackTrace();
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>       }
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>       String portletName = prop.getProperty(<span class="jxr_string">"name"</span>);
+<a class="jxr_linenumber" name="L298" href="#L298">298</a> 
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>       URI location = UI.getCurrent().getPage().getLocation();
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>       <em class="jxr_comment">// http</em>
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>       pathBuilder.append(location.getScheme());
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>       pathBuilder.append(<span class="jxr_string">"://"</span>);
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>       <em class="jxr_comment">// host+port</em>
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>       pathBuilder.append(location.getAuthority());
+<a class="jxr_linenumber" name="L305" href="#L305">305</a> 
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>       String port = (Integer.toString(location.getPort()));
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>       <strong class="jxr_keyword">if</strong> (location.toString().contains(port)) {
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         pathBuilder.append(<span class="jxr_string">":"</span>);
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>         pathBuilder.append(port);
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>       }
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>       pathBuilder.append(<span class="jxr_string">"/"</span>);
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>       pathBuilder.append(portletName);
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>     }
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>     pathBuilder.append(<span class="jxr_string">"/VAADIN/"</span>);
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>     <strong class="jxr_keyword">return</strong> pathBuilder.toString();
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>   }
+<a class="jxr_linenumber" name="L317" href="#L317">317</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2020. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2021. All rights reserved.</div>
 </body>
 </html>

@@ -979,7 +979,7 @@
 <a class="jxr_linenumber" name="L971" href="#L971">971</a>     String lcms = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L972" href="#L972">972</a>     String chrom = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L973" href="#L973">973</a>     <strong class="jxr_keyword">if</strong> (deviceBox != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L974" href="#L974">974</a>       device = vocabs.getDeviceMap().get(deviceBox.toString());
+<a class="jxr_linenumber" name="L974" href="#L974">974</a>       device = vocabs.getMSDeviceMap().get(deviceBox.toString());
 <a class="jxr_linenumber" name="L975" href="#L975">975</a>     }
 <a class="jxr_linenumber" name="L976" href="#L976">976</a>     <strong class="jxr_keyword">if</strong> (lcmsBox != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L977" href="#L977">977</a>       lcms = lcmsBox.toString();
@@ -1029,9 +1029,9 @@
 <a class="jxr_linenumber" name="L1021" href="#L1021">1021</a>     devices = <strong class="jxr_keyword">new</strong> ArrayList&lt;String&gt;();
 <a class="jxr_linenumber" name="L1022" href="#L1022">1022</a>     lcmsMethods = <strong class="jxr_keyword">new</strong> ArrayList&lt;String&gt;();
 <a class="jxr_linenumber" name="L1023" href="#L1023">1023</a>     <strong class="jxr_keyword">if</strong> (prefix.isEmpty()) {
-<a class="jxr_linenumber" name="L1024" href="#L1024">1024</a>       devices.addAll(vocabs.getDeviceMap().keySet());
+<a class="jxr_linenumber" name="L1024" href="#L1024">1024</a>       devices.addAll(vocabs.getMSDeviceMap().keySet());
 <a class="jxr_linenumber" name="L1025" href="#L1025">1025</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L1026" href="#L1026">1026</a>       <strong class="jxr_keyword">for</strong> (String device : vocabs.getDeviceMap().keySet()) {
+<a class="jxr_linenumber" name="L1026" href="#L1026">1026</a>       <strong class="jxr_keyword">for</strong> (String device : vocabs.getMSDeviceMap().keySet()) {
 <a class="jxr_linenumber" name="L1027" href="#L1027">1027</a>         <strong class="jxr_keyword">if</strong> (device.contains(<span class="jxr_string">"("</span> + prefix + <span class="jxr_string">")"</span>) || dontFilter.contains(device))
 <a class="jxr_linenumber" name="L1028" href="#L1028">1028</a>           devices.add(device);
 <a class="jxr_linenumber" name="L1029" href="#L1029">1029</a>       }
@@ -1049,6 +1049,6 @@
 <a class="jxr_linenumber" name="L1041" href="#L1041">1041</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2020. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2021. All rights reserved.</div>
 </body>
 </html>
