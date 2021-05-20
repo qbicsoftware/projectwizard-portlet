@@ -1,11 +1,11 @@
-life.qbic.projectwizard.registration
-life.qbic.projectwizard.control
-life.qbic.projectwizard.model
 life.qbic.projectwizard.uicomponents
-life.qbic.projectwizard.steps
-life.qbic.projectwizard.processes
 life.qbic.projectwizard.views
 life.qbic.projectwizard.io
+life.qbic.projectwizard.registration
+life.qbic.projectwizard.model
+life.qbic.projectwizard.processes
+life.qbic.projectwizard.control
 life.qbic.projectwizard.adminviews
-life.qbic.portal.portlet
+life.qbic.projectwizard.steps
 life.qbic.portal.samplegraph
+life.qbic.portal.portlet

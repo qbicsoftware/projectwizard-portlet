@@ -46,20 +46,6 @@ under the License.
           <tbody>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MHCTyping.java">life/qbic/projectwizard/model/MHCTyping.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  1
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.QuantificationMethodVocabularyParser.java">life/qbic/projectwizard/io/QuantificationMethodVocabularyParser.java</a>
                 </td>
                 <td>
@@ -67,6 +53,20 @@ under the License.
                 </td>
                 <td>
                   5
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MHCTyping.java">life/qbic/projectwizard/model/MHCTyping.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  1
                 </td>
                 <td>
                   0
@@ -130,20 +130,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.AnalyteStep.java">life/qbic/projectwizard/steps/AnalyteStep.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  46
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.DBManager.java">life/qbic/projectwizard/io/DBManager.java</a>
                 </td>
                 <td>
@@ -151,6 +137,20 @@ under the License.
                 </td>
                 <td>
                   75
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.AnalyteStep.java">life/qbic/projectwizard/steps/AnalyteStep.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  46
                 </td>
                 <td>
                   0
@@ -200,20 +200,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.Vocabularies.java">life/qbic/projectwizard/model/Vocabularies.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  15
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.LigandExtractPanel.java">life/qbic/projectwizard/uicomponents/LigandExtractPanel.java</a>
                 </td>
                 <td>
@@ -221,6 +207,20 @@ under the License.
                 </td>
                 <td>
                   40
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.Vocabularies.java">life/qbic/projectwizard/model/Vocabularies.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  15
                 </td>
                 <td>
                   0
@@ -606,20 +606,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MHCLigandExtractionProtocol.java">life/qbic/projectwizard/model/MHCLigandExtractionProtocol.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  12
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.UploadComponent.java">life/qbic/projectwizard/uicomponents/UploadComponent.java</a>
                 </td>
                 <td>
@@ -627,6 +613,20 @@ under the License.
                 </td>
                 <td>
                   25
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MHCLigandExtractionProtocol.java">life/qbic/projectwizard/model/MHCLigandExtractionProtocol.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  12
                 </td>
                 <td>
                   0
@@ -1110,20 +1110,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OpenbisV3ReadController.java">life/qbic/projectwizard/registration/OpenbisV3ReadController.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  15
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.TechChooser.java">life/qbic/projectwizard/uicomponents/TechChooser.java</a>
                 </td>
                 <td>
@@ -1145,6 +1131,20 @@ under the License.
                 </td>
                 <td>
                   18
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OpenbisV3ReadController.java">life/qbic/projectwizard/registration/OpenbisV3ReadController.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  15
                 </td>
                 <td>
                   0
@@ -1208,20 +1208,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.ExtractionStep.java">life/qbic/projectwizard/steps/ExtractionStep.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  49
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.AdminView.java">life/qbic/projectwizard/views/AdminView.java</a>
                 </td>
                 <td>
@@ -1229,6 +1215,20 @@ under the License.
                 </td>
                 <td>
                   31
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.ExtractionStep.java">life/qbic/projectwizard/steps/ExtractionStep.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  49
                 </td>
                 <td>
                   0
@@ -1390,20 +1390,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.Functions.java">life/qbic/projectwizard/control/Functions.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  8
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MSExperimentModel.java">life/qbic/projectwizard/model/MSExperimentModel.java</a>
                 </td>
                 <td>
@@ -1411,6 +1397,20 @@ under the License.
                 </td>
                 <td>
                   9
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.Functions.java">life/qbic/projectwizard/control/Functions.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  8
                 </td>
                 <td>
                   0
