@@ -22,6 +22,7 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Deprecated**
 
+
 1.10.1 (2021-02-02)
 -------------------
 
@@ -36,6 +37,7 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 **Dependencies**
 
 **Deprecated**
+
 
 1.10.0 (2021-02-02)
 -------------------
