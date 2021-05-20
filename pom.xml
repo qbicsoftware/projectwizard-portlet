@@ -9,29 +9,15 @@
 	<url>http://github.com/qbicsoftware/projectwizard-portlet</url>
 	<description>Creates hierarchical experiments using factorial design.</description>
 	<packaging>war</packaging>
-	<groupId>life.qbic</groupId>
+	<parent>
+		<groupId>life.qbic</groupId>
+		<artifactId>portlet-parent-pom</artifactId>
+		<version>3.1.4</version>
+	</parent>
 	<properties>
 		<vaadin.version>7.7.17</vaadin.version>
 		<vaadin.plugin.version>7.7.17</vaadin.plugin.version>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
-	<distributionManagement>
-		<repository>
-			<uniqueVersion>true</uniqueVersion>
-			<id>nexus-releases</id>
-			<name>QBiC Releases</name>
-			<url>https://qbic-repo.qbic.uni-tuebingen.de/repository/maven-releases</url>
-		</repository>
-		<snapshotRepository>
-			<uniqueVersion>false</uniqueVersion>
-			<id>nexus-snapshots</id>
-			<name>QBiC Snapshots</name>
-			<url>https://qbic-repo.qbic.uni-tuebingen.de/repository/maven-snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
 	<repositories>
 		<repository>
 			<releases>
@@ -94,7 +80,6 @@
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
-			<version>2.0.2</version>
 		</dependency>
 		<!-- needed since isa-creator-lib uses old version leading to portlet compilation 
 			error -->
@@ -170,18 +155,4 @@
 			</exclusions>
 		</dependency>
 	</dependencies>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-site-plugin</artifactId>
-				<version>3.7.1</version>
-			</plugin>
-		</plugins>
-	</build>
 </project> 
