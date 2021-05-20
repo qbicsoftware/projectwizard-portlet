@@ -16,13 +16,22 @@
 package life.qbic.projectwizard.views;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.isatools.isacreator.model.Study;
+import org.vaadin.hene.flexibleoptiongroup.FlexibleOptionGroup;
+import org.vaadin.hene.flexibleoptiongroup.FlexibleOptionGroupItemComponent;
+import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.FileResource;
@@ -34,7 +43,6 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
-import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload;
@@ -64,8 +72,8 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
    */
   private static final long serialVersionUID = 5358966181721590658L;
   private Button register;
-  private OptionGroup importOptions;
-  private VerticalLayout infos;
+  private FlexibleOptionGroup importOptions;
+  private Map<String, Component> optionToInfoComponent;
   private VerticalLayout isaBox;
   private Upload upload;
   private MultiUploadComponent multiUpload;
@@ -86,10 +94,30 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
 
     this.questionaire = new MissingInfoComponent();
 
+    optionToInfoComponent = new HashMap<>();
+    importOptions = new FlexibleOptionGroup();
+    IndexedContainer cont = new IndexedContainer();
+    cont.addContainerProperty("caption", String.class, null);
+    List<Pair<String, ExperimentalDesignType>> designs = new ArrayList<>();
+    designs.add(new ImmutablePair<>("openBIS-based Format", ExperimentalDesignType.QBIC));
+    designs.add(new ImmutablePair<>("Standard QBiC Format", ExperimentalDesignType.Standard));
+    designs.add(new ImmutablePair<>("ISA-Tab", ExperimentalDesignType.ISA));
+    designs
+        .add(new ImmutablePair<>("MHC Ligandomics", ExperimentalDesignType.MHC_Ligands_Finished));
+    designs.add(new ImmutablePair<>("Mass Spec Proteomics",
+        ExperimentalDesignType.Proteomics_MassSpectrometry));
+    designs.add(new ImmutablePair<>("Metabolomics", ExperimentalDesignType.Metabolomics_LCMS));
 
-    importOptions = new OptionGroup("Import Format");
-    importOptions.addItems("QBiC", "Standard", "ISA-Tab (prototype)", "MHC Ligandomics",
-        "Mass Spec Proteomics");
+    importOptions.setItemCaptionPropertyId("caption");
+    for (Pair<String, ExperimentalDesignType> design : designs) {
+      String caption = design.getLeft();
+      Item item = cont.addItem(caption);
+      item.getItemProperty("caption").setValue(caption);
+      optionToInfoComponent.put(caption,
+          Styles.getPopupViewContaining(createTSVDownloadComponent(design.getRight())));
+    }
+
+    importOptions.setContainerDataSource(cont);
 
     importOptions.addValueChangeListener(new ValueChangeListener() {
       @Override
@@ -97,23 +125,10 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
         for (Object cl : preview.getListeners(ClickEvent.class))
           preview.removeClickListener((ClickListener) cl);
         Object value = importOptions.getValue();
-        enableMultiUpload("ISA-Tab (prototype)".equals(value));
-        preview.setVisible("Standard".equals(value));
+        enableMultiUpload("ISA-Tab".equals(value));
+        preview.setVisible("Standard QBiC Format".equals(value));
       }
     });
-    infos = new VerticalLayout();
-    infos.setCaption("Format Information");
-
-    infos.addComponent(
-        Styles.getPopupViewContaining(createTSVDownloadComponent(ExperimentalDesignType.QBIC)));
-    infos.addComponent(
-        Styles.getPopupViewContaining(createTSVDownloadComponent(ExperimentalDesignType.Standard)));
-    infos.addComponent(
-        Styles.getPopupViewContaining(createTSVDownloadComponent(ExperimentalDesignType.ISA)));
-    infos.addComponent(Styles.getPopupViewContaining(
-        createTSVDownloadComponent(ExperimentalDesignType.MHC_Ligands_Finished)));
-    infos.addComponent(Styles.getPopupViewContaining(
-        createTSVDownloadComponent(ExperimentalDesignType.Proteomics_MassSpectrometry)));
   }
 
   protected void enableMultiUpload(boolean enable) {
@@ -164,8 +179,25 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
 
   public void initView(Upload upload, MultiUploadComponent multiUpload) {
     HorizontalLayout optionsInfo = new HorizontalLayout();
-    optionsInfo.addComponent(importOptions);
-    optionsInfo.addComponent(infos);
+    VerticalLayout optionGroupLayout = new VerticalLayout();
+    Label header = new Label("Import Format");
+    
+    optionGroupLayout.addComponent(header);
+    for (Iterator<FlexibleOptionGroupItemComponent> iter =
+        importOptions.getItemComponentIterator(); iter.hasNext();) {
+      FlexibleOptionGroupItemComponent comp = iter.next();
+
+      // Add FlexibleOptionGroupItemComponents instead
+      optionGroupLayout.addComponent(comp);
+
+      HorizontalLayout option = new HorizontalLayout();
+      option.setSpacing(true);
+      option.addComponent(comp);
+      option.addComponent(new Label(comp.getCaption()));
+      option.addComponent(optionToInfoComponent.get(comp.getCaption()));
+      optionGroupLayout.addComponent(option);
+    }
+    addComponent(optionGroupLayout);
 
     // design type selection and info
     addComponent(optionsInfo);
@@ -226,7 +258,6 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
       v.addComponent(l);
       Button button = new Button("Download Example");
       v.addComponent(button);
-
       final File example = new File(
           getClass().getClassLoader().getResource("examples/" + type.getFileName()).getFile());
       FileDownloader tsvDL = new FileDownloader(new FileResource(example));
@@ -268,6 +299,7 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
       switch (getSelectedDesignOption()) {
         case Standard:
         case Proteomics_MassSpectrometry:
+        case Metabolomics_LCMS:
         case MHC_Ligands_Finished:
           downloadTSV.setEnabled(true);
           break;
@@ -305,9 +337,9 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
   public ExperimentalDesignType getSelectedDesignOption() {
     if (importOptions.getValue() != null) {
       switch (importOptions.getValue().toString()) {
-        case "QBiC":
+        case "openBIS-based Format":
           return ExperimentalDesignType.QBIC;
-        case "Standard":
+        case "Standard QBiC Format":
           return ExperimentalDesignType.Standard;
         case "MHC Ligandomics (preparation)":
           return ExperimentalDesignType.MHC_Ligands_Plan;
@@ -315,6 +347,8 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
           return ExperimentalDesignType.MHC_Ligands_Finished;
         case "Mass Spec Proteomics":
           return ExperimentalDesignType.Proteomics_MassSpectrometry;
+        case "Metabolomics":
+          return ExperimentalDesignType.Metabolomics_LCMS;
         case "ISA-Tab (prototype)":
           return ExperimentalDesignType.ISA;
         default:

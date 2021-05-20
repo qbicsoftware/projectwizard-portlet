@@ -98,7 +98,7 @@ public class GeneralMSInfoPanel extends VerticalLayout {
     Map<String, Object> res = new HashMap<String, Object>();
 
     if (deviceBox.getValue() != null)
-      res.put("Q_MS_DEVICE", vocabs.getDeviceMap().get(deviceBox.getValue()));
+      res.put("Q_MS_DEVICE", vocabs.getMSDeviceMap().get(deviceBox.getValue()));
     if (lcmsMethodBox.getValue() != null)
       res.put("Q_MS_LCMS_METHOD", lcmsMethodBox.getValue());
     if (chromType.getValue() != null)
@@ -141,9 +141,9 @@ public class GeneralMSInfoPanel extends VerticalLayout {
     List<String> devices = new ArrayList<String>();
     List<String> lcmsMethods = new ArrayList<String>();
     if (prefix.isEmpty()) {
-      devices.addAll(vocabs.getDeviceMap().keySet());
+      devices.addAll(vocabs.getMSDeviceMap().keySet());
     } else {
-      for (String device : vocabs.getDeviceMap().keySet()) {
+      for (String device : vocabs.getMSDeviceMap().keySet()) {
         if (device.contains("(" + prefix + ")") || dontFilter.contains(device))
           devices.add(device);
       }

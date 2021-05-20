@@ -34,8 +34,6 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import life.qbic.datamodel.persons.Person;
-
 public class DBManager {
   private DBConfig config;
 
@@ -69,39 +67,6 @@ public class DBManager {
       e.printStackTrace();
     }
     return conn;
-  }
-
-  public Person getPersonForProject(String projectIdentifier, String role) {
-    String sql =
-        "SELECT * FROM persons LEFT JOIN projects_persons ON persons.id = projects_persons.person_id "
-            + "LEFT JOIN projects ON projects_persons.project_id = projects.id WHERE "
-            + "projects.openbis_project_identifier = ? AND projects_persons.project_role = ?";
-    Person res = null;
-
-    Connection conn = login();
-    try (PreparedStatement statement = conn.prepareStatement(sql)) {
-      statement.setString(1, projectIdentifier);
-      statement.setString(2, role);
-
-      ResultSet rs = statement.executeQuery();
-
-      while (rs.next()) {
-        String zdvID = rs.getString("username");
-        String first = rs.getString("first_name");
-        String last = rs.getString("family_name");
-        String email = rs.getString("email");
-        String tel = rs.getString("phone");
-        int instituteID = -1;// TODO fetch correct id
-        res = new Person(zdvID, first, last, email, tel, instituteID);
-      }
-    } catch (SQLException e) {
-      e.printStackTrace();
-      logout(conn);
-      // LOGGER.debug("Project not associated with Investigator. PI will be set to 'Unknown'");
-    }
-
-    logout(conn);
-    return res;
   }
 
   public String getProjectName(String projectIdentifier) {
@@ -173,7 +138,7 @@ public class DBManager {
     return exists;
   }
 
-  public boolean hasPersonRoleInProject(int personID, int projectID, String role) {
+  private boolean hasPersonRoleInProject(int personID, int projectID, String role) {
     logger.info("Checking if person already has this role in the project.");
     String sql =
         "SELECT * from projects_persons WHERE person_id = ? AND project_id = ? and project_role = ?";
@@ -224,7 +189,7 @@ public class DBManager {
    * 
    * @return
    */
-  public Map<String, Integer> getPersonsWithIDs() {
+  private Map<String, Integer> getPersonsWithIDs() {
     String sql = "SELECT id, first_name, family_name FROM persons WHERE active = 1";
     Map<String, Integer> res = new HashMap<String, Integer>();
     Connection conn = login();
@@ -393,34 +358,6 @@ public class DBManager {
       map.put("No Connection", -1);
     }
     return map;
-  }
-
-  public void tryAddPersonToProjectByName(int projectID, String person, String role) {
-    String sql = "SELECT id FROM persons WHERE first_name = ? AND family_name = ?";
-    int personID = -1;
-    if (person == null || person.isEmpty())
-      return;
-    String[] splt = person.split(" ");
-    if (splt.length != 2)
-      return;
-    String first = splt[0];
-    String last = splt[1];
-    Connection conn = login();
-    try (PreparedStatement statement = conn.prepareStatement(sql)) {
-      statement.setString(1, first);
-      statement.setString(2, last);
-      ResultSet rs = statement.executeQuery();
-      while (rs.next()) {
-        personID = rs.getInt("id");
-      }
-      statement.close();
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
-    logout(conn);
-    if (personID > -1) {
-      addPersonToProject(projectID, personID, role);
-    }
   }
 
   public Set<String> getFullTissueSet() {

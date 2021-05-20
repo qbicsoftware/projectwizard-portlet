@@ -971,7 +971,7 @@ public class MSAnalyteStep implements WizardStep {
     String lcms = null;
     String chrom = null;
     if (deviceBox != null) {
-      device = vocabs.getDeviceMap().get(deviceBox.toString());
+      device = vocabs.getMSDeviceMap().get(deviceBox.toString());
     }
     if (lcmsBox != null) {
       lcms = lcmsBox.toString();
@@ -1021,9 +1021,9 @@ public class MSAnalyteStep implements WizardStep {
     devices = new ArrayList<String>();
     lcmsMethods = new ArrayList<String>();
     if (prefix.isEmpty()) {
-      devices.addAll(vocabs.getDeviceMap().keySet());
+      devices.addAll(vocabs.getMSDeviceMap().keySet());
     } else {
-      for (String device : vocabs.getDeviceMap().keySet()) {
+      for (String device : vocabs.getMSDeviceMap().keySet()) {
         if (device.contains("(" + prefix + ")") || dontFilter.contains(device))
           devices.add(device);
       }
