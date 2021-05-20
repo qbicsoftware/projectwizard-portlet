@@ -3,7 +3,7 @@ full_name: Andreas Friedrich
 email: andreas.friedrich@qbic.uni-tuebingen.de
 project_name: ProjectWizard Portlet
 project_short_description: Creates hierarchical experiments using factorial design.
-version: 1.10.0-SNAPSHOT
+version: 1.11.0-SNAPSHOT
 domain: portlet
 language: groovy
 project_slug: ProjectWizard_Portlet

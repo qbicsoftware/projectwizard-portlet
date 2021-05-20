@@ -29,7 +29,7 @@ public class Vocabularies {
 
   private Map<String, String> taxMap;
   private Map<String, String> tissueMap;
-  private Map<String, String> deviceMap;
+  private Map<String, String> msDeviceMap;
   private Map<String, String> cellLinesMap;
   private Map<String, String> proteinPurificationMethods;
   private List<String> measureTypes;
@@ -44,42 +44,21 @@ public class Vocabularies {
   private List<String> fractionationTypes;
   private List<String> enrichmentTypes;
 
+  private Map<String, String> cultureMedia;
+  private List<String> harvestingMethods;
+  private List<String> lysisTypes;
+  private Map<String, String> lcDeviceMap;
+  private List<String> lcDetectionMethods;
+  private List<String> msIonModes;
+
   private List<String> labelingTypes;
   private Map<String, String> samplePreparations;
   private Map<String, String> digestionMethods;
   private List<LabelingMethod> labelingMethods;
   private List<String> isotopeLabels;
+  private Map<String, String> msDissociationMethods;
 
-  public Vocabularies(Map<String, String> taxMap, Map<String, String> tissueMap,
-      Map<String, String> cellLinesMap, List<String> measureTypes, List<String> spaces,
-      Map<String, Integer> piMap, List<String> experimentTypes, Map<String, String> enzymeMap,
-      Map<String, String> antibodiesWithDescriptions, Map<String, String> deviceMap,
-      List<String> msProtocols, List<String> lcmsMethods, Map<String, String> chromTypes2,
-      List<String> fractionationTypes, List<String> enrichmentTypes,
-      Map<String, String> purificationMethods, Map<String, String> samplePreparations,
-      List<String> labelingTypes, Map<String, String> digestionMethods) {
-    this.taxMap = taxMap;
-    this.tissueMap = tissueMap;
-    this.cellLinesMap = cellLinesMap;
-    this.deviceMap = deviceMap;
-    this.measureTypes = measureTypes;
-    this.spaces = spaces;
-    this.investigators = piMap;
-    this.experimentTypes = experimentTypes;
-    this.antibodies = antibodiesWithDescriptions;
-    this.msProtocols = msProtocols;
-    this.lcmsMethods = lcmsMethods;
-    this.chromTypes = chromTypes2;
-    this.fractionationTypes = fractionationTypes;
-    this.enrichmentTypes = enrichmentTypes;
-    this.proteinPurificationMethods = purificationMethods;
-    this.enzymes = new ArrayList<String>();
-    enzymes.addAll(enzymeMap.keySet());
-
-    this.labelingTypes = labelingTypes;
-    this.samplePreparations = samplePreparations;
-    this.digestionMethods = digestionMethods;
-
+  public Vocabularies() {
     QuantificationMethodVocabularyParser p = new QuantificationMethodVocabularyParser();
     this.labelingMethods =
         p.parseQuantificationMethods(new File(ProjectWizardUI.MSLabelingMethods));
@@ -90,6 +69,115 @@ public class Vocabularies {
     Collections.sort(labels);
     labels.add("Mix");
     this.isotopeLabels = labels;
+  }
+  
+  public void setTaxMap(Map<String, String> taxMap) {
+    this.taxMap = taxMap;
+  }
+
+  public void setTissueMap(Map<String, String> tissueMap) {
+    this.tissueMap = tissueMap;
+  }
+
+  public void setMSDeviceMap(Map<String, String> deviceMap) {
+    this.msDeviceMap = deviceMap;
+  }
+
+  public void setCellLinesMap(Map<String, String> cellLinesMap) {
+    this.cellLinesMap = cellLinesMap;
+  }
+
+  public void setProteinPurificationMethods(Map<String, String> proteinPurificationMethods) {
+    this.proteinPurificationMethods = proteinPurificationMethods;
+  }
+
+  public void setMeasureTypes(List<String> measureTypes) {
+    this.measureTypes = measureTypes;
+  }
+
+  public void setInvestigators(Map<String, Integer> investigators) {
+    this.investigators = investigators;
+  }
+
+  public void setExperimentTypes(List<String> experimentTypes) {
+    this.experimentTypes = experimentTypes;
+  }
+
+  public void setEnzymes(Map<String, String> enzymeMap) {
+    this.enzymes = new ArrayList<String>();
+    enzymes.addAll(enzymeMap.keySet());
+  }
+
+  public void setAntibodies(Map<String, String> antibodies) {
+    this.antibodies = antibodies;
+  }
+
+  public void setMsProtocols(List<String> msProtocols) {
+    this.msProtocols = msProtocols;
+  }
+
+  public void setMsDissociationMethods(Map<String, String> dissociationMethodsMap) {
+    this.msDissociationMethods = dissociationMethodsMap;
+  }
+
+  public void setLcmsMethods(List<String> lcmsMethods) {
+    this.lcmsMethods = lcmsMethods;
+  }
+
+  public void setChromTypes(Map<String, String> chromTypes) {
+    this.chromTypes = chromTypes;
+  }
+
+  public void setFractionationTypes(List<String> fractionationTypes) {
+    this.fractionationTypes = fractionationTypes;
+  }
+
+  public void setEnrichmentTypes(List<String> enrichmentTypes) {
+    this.enrichmentTypes = enrichmentTypes;
+  }
+
+  public void setCultureMedia(Map<String, String> cultureMedia) {
+    this.cultureMedia = cultureMedia;
+  }
+
+  public void setHarvestingMethods(List<String> harvestingMethods) {
+    this.harvestingMethods = harvestingMethods;
+  }
+
+  public void setLysisTypes(List<String> lysisTypes) {
+    this.lysisTypes = lysisTypes;
+  }
+
+  public void setLCDeviceMap(Map<String, String> lcDeviceMap) {
+    this.lcDeviceMap = lcDeviceMap;
+  }
+
+  public void setLCDetectionMethods(List<String> lcDetectionMethods) {
+    this.lcDetectionMethods = lcDetectionMethods;
+  }
+
+  public void setMSIonModes(List<String> msIonModes) {
+    this.msIonModes = msIonModes;
+  }
+
+  public void setLabelingTypes(List<String> labelingTypes) {
+    this.labelingTypes = labelingTypes;
+  }
+
+  public void setSamplePreparations(Map<String, String> samplePreparations) {
+    this.samplePreparations = samplePreparations;
+  }
+
+  public void setDigestionMethods(Map<String, String> digestionMethods) {
+    this.digestionMethods = digestionMethods;
+  }
+
+  public void setLabelingMethods(List<LabelingMethod> labelingMethods) {
+    this.labelingMethods = labelingMethods;
+  }
+
+  public void setIsotopeLabels(List<String> isotopeLabels) {
+    this.isotopeLabels = isotopeLabels;
   }
 
   public List<String> getLabelingTypes() {
@@ -124,8 +212,8 @@ public class Vocabularies {
     return tissueMap;
   }
 
-  public Map<String, String> getDeviceMap() {
-    return deviceMap;
+  public Map<String, String> getMSDeviceMap() {
+    return msDeviceMap;
   }
 
   public List<String> getAnalyteTypes() {
@@ -182,6 +270,34 @@ public class Vocabularies {
 
   public List<LabelingMethod> getLabelingMethods() {
     return labelingMethods;
+  }
+
+  public Map<String, String> getCultureMedia() {
+    return cultureMedia;
+  }
+
+  public List<String> getHarvestingMethods() {
+    return harvestingMethods;
+  }
+
+  public List<String> getLysisTypes() {
+    return lysisTypes;
+  }
+
+  public Map<String, String> getLCDeviceMap() {
+    return lcDeviceMap;
+  }
+
+  public List<String> getLCDetectionMethods() {
+    return lcDetectionMethods;
+  }
+
+  public List<String> getMSIonModes() {
+    return msIonModes;
+  }
+
+  public Map<String, String> getMSDissociationMethods() {
+    return msDissociationMethods;
   }
 
 }
