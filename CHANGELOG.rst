@@ -5,6 +5,7 @@ Changelog
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 1.11.0-SNAPSHOT (2021-05-19)
+-------------------
 
 **Added**
 
