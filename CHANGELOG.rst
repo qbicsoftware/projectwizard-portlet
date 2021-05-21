@@ -4,8 +4,20 @@ Changelog
 
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
-1.11.0-SNAPSHOT (2021-05-20)
+1.12.0-SNAPSHOT (2021-05-20)
 ----------------------------
+
+**Added**
+
+**Fixed**
+
+**Dependencies**
+
+**Deprecated**
+
+
+1.11.0 (2021-05-20)
+-------------------
 
 **Added**
 
@@ -22,6 +34,7 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Deprecated**
 
+
 1.10.1 (2021-02-02)
 -------------------
 
@@ -36,6 +49,7 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 **Dependencies**
 
 **Deprecated**
+
 
 1.10.0 (2021-02-02)
 -------------------
