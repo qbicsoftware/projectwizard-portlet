@@ -190,7 +190,7 @@ public class DBManager {
    * @return
    */
   private Map<String, Integer> getPersonsWithIDs() {
-    String sql = "SELECT id, first_name, family_name FROM persons WHERE active = 1";
+    String sql = "SELECT id, first_name, last_name FROM person WHERE active = 1";
     Map<String, Integer> res = new HashMap<String, Integer>();
     Connection conn = login();
     try (PreparedStatement statement = conn.prepareStatement(sql)) {
