@@ -9,13 +9,11 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Added**
 
-* Uses new database structure for persons and affiliations
+* Uses new database structure for persons: table "persons" is replaced by table "person"
 
 **Fixed**
 
 **Dependencies**
-
-* New database structure using "person" instead of "persons" table
 
 **Deprecated**
 
