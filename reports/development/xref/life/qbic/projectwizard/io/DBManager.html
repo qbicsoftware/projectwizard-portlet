@@ -198,7 +198,7 @@
 <a class="jxr_linenumber" name="L190" href="#L190">190</a> <em class="jxr_javadoccomment">   * @return</em>
 <a class="jxr_linenumber" name="L191" href="#L191">191</a> <em class="jxr_javadoccomment">   */</em>
 <a class="jxr_linenumber" name="L192" href="#L192">192</a>   <strong class="jxr_keyword">private</strong> Map&lt;String, Integer&gt; getPersonsWithIDs() {
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>     String sql = <span class="jxr_string">"SELECT id, first_name, family_name FROM persons WHERE active = 1"</span>;
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>     String sql = <span class="jxr_string">"SELECT id, first_name, last_name FROM person WHERE active = 1"</span>;
 <a class="jxr_linenumber" name="L194" href="#L194">194</a>     Map&lt;String, Integer&gt; res = <strong class="jxr_keyword">new</strong> HashMap&lt;String, Integer&gt;();
 <a class="jxr_linenumber" name="L195" href="#L195">195</a>     Connection conn = login();
 <a class="jxr_linenumber" name="L196" href="#L196">196</a>     <strong class="jxr_keyword">try</strong> (PreparedStatement statement = conn.prepareStatement(sql)) {
