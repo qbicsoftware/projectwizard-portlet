@@ -9,7 +9,11 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Added**
 
+* Unit tests for adding barcodes to different import formats
+
 **Fixed**
+
+* Barcodes are once again correctly added to the proteomics import format
 
 **Dependencies**
 
