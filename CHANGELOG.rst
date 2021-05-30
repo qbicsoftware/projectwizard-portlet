@@ -13,6 +13,10 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Fixed**
 
+**Dependencies**
+
+**Deprecated**
+
 
 1.11.1 (2021-05-27)
 -------------------
