@@ -1,4 +1,4 @@
-package life.qbic.portlet;
+package life.qbic.portal.portlet;
 
 import org.junit.Test;
 
