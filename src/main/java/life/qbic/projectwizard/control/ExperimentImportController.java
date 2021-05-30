@@ -165,6 +165,10 @@ public class ExperimentImportController implements IRegistrationController {
     this.attachMover = new AttachmentMover(ProjectWizardUI.tmpFolder, attachConfig);
   }
 
+  public ExperimentImportController() {
+    logger.warn("Unused constructor called. Should only be done in test environment.");
+  }
+
   public void initISAHandler(ISAReader isaParser, File folder) {
     ComboBox isaStudyBox = view.getISAStudyBox();
     isaStudyBox.addValueChangeListener(new ValueChangeListener() {
@@ -813,66 +817,73 @@ public class ExperimentImportController implements IRegistrationController {
       ExperimentalDesignType designType) {
     Set<String> barcodeColumnNames = new HashSet<>(Arrays.asList("QBiC Code", "QBiC Barcode"));
     logger.info("adding barcodes to tsv");
-    String fileNameHeader = "Filename";
+    String fileNameHeader = null;
     StringBuilder builder = new StringBuilder(5000);
     switch (designType) {
-      case Standard:
-        int anltIDPos = -1;
-        int extIDPos = -1;
-        for (String line : tsv) {
-          String[] splt = line.split("\t");
-          if (anltIDPos < 0) {
-            anltIDPos = Arrays.asList(splt).indexOf("Analyte ID");
-            extIDPos = Arrays.asList(splt).indexOf("Extract ID");
-            builder.append("QBiC Code\t" + line + "\n");
+      case Proteomics_MassSpectrometry:
+        fileNameHeader = "File Name";
+        break;
+      case Metabolomics_LCMS:
+        fileNameHeader = "Secondary name";
+        break;
+      case MHC_Ligands_Finished:
+        fileNameHeader = "Filename";
+        break;
+      default:
+        break;
+    }
+
+    if (designType.equals(ExperimentalDesignType.Standard)) {
+      int anltIDPos = -1;
+      int extIDPos = -1;
+      for (String line : tsv) {
+        String[] splt = line.split("\t");
+        if (anltIDPos < 0) {
+          anltIDPos = Arrays.asList(splt).indexOf("Analyte ID");
+          extIDPos = Arrays.asList(splt).indexOf("Extract ID");
+          builder.append("QBiC Code\t" + line + "\n");
+        } else {
+          String extID = splt[anltIDPos];
+          if (extID == null || extID.isEmpty())
+            extID = splt[extIDPos];
+          String code = uniqueCodeToBarcode.get(extID);
+          builder.append(code + "\t" + line + "\n");
+        }
+      }
+    } else {
+      Map<String, String> fileNameToBarcode = new HashMap<String, String>();
+      for (List<ISampleBean> samples : levels) {
+        for (ISampleBean s : samples) {
+          if (s.getType().equals(SampleType.Q_MS_RUN)) {
+            Map<String, Object> props = s.getMetadata();
+            fileNameToBarcode.put(props.get("File").toString(), s.getCode());
+            props.remove("File");
+          }
+        }
+      }
+      int filePos = -1;
+      boolean colExists = false;
+      for (String line : tsv) {
+        String[] splt = line.split("\t");
+        // header position
+        if (filePos < 0) {
+          colExists = barcodeColumnNames.contains(splt[0]);
+          filePos = Arrays.asList(splt).indexOf(fileNameHeader);
+          if (colExists) {
+            builder.append(line + "\n");
           } else {
-            String extID = splt[anltIDPos];
-            if (extID == null || extID.isEmpty())
-              extID = splt[extIDPos];
-            String code = uniqueCodeToBarcode.get(extID);
+            builder.append("QBiC Code\t" + line + "\n");
+          }
+        } else {
+          String file = splt[filePos];
+          String code = fileNameToBarcode.get(file);
+          if (colExists) {
+            builder.append(code + line + "\n");
+          } else {
             builder.append(code + "\t" + line + "\n");
           }
         }
-        break;
-      case Proteomics_MassSpectrometry:
-        fileNameHeader = "File Name";
-      case Metabolomics_LCMS:
-        fileNameHeader = "Secondary name";
-      case MHC_Ligands_Finished:
-        Map<String, String> fileNameToBarcode = new HashMap<String, String>();
-        for (List<ISampleBean> samples : levels) {
-          for (ISampleBean s : samples) {
-            if (s.getType().equals(SampleType.Q_MS_RUN)) {
-              Map<String, Object> props = s.getMetadata();
-              fileNameToBarcode.put(props.get("File").toString(), s.getCode());
-              props.remove("File");
-            }
-          }
-        }
-        int filePos = -1;
-        boolean colExists = false;
-        for (String line : tsv) {
-          String[] splt = line.split("\t");
-          if (filePos < 0) {
-            colExists = barcodeColumnNames.contains(splt[0]);
-            filePos = Arrays.asList(splt).indexOf(fileNameHeader);
-            if (colExists) {
-              builder.append(line + "\n");
-            } else {
-              builder.append("QBiC Code\t" + line + "\n");
-            }
-          } else {
-            String file = splt[filePos];
-            String code = fileNameToBarcode.get(file);
-            if (colExists) {
-              builder.append(code + line + "\n");
-            } else {
-              builder.append(code + "\t" + line + "\n");
-            }
-          }
-        }
-      default:
-        break;
+      }
     }
     return builder.toString();
   }

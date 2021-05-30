@@ -4,19 +4,35 @@ Changelog
 
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
+1.11.1 (2021-05-27)
+-------------------
+
+**Added**
+
+* Unit tests for adding barcodes to different import formats
+
+**Fixed**
+
+* Barcodes are once again correctly added to the proteomics import format
+
+**Dependencies**
+
+**Deprecated**
+
+
 1.11.0 (2021-05-20)
 -------------------
 
 **Added**
 
-- Metabolomics import format
-- "QBiC" format has been renamed to openBIS-based format
-- "Standard" format has been renamed to "Standard QBiC format"
+* Metabolomics import format
+* "QBiC" format has been renamed to openBIS-based format
+* "Standard" format has been renamed to "Standard QBiC format"
 
 **Fixed**
 
-- Help/Examples symbols for import formats are now places directly next to the respective options
-- When importing multiple different formats, the project and experimental design are now correctly reset
+* Help/Examples symbols for import formats are now places directly next to the respective options
+* When importing multiple different formats, the project and experimental design are now correctly reset
 
 **Dependencies**
 
@@ -30,9 +46,9 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Fixed**
 
-- Use new experimental design lib, fixing handling of Peptide Cleanup (PTX import)
-- Fix: when replacing user inputs with vocabulary values in the uploaded file, special characters like brackets are now handled
-- Fix: importing into an existing project would sometimes fail to create new barcodes
+* Use new experimental design lib, fixing handling of Peptide Cleanup (PTX import)
+* Fix: when replacing user inputs with vocabulary values in the uploaded file, special characters like brackets are now handled
+* Fix: importing into an existing project would sometimes fail to create new barcodes
 
 **Dependencies**
 
