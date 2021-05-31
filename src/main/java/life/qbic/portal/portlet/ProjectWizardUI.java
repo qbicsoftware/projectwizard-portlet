@@ -142,6 +142,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
       Map<String, Integer> peopleMap = dbm.fetchPeople();
       vocabs.setPeople(peopleMap);
       vocabs.setSpaces(openbis.getUserSpaces(userID));
+      vocabs.setExperimentTypes(expTypes);
 
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
       initView(dbm, vocabs, userID);

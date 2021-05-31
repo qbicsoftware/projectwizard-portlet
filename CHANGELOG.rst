@@ -4,6 +4,20 @@ Changelog
 
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
+1.11.2 (2021-05-31)
+-------------------
+
+**Added**
+
+**Fixed**
+
+* Existing experiments are now correctly fetched when using the wizard process
+
+**Dependencies**
+
+**Deprecated**
+
+
 1.11.1 (2021-05-27)
 -------------------
 
