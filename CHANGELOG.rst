@@ -11,6 +11,8 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Fixed**
 
+* Existing experiments are now correctly fetched when using the wizard process
+
 **Dependencies**
 
 **Deprecated**
