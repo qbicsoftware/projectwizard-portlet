@@ -4,7 +4,7 @@ Changelog
 
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
-1.12.0-SNAPSHOT (2021-05-20)
+1.12.0-SNAPSHOT (2021-06-01)
 ----------------------------
 
 **Added**
@@ -12,6 +12,20 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 * Uses new database structure for persons: table "persons" is replaced by table "person"
 
 **Fixed**
+
+**Dependencies**
+
+**Deprecated**
+
+
+1.11.2 (2021-05-31)
+-------------------
+
+**Added**
+
+**Fixed**
+
+* Existing experiments are now correctly fetched when using the wizard process
 
 **Dependencies**
 
