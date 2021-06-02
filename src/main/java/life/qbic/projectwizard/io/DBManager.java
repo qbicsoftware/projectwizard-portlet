@@ -198,7 +198,7 @@ public class DBManager {
       while (rs.next()) {
         int pi_id = rs.getInt("id");
         String first = rs.getString("first_name");
-        String last = rs.getString("family_name");
+        String last = rs.getString("last_name");
         res.put(first + " " + last, pi_id);
       }
       statement.close();
