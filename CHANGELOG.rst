@@ -9,7 +9,7 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Added**
 
-* Uses new database structure for persons: table "persons" is replaced by table "person"
+* Uses new database structure for persons: table "persons" is replaced by table "person" (`#29 <https://github.com/qbicsoftware/projectwizard-portlet/pull/29>`_)
 
 **Fixed**
 
