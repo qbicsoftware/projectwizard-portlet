@@ -4,6 +4,20 @@ Changelog
 
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
+1.12.0 (2021-06-07)
+-------------------
+
+**Added**
+
+* Uses new database structure for persons: table "persons" is replaced by table "person" (`#29 <https://github.com/qbicsoftware/projectwizard-portlet/pull/29>`_)
+
+**Fixed**
+
+**Dependencies**
+
+**Deprecated**
+
+
 1.11.2 (2021-05-31)
 -------------------
 

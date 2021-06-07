@@ -190,7 +190,7 @@ public class DBManager {
    * @return
    */
   private Map<String, Integer> getPersonsWithIDs() {
-    String sql = "SELECT id, first_name, family_name FROM persons WHERE active = 1";
+    String sql = "SELECT id, first_name, last_name FROM person WHERE active = 1";
     Map<String, Integer> res = new HashMap<String, Integer>();
     Connection conn = login();
     try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -198,7 +198,7 @@ public class DBManager {
       while (rs.next()) {
         int pi_id = rs.getInt("id");
         String first = rs.getString("first_name");
-        String last = rs.getString("family_name");
+        String last = rs.getString("last_name");
         res.put(first + " " + last, pi_id);
       }
       statement.close();
