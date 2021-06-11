@@ -16,10 +16,10 @@
 'UTF-8'
 -Xdoclint:all
 -doctitle
-'ProjectWizard Portlet 1.12.0 API'
+'ProjectWizard Portlet 1.12.1 API'
 -linkoffline
 'https://docs.oracle.com/javase/8/docs/api' '/home/runner/work/projectwizard-portlet/projectwizard-portlet/target/javadoc-bundle-options'
 -use
 -version
 -windowtitle
-'ProjectWizard Portlet 1.12.0 API'
+'ProjectWizard Portlet 1.12.1 API'
