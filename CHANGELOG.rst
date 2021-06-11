@@ -11,6 +11,8 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Fixed**
 
+* Correctly replace selected vocabulary values for Cell Lysis in metabolomics import (`#32 <https://github.com/qbicsoftware/projectwizard-portlet/pull/32>`_)
+
 **Dependencies**
 
 **Deprecated**
