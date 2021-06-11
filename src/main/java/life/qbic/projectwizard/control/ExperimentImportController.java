@@ -723,7 +723,7 @@ public class ExperimentImportController implements IRegistrationController {
         lcmsMap.put(method, method);
       }
       catToVocabulary.put("LCMS method name", lcmsMap);
-      //// MC Device : Q_MS_DEVICE : Q_MS_DEVICES
+      //// MS Device : Q_MS_DEVICE : Q_MS_DEVICES
       catToVocabulary.put("MS device", vocabs.getMSDeviceMap());
 
       catToVocabulary.put("Expression system", vocabs.getTaxMap());
@@ -940,7 +940,7 @@ public class ExperimentImportController implements IRegistrationController {
             keyToFields.put("Q_CULTURE_MEDIUM", new HashSet<>(Arrays.asList("Medium")));
             keyToFields.put("Q_CELL_HARVESTING_METHOD",
                 new HashSet<>(Arrays.asList("Harvesting method")));
-            keyToFields.put("Q_CELL_LYSIS", new HashSet<>(Arrays.asList("Cell lysis")));
+            keyToFields.put("Q_CELL_LYSIS_METHOD", new HashSet<>(Arrays.asList("Cell lysis")));
 
             // ms experiments
             keyToFields.put("Q_MS_DEVICE", new HashSet<>(Arrays.asList("MS device")));
@@ -952,46 +952,8 @@ public class ExperimentImportController implements IRegistrationController {
                 new HashSet<>(Arrays.asList("Dissociation method")));
             keyToFields.put("Q_IONIZATION_MODE", new HashSet<>(Arrays.asList("MS ion mode")));
 
-            for (Map<String, Object> props : metadataList) {
-              Map<String, String> newProps = new HashMap<>();
-              for (String openBISPropertyKey : props.keySet()) {
-                if (keyToFields.containsKey(openBISPropertyKey)) {
+            replaceMetadataEntityMaps(metadataList, questionaire, keyToFields);
 
-                  Set<String> columnNames = keyToFields.get(openBISPropertyKey);
-
-                  if (props.get(openBISPropertyKey) instanceof String) {
-                    String oldEntry = (String) props.get(openBISPropertyKey);
-
-                    // String newLabel = questionaire.getVocabularyLabelForValue(val, entry);//
-                    String newVal = questionaire.getVocabularyCodeForValue(columnNames, oldEntry);
-                    if (newVal != null) {
-                      props.put(openBISPropertyKey, newVal);
-
-                      //
-                      // MetadataReplacementHelper.addNewReplacement(openBISPropertyKey, )
-                    }
-                  } else if (props.get(openBISPropertyKey) instanceof List<?>) {
-
-                    List<String> newPropList = new ArrayList<>();
-                    List<String> propList = (List<String>) (List<?>) props.get(openBISPropertyKey);
-
-                    for (String entry : propList) {
-                      String newEntry = questionaire.getVocabularyCodeForValue(columnNames, entry);
-
-                      if (newEntry != null) {
-                        newPropList.add(newEntry);
-                      } else {
-                        newPropList.add(entry);
-                      }
-                    }
-                    props.put(openBISPropertyKey, newPropList);
-                  }
-                }
-              }
-              for (String newProp : newProps.keySet()) {
-                props.put(newProp, newProps.get(newProp));
-              }
-            }
             logger.info("after replacement:");
             logger.info(metadataList);
           }
@@ -1017,42 +979,8 @@ public class ExperimentImportController implements IRegistrationController {
                 Arrays.asList("Sample Cleanup (Protein)", "Sample Cleanup (Peptide)")));
             // TODO collisions between cleanup
 
-            for (Map<String, Object> props : metadataList) {
-              Map<String, String> newProps = new HashMap<>();
-              for (String openBISPropertyKey : props.keySet()) {
-                if (keyToFields.containsKey(openBISPropertyKey)) {
+            replaceMetadataEntityMaps(metadataList, questionaire, keyToFields);
 
-                  Set<String> columnNames = keyToFields.get(openBISPropertyKey);
-                  if (props.get(openBISPropertyKey) instanceof String) {
-                    String oldEntry = (String) props.get(openBISPropertyKey);
-
-                    // String newLabel = questionaire.getVocabularyLabelForValue(val, entry);//
-                    String newVal = questionaire.getVocabularyCodeForValue(columnNames, oldEntry);
-                    if (newVal != null) {
-                      props.put(openBISPropertyKey, newVal);
-
-                      //
-                      // MetadataReplacementHelper.addNewReplacement(openBISPropertyKey, )
-                    }
-                  } else if (props.get(openBISPropertyKey) instanceof List<?>) {
-                    List<String> newPropList = new ArrayList<>();
-                    List<String> propList = (List<String>) (List<?>) props.get(openBISPropertyKey);
-                    for (String entry : propList) {
-                      String newEntry = questionaire.getVocabularyCodeForValue(columnNames, entry);
-                      if (newEntry != null) {
-                        newPropList.add(newEntry);
-                      } else {
-                        newPropList.add(entry);
-                      }
-                    }
-                    props.put(openBISPropertyKey, newPropList);
-                  }
-                }
-              }
-              for (String newProp : newProps.keySet()) {
-                props.put(newProp, newProps.get(newProp));
-              }
-            }
             logger.info("after replacement:");
             logger.info(metadataList);
           }
@@ -1375,6 +1303,61 @@ public class ExperimentImportController implements IRegistrationController {
                 NotificationType.ERROR);
           }
         }
+      }
+
+      private void replaceMetadataEntityMaps(List<Map<String, Object>> metadataList,
+          MissingInfoComponent questionaire, Map<String, Set<String>> keyToFields) {
+        logger.info("replace");
+        logger.info(metadataList);
+        for (Map<String, Object> props : metadataList) {
+          Map<String, String> newProps = new HashMap<>();
+          for (String openBISPropertyKey : props.keySet()) {
+            if (keyToFields.containsKey(openBISPropertyKey)) {
+
+              Set<String> columnNames = keyToFields.get(openBISPropertyKey);
+              
+              logger.info("key: "+openBISPropertyKey);
+              logger.info(props.get(openBISPropertyKey));
+
+              if (props.get(openBISPropertyKey) instanceof String) {
+                String oldEntry = (String) props.get(openBISPropertyKey);
+
+                // String newLabel = questionaire.getVocabularyLabelForValue(val, entry);//
+                String newVal = questionaire.getVocabularyCodeForValue(columnNames, oldEntry);
+                if (newVal != null) {
+                  props.put(openBISPropertyKey, newVal);
+
+                  //
+                  // MetadataReplacementHelper.addNewReplacement(openBISPropertyKey, )
+                }
+              } else if (props.get(openBISPropertyKey) instanceof List<?>) {
+
+                List<String> newPropList = new ArrayList<>();
+                List<String> propList = (List<String>) (List<?>) props.get(openBISPropertyKey);
+
+                for (String entry : propList) {
+                  logger.info("list entry:");
+                  logger.info(entry);
+                  logger.info(columnNames);
+                  String newEntry = questionaire.getVocabularyCodeForValue(columnNames, entry);
+                  logger.info(newEntry);
+
+                  if (newEntry != null) {
+                    newPropList.add(newEntry);
+                  } else {
+                    newPropList.add(entry);
+                  }
+                }
+                props.put(openBISPropertyKey, newPropList);
+              }
+            }
+          }
+          for (String newProp : newProps.keySet()) {
+            props.put(newProp, newProps.get(newProp));
+          }
+        }
+        logger.info("replaced");
+        logger.info(metadataList);
       }
 
       private void fixSpecialExperiments(Map<String, String> specialExpToExpCode) {
