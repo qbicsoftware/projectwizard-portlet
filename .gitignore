@@ -35,3 +35,6 @@ logs/
 # Properties, which may contain sensitive information
 **/developer.properties
 **/local.properties
+
+# Vaadin compiled style
+**/mytheme/styles.css
