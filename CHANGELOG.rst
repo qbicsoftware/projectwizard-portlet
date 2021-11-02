@@ -4,6 +4,20 @@ Changelog
 
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
+1.12.2 (2021-11-02)
+-------------------
+
+**Added**
+
+**Fixed**
+
+**Dependencies**
+
+* `vaadin:7.7.17` ->  `vaadin:7.7.28`
+
+**Deprecated**
+
+
 1.12.1 (2021-06-11)
 -------------------
 
