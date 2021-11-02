@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>projectwizard-portlet</artifactId>
-	<version>1.12.1</version>
+	<version>1.12.2</version>
 	<name>ProjectWizard Portlet</name>
 	<url>http://github.com/qbicsoftware/projectwizard-portlet</url>
 	<description>Creates hierarchical experiments using factorial design.</description>
@@ -15,8 +15,8 @@
 		<version>3.1.4</version>
 	</parent>
 	<properties>
-		<vaadin.version>7.7.17</vaadin.version>
-		<vaadin.plugin.version>7.7.17</vaadin.plugin.version>
+		<vaadin.version>7.7.28</vaadin.version>
+		<vaadin.plugin.version>7.7.28</vaadin.plugin.version>
 	</properties>
 	<repositories>
 		<repository>
