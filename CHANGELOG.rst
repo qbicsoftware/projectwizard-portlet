@@ -13,6 +13,20 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 **Dependencies**
 
+* Overwrite log4j-core and log4j-api dependencies with version `2.15.0` (addresses CVE-2021-44228)
+
+**Deprecated**
+
+
+1.12.2 (2021-11-02)
+-------------------
+
+**Added**
+
+**Fixed**
+
+**Dependencies**
+
 * `com.vaadin:7.7.17` -> `7.7.28` (addresses CVE-2021-37714)
 
 **Deprecated**
