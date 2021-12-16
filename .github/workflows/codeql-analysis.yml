@@ -46,8 +46,8 @@ jobs:
         settings-path: ${{ github.workspace }}
 
     - name: Load local Maven repository cache
-        uses: actions/cache@v2
-        with:
+      uses: actions/cache@v2
+      with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
