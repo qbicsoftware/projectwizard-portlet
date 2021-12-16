@@ -20,19 +20,19 @@ under the License.
 <rss version="0.91">
   <channel>
     <title>ProjectWizard Portlet - Checkstyle report</title>
-    <link>http://github.com/qbicsoftware/projectwizard-portlet</link>
+    <link>https://github.com/qbicsoftware/projectwizard-portlet</link>
     <description>ProjectWizard Portlet - Checkstyle report</description>
     <language>en-us</language>
     <copyright>&#169;2021</copyright>
     <item>
       <title>File: 102,
              Errors: 0,
-             Warnings: 3111,
+             Warnings: 3112,
              Infos: 0
       </title>
-            <link>http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html</link>
+            <link>https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html</link>
       <description>
-        <p>Click <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html">here</a> for the full Checkstyle report.</p>
+        <p>Click <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html">here</a> for the full Checkstyle report.</p>
 
         <table summary="Files" boder="1">
           <thead>
@@ -46,7 +46,7 @@ under the License.
           <tbody>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MHCTyping.java">life/qbic/projectwizard/model/MHCTyping.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MHCTyping.java">life/qbic/projectwizard/model/MHCTyping.java</a>
                 </td>
                 <td>
                   0
@@ -60,7 +60,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.QuantificationMethodVocabularyParser.java">life/qbic/projectwizard/io/QuantificationMethodVocabularyParser.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.QuantificationMethodVocabularyParser.java">life/qbic/projectwizard/io/QuantificationMethodVocabularyParser.java</a>
                 </td>
                 <td>
                   0
@@ -74,7 +74,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.DragDropPoolComponent.java">life/qbic/projectwizard/uicomponents/DragDropPoolComponent.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.DragDropPoolComponent.java">life/qbic/projectwizard/uicomponents/DragDropPoolComponent.java</a>
                 </td>
                 <td>
                   0
@@ -88,7 +88,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.FinishStep.java">life/qbic/projectwizard/steps/FinishStep.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.FinishStep.java">life/qbic/projectwizard/steps/FinishStep.java</a>
                 </td>
                 <td>
                   0
@@ -102,7 +102,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.samplegraph.ProjectGraph.java">life/qbic/portal/samplegraph/ProjectGraph.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.samplegraph.ProjectGraph.java">life/qbic/portal/samplegraph/ProjectGraph.java</a>
                 </td>
                 <td>
                   0
@@ -116,7 +116,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.samplegraph.NodeClickRpc.java">life/qbic/portal/samplegraph/NodeClickRpc.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.samplegraph.NodeClickRpc.java">life/qbic/portal/samplegraph/NodeClickRpc.java</a>
                 </td>
                 <td>
                   0
@@ -130,7 +130,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.AnalyteStep.java">life/qbic/projectwizard/steps/AnalyteStep.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.AnalyteStep.java">life/qbic/projectwizard/steps/AnalyteStep.java</a>
                 </td>
                 <td>
                   0
@@ -144,7 +144,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.DBManager.java">life/qbic/projectwizard/io/DBManager.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.DBManager.java">life/qbic/projectwizard/io/DBManager.java</a>
                 </td>
                 <td>
                   0
@@ -158,7 +158,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.TaxonomySearcher.java">life/qbic/projectwizard/io/TaxonomySearcher.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.TaxonomySearcher.java">life/qbic/projectwizard/io/TaxonomySearcher.java</a>
                 </td>
                 <td>
                   0
@@ -172,7 +172,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.FactorOptionBox.java">life/qbic/projectwizard/uicomponents/FactorOptionBox.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.FactorOptionBox.java">life/qbic/projectwizard/uicomponents/FactorOptionBox.java</a>
                 </td>
                 <td>
                   0
@@ -186,7 +186,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.RegisterableExperiment.java">life/qbic/projectwizard/registration/RegisterableExperiment.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.RegisterableExperiment.java">life/qbic/projectwizard/registration/RegisterableExperiment.java</a>
                 </td>
                 <td>
                   0
@@ -200,7 +200,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.LigandExtractPanel.java">life/qbic/projectwizard/uicomponents/LigandExtractPanel.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.LigandExtractPanel.java">life/qbic/projectwizard/uicomponents/LigandExtractPanel.java</a>
                 </td>
                 <td>
                   0
@@ -214,7 +214,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.Vocabularies.java">life/qbic/projectwizard/model/Vocabularies.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.Vocabularies.java">life/qbic/projectwizard/model/Vocabularies.java</a>
                 </td>
                 <td>
                   0
@@ -228,13 +228,13 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.ExperimentImportController.java">life/qbic/projectwizard/control/ExperimentImportController.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.ExperimentImportController.java">life/qbic/projectwizard/control/ExperimentImportController.java</a>
                 </td>
                 <td>
                   0
                 </td>
                 <td>
-                  172
+                  173
                 </td>
                 <td>
                   0
@@ -242,7 +242,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.MetadataUpdateReadyRunnable.java">life/qbic/projectwizard/processes/MetadataUpdateReadyRunnable.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.MetadataUpdateReadyRunnable.java">life/qbic/projectwizard/processes/MetadataUpdateReadyRunnable.java</a>
                 </td>
                 <td>
                   0
@@ -256,7 +256,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.adminviews.PrototypeView.java">life/qbic/projectwizard/adminviews/PrototypeView.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.adminviews.PrototypeView.java">life/qbic/projectwizard/adminviews/PrototypeView.java</a>
                 </td>
                 <td>
                   0
@@ -270,7 +270,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.IRegistrationController.java">life/qbic/projectwizard/control/IRegistrationController.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.IRegistrationController.java">life/qbic/projectwizard/control/IRegistrationController.java</a>
                 </td>
                 <td>
                   0
@@ -284,7 +284,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.adminviews.MCCViewNew.java">life/qbic/projectwizard/adminviews/MCCViewNew.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.adminviews.MCCViewNew.java">life/qbic/projectwizard/adminviews/MCCViewNew.java</a>
                 </td>
                 <td>
                   0
@@ -298,7 +298,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.ExperimentalDesignConversionView.java">life/qbic/projectwizard/views/ExperimentalDesignConversionView.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.ExperimentalDesignConversionView.java">life/qbic/projectwizard/views/ExperimentalDesignConversionView.java</a>
                 </td>
                 <td>
                   0
@@ -312,7 +312,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#portlet.properties">portlet.properties</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#portlet.properties">portlet.properties</a>
                 </td>
                 <td>
                   0
@@ -326,7 +326,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OpenbisV3APIWrapper.java">life/qbic/projectwizard/registration/OpenbisV3APIWrapper.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OpenbisV3APIWrapper.java">life/qbic/projectwizard/registration/OpenbisV3APIWrapper.java</a>
                 </td>
                 <td>
                   0
@@ -340,7 +340,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.MissingInfoComponent.java">life/qbic/projectwizard/uicomponents/MissingInfoComponent.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.MissingInfoComponent.java">life/qbic/projectwizard/uicomponents/MissingInfoComponent.java</a>
                 </td>
                 <td>
                   0
@@ -354,7 +354,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.MSAnalyteStep.java">life/qbic/projectwizard/steps/MSAnalyteStep.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.MSAnalyteStep.java">life/qbic/projectwizard/steps/MSAnalyteStep.java</a>
                 </td>
                 <td>
                   0
@@ -368,7 +368,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.SampleCounter.java">life/qbic/projectwizard/control/SampleCounter.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.SampleCounter.java">life/qbic/projectwizard/control/SampleCounter.java</a>
                 </td>
                 <td>
                   0
@@ -382,7 +382,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.EnzymePanel.java">life/qbic/projectwizard/uicomponents/EnzymePanel.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.EnzymePanel.java">life/qbic/projectwizard/uicomponents/EnzymePanel.java</a>
                 </td>
                 <td>
                   0
@@ -396,7 +396,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.ConditionInstanceStep.java">life/qbic/projectwizard/steps/ConditionInstanceStep.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.ConditionInstanceStep.java">life/qbic/projectwizard/steps/ConditionInstanceStep.java</a>
                 </td>
                 <td>
                   0
@@ -410,7 +410,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.GeneralMSInfoPanel.java">life/qbic/projectwizard/uicomponents/GeneralMSInfoPanel.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.GeneralMSInfoPanel.java">life/qbic/projectwizard/uicomponents/GeneralMSInfoPanel.java</a>
                 </td>
                 <td>
                   0
@@ -424,7 +424,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.OntologyEntry.java">life/qbic/projectwizard/io/OntologyEntry.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.OntologyEntry.java">life/qbic/projectwizard/io/OntologyEntry.java</a>
                 </td>
                 <td>
                   0
@@ -438,7 +438,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.samplegraph.ProjectGraphState.java">life/qbic/portal/samplegraph/ProjectGraphState.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.samplegraph.ProjectGraphState.java">life/qbic/portal/samplegraph/ProjectGraphState.java</a>
                 </td>
                 <td>
                   0
@@ -452,7 +452,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.WizardController.java">life/qbic/projectwizard/control/WizardController.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.WizardController.java">life/qbic/projectwizard/control/WizardController.java</a>
                 </td>
                 <td>
                   0
@@ -466,7 +466,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.OntologyTerm.java">life/qbic/projectwizard/model/OntologyTerm.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.OntologyTerm.java">life/qbic/projectwizard/model/OntologyTerm.java</a>
                 </td>
                 <td>
                   0
@@ -480,7 +480,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.TailoringStep.java">life/qbic/projectwizard/steps/TailoringStep.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.TailoringStep.java">life/qbic/projectwizard/steps/TailoringStep.java</a>
                 </td>
                 <td>
                   0
@@ -494,7 +494,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.PoolingStep.java">life/qbic/projectwizard/steps/PoolingStep.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.PoolingStep.java">life/qbic/projectwizard/steps/PoolingStep.java</a>
                 </td>
                 <td>
                   0
@@ -508,7 +508,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#WEB-INF.liferay-plugin-package.properties">WEB-INF/liferay-plugin-package.properties</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#WEB-INF.liferay-plugin-package.properties">WEB-INF/liferay-plugin-package.properties</a>
                 </td>
                 <td>
                   0
@@ -522,7 +522,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.OpenbisClientWrapper.java">life/qbic/projectwizard/control/OpenbisClientWrapper.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.OpenbisClientWrapper.java">life/qbic/projectwizard/control/OpenbisClientWrapper.java</a>
                 </td>
                 <td>
                   0
@@ -536,7 +536,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.TechnologiesPanel.java">life/qbic/projectwizard/uicomponents/TechnologiesPanel.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.TechnologiesPanel.java">life/qbic/projectwizard/uicomponents/TechnologiesPanel.java</a>
                 </td>
                 <td>
                   0
@@ -550,7 +550,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.V3SampleWrapper.java">life/qbic/projectwizard/model/V3SampleWrapper.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.V3SampleWrapper.java">life/qbic/projectwizard/model/V3SampleWrapper.java</a>
                 </td>
                 <td>
                   0
@@ -564,7 +564,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.ConditionPropertyPanel.java">life/qbic/projectwizard/uicomponents/ConditionPropertyPanel.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.ConditionPropertyPanel.java">life/qbic/projectwizard/uicomponents/ConditionPropertyPanel.java</a>
                 </td>
                 <td>
                   0
@@ -578,7 +578,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.IRegistrationView.java">life/qbic/projectwizard/views/IRegistrationView.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.IRegistrationView.java">life/qbic/projectwizard/views/IRegistrationView.java</a>
                 </td>
                 <td>
                   0
@@ -592,7 +592,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.VocabularyValidator.java">life/qbic/projectwizard/control/VocabularyValidator.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.VocabularyValidator.java">life/qbic/projectwizard/control/VocabularyValidator.java</a>
                 </td>
                 <td>
                   0
@@ -606,7 +606,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.UploadComponent.java">life/qbic/projectwizard/uicomponents/UploadComponent.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.UploadComponent.java">life/qbic/projectwizard/uicomponents/UploadComponent.java</a>
                 </td>
                 <td>
                   0
@@ -620,7 +620,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MHCLigandExtractionProtocol.java">life/qbic/projectwizard/model/MHCLigandExtractionProtocol.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MHCLigandExtractionProtocol.java">life/qbic/projectwizard/model/MHCLigandExtractionProtocol.java</a>
                 </td>
                 <td>
                   0
@@ -634,7 +634,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.MoveUploadsReadyRunnable.java">life/qbic/projectwizard/processes/MoveUploadsReadyRunnable.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.MoveUploadsReadyRunnable.java">life/qbic/projectwizard/processes/MoveUploadsReadyRunnable.java</a>
                 </td>
                 <td>
                   0
@@ -648,7 +648,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.TSVReadyRunnable.java">life/qbic/projectwizard/processes/TSVReadyRunnable.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.TSVReadyRunnable.java">life/qbic/projectwizard/processes/TSVReadyRunnable.java</a>
                 </td>
                 <td>
                   0
@@ -662,7 +662,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.adminviews.CovidSampleCreation.java">life/qbic/projectwizard/adminviews/CovidSampleCreation.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.adminviews.CovidSampleCreation.java">life/qbic/projectwizard/adminviews/CovidSampleCreation.java</a>
                 </td>
                 <td>
                   0
@@ -676,7 +676,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.WizardDataAggregator.java">life/qbic/projectwizard/control/WizardDataAggregator.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.WizardDataAggregator.java">life/qbic/projectwizard/control/WizardDataAggregator.java</a>
                 </td>
                 <td>
                   0
@@ -690,7 +690,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.Uploader.java">life/qbic/projectwizard/control/Uploader.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.Uploader.java">life/qbic/projectwizard/control/Uploader.java</a>
                 </td>
                 <td>
                   0
@@ -704,7 +704,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.EnzymeChooser.java">life/qbic/projectwizard/uicomponents/EnzymeChooser.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.EnzymeChooser.java">life/qbic/projectwizard/uicomponents/EnzymeChooser.java</a>
                 </td>
                 <td>
                   0
@@ -718,7 +718,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.TestSampleInformation.java">life/qbic/projectwizard/model/TestSampleInformation.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.TestSampleInformation.java">life/qbic/projectwizard/model/TestSampleInformation.java</a>
                 </td>
                 <td>
                   0
@@ -732,7 +732,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.MultiUploadComponent.java">life/qbic/projectwizard/uicomponents/MultiUploadComponent.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.MultiUploadComponent.java">life/qbic/projectwizard/uicomponents/MultiUploadComponent.java</a>
                 </td>
                 <td>
                   0
@@ -746,7 +746,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.OntologyRelation.java">life/qbic/projectwizard/io/OntologyRelation.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.OntologyRelation.java">life/qbic/projectwizard/io/OntologyRelation.java</a>
                 </td>
                 <td>
                   0
@@ -760,7 +760,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.NCBITerm.java">life/qbic/projectwizard/io/NCBITerm.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.NCBITerm.java">life/qbic/projectwizard/io/NCBITerm.java</a>
                 </td>
                 <td>
                   0
@@ -774,7 +774,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.RegistrationMode.java">life/qbic/projectwizard/processes/RegistrationMode.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.RegistrationMode.java">life/qbic/projectwizard/processes/RegistrationMode.java</a>
                 </td>
                 <td>
                   0
@@ -788,7 +788,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.LabelingMethod.java">life/qbic/projectwizard/uicomponents/LabelingMethod.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.LabelingMethod.java">life/qbic/projectwizard/uicomponents/LabelingMethod.java</a>
                 </td>
                 <td>
                   0
@@ -802,7 +802,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.ExperimentImportView.java">life/qbic/projectwizard/views/ExperimentImportView.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.ExperimentImportView.java">life/qbic/projectwizard/views/ExperimentImportView.java</a>
                 </td>
                 <td>
                   0
@@ -816,7 +816,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.MSSampleMultiplicationTable.java">life/qbic/projectwizard/uicomponents/MSSampleMultiplicationTable.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.MSSampleMultiplicationTable.java">life/qbic/projectwizard/uicomponents/MSSampleMultiplicationTable.java</a>
                 </td>
                 <td>
                   0
@@ -830,7 +830,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.ConditionsPanel.java">life/qbic/projectwizard/uicomponents/ConditionsPanel.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.ConditionsPanel.java">life/qbic/projectwizard/uicomponents/ConditionsPanel.java</a>
                 </td>
                 <td>
                   0
@@ -844,7 +844,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.IOpenbisCreationController.java">life/qbic/projectwizard/registration/IOpenbisCreationController.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.IOpenbisCreationController.java">life/qbic/projectwizard/registration/IOpenbisCreationController.java</a>
                 </td>
                 <td>
                   0
@@ -858,7 +858,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.ConditionChooser.java">life/qbic/projectwizard/uicomponents/ConditionChooser.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.ConditionChooser.java">life/qbic/projectwizard/uicomponents/ConditionChooser.java</a>
                 </td>
                 <td>
                   0
@@ -872,7 +872,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.OntologyParser.java">life/qbic/projectwizard/io/OntologyParser.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.OntologyParser.java">life/qbic/projectwizard/io/OntologyParser.java</a>
                 </td>
                 <td>
                   0
@@ -886,7 +886,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MCCPatient.java">life/qbic/projectwizard/model/MCCPatient.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MCCPatient.java">life/qbic/projectwizard/model/MCCPatient.java</a>
                 </td>
                 <td>
                   0
@@ -900,7 +900,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OpenbisV3CreationController.java">life/qbic/projectwizard/registration/OpenbisV3CreationController.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OpenbisV3CreationController.java">life/qbic/projectwizard/registration/OpenbisV3CreationController.java</a>
                 </td>
                 <td>
                   0
@@ -914,7 +914,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.ProjectInformationComponent.java">life/qbic/projectwizard/uicomponents/ProjectInformationComponent.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.ProjectInformationComponent.java">life/qbic/projectwizard/uicomponents/ProjectInformationComponent.java</a>
                 </td>
                 <td>
                   0
@@ -928,7 +928,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.portlet.StructuredExperiment.java">life/qbic/portal/portlet/StructuredExperiment.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.portlet.StructuredExperiment.java">life/qbic/portal/portlet/StructuredExperiment.java</a>
                 </td>
                 <td>
                   0
@@ -942,7 +942,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.samplegraph.GraphPage.java">life/qbic/portal/samplegraph/GraphPage.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.samplegraph.GraphPage.java">life/qbic/portal/samplegraph/GraphPage.java</a>
                 </td>
                 <td>
                   0
@@ -956,7 +956,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.UploadsPanel.java">life/qbic/projectwizard/uicomponents/UploadsPanel.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.UploadsPanel.java">life/qbic/projectwizard/uicomponents/UploadsPanel.java</a>
                 </td>
                 <td>
                   0
@@ -970,7 +970,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.ProjectContextStep.java">life/qbic/projectwizard/steps/ProjectContextStep.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.ProjectContextStep.java">life/qbic/projectwizard/steps/ProjectContextStep.java</a>
                 </td>
                 <td>
                   0
@@ -984,7 +984,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.NewMCCPatient.java">life/qbic/projectwizard/model/NewMCCPatient.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.NewMCCPatient.java">life/qbic/projectwizard/model/NewMCCPatient.java</a>
                 </td>
                 <td>
                   0
@@ -998,7 +998,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.PoolingTable.java">life/qbic/projectwizard/uicomponents/PoolingTable.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.PoolingTable.java">life/qbic/projectwizard/uicomponents/PoolingTable.java</a>
                 </td>
                 <td>
                   0
@@ -1012,7 +1012,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.EntityStep.java">life/qbic/projectwizard/steps/EntityStep.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.EntityStep.java">life/qbic/projectwizard/steps/EntityStep.java</a>
                 </td>
                 <td>
                   0
@@ -1026,7 +1026,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.RegisterableProject.java">life/qbic/projectwizard/registration/RegisterableProject.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.RegisterableProject.java">life/qbic/projectwizard/registration/RegisterableProject.java</a>
                 </td>
                 <td>
                   0
@@ -1040,7 +1040,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MCCSample.java">life/qbic/projectwizard/model/MCCSample.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MCCSample.java">life/qbic/projectwizard/model/MCCSample.java</a>
                 </td>
                 <td>
                   0
@@ -1054,7 +1054,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.adminviews.MCCView.java">life/qbic/projectwizard/adminviews/MCCView.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.adminviews.MCCView.java">life/qbic/projectwizard/adminviews/MCCView.java</a>
                 </td>
                 <td>
                   0
@@ -1068,7 +1068,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.AttachmentInformation.java">life/qbic/projectwizard/io/AttachmentInformation.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.AttachmentInformation.java">life/qbic/projectwizard/io/AttachmentInformation.java</a>
                 </td>
                 <td>
                   0
@@ -1082,7 +1082,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.ProjectNameValidator.java">life/qbic/projectwizard/control/ProjectNameValidator.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.ProjectNameValidator.java">life/qbic/projectwizard/control/ProjectNameValidator.java</a>
                 </td>
                 <td>
                   0
@@ -1096,7 +1096,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.ConversionReadyRunnable.java">life/qbic/projectwizard/views/ConversionReadyRunnable.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.ConversionReadyRunnable.java">life/qbic/projectwizard/views/ConversionReadyRunnable.java</a>
                 </td>
                 <td>
                   0
@@ -1110,7 +1110,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OpenbisV3ReadController.java">life/qbic/projectwizard/registration/OpenbisV3ReadController.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OpenbisV3ReadController.java">life/qbic/projectwizard/registration/OpenbisV3ReadController.java</a>
                 </td>
                 <td>
                   0
@@ -1124,7 +1124,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.TechChooser.java">life/qbic/projectwizard/uicomponents/TechChooser.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.TechChooser.java">life/qbic/projectwizard/uicomponents/TechChooser.java</a>
                 </td>
                 <td>
                   0
@@ -1138,7 +1138,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.OBOParser.java">life/qbic/projectwizard/io/OBOParser.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.OBOParser.java">life/qbic/projectwizard/io/OBOParser.java</a>
                 </td>
                 <td>
                   0
@@ -1152,7 +1152,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OpenbisCreationController.java">life/qbic/projectwizard/registration/OpenbisCreationController.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OpenbisCreationController.java">life/qbic/projectwizard/registration/OpenbisCreationController.java</a>
                 </td>
                 <td>
                   0
@@ -1166,7 +1166,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.UpdateProgressBar.java">life/qbic/projectwizard/registration/UpdateProgressBar.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.UpdateProgressBar.java">life/qbic/projectwizard/registration/UpdateProgressBar.java</a>
                 </td>
                 <td>
                   0
@@ -1180,7 +1180,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.V3ExperimentWrapper.java">life/qbic/projectwizard/model/V3ExperimentWrapper.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.V3ExperimentWrapper.java">life/qbic/projectwizard/model/V3ExperimentWrapper.java</a>
                 </td>
                 <td>
                   0
@@ -1194,7 +1194,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.SampleSelectComponent.java">life/qbic/projectwizard/uicomponents/SampleSelectComponent.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.SampleSelectComponent.java">life/qbic/projectwizard/uicomponents/SampleSelectComponent.java</a>
                 </td>
                 <td>
                   0
@@ -1208,7 +1208,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.ExtractionStep.java">life/qbic/projectwizard/steps/ExtractionStep.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.ExtractionStep.java">life/qbic/projectwizard/steps/ExtractionStep.java</a>
                 </td>
                 <td>
                   0
@@ -1222,7 +1222,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.AdminView.java">life/qbic/projectwizard/views/AdminView.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.AdminView.java">life/qbic/projectwizard/views/AdminView.java</a>
                 </td>
                 <td>
                   0
@@ -1236,7 +1236,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.WizardUploadsPanel.java">life/qbic/projectwizard/uicomponents/WizardUploadsPanel.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.WizardUploadsPanel.java">life/qbic/projectwizard/uicomponents/WizardUploadsPanel.java</a>
                 </td>
                 <td>
                   0
@@ -1250,7 +1250,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.portlet.ProjectWizardUI.java">life/qbic/portal/portlet/ProjectWizardUI.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.portal.portlet.ProjectWizardUI.java">life/qbic/portal/portlet/ProjectWizardUI.java</a>
                 </td>
                 <td>
                   0
@@ -1264,7 +1264,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.DBConfig.java">life/qbic/projectwizard/io/DBConfig.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.DBConfig.java">life/qbic/projectwizard/io/DBConfig.java</a>
                 </td>
                 <td>
                   0
@@ -1278,7 +1278,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.ExperimentSummaryTable.java">life/qbic/projectwizard/uicomponents/ExperimentSummaryTable.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.ExperimentSummaryTable.java">life/qbic/projectwizard/uicomponents/ExperimentSummaryTable.java</a>
                 </td>
                 <td>
                   0
@@ -1292,7 +1292,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable.java">life/qbic/projectwizard/processes/RegisteredSamplesReadyRunnable.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.RegisteredSamplesReadyRunnable.java">life/qbic/projectwizard/processes/RegisteredSamplesReadyRunnable.java</a>
                 </td>
                 <td>
                   0
@@ -1306,7 +1306,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.SummaryRegisterStep.java">life/qbic/projectwizard/steps/SummaryRegisterStep.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.steps.SummaryRegisterStep.java">life/qbic/projectwizard/steps/SummaryRegisterStep.java</a>
                 </td>
                 <td>
                   0
@@ -1320,7 +1320,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.TissueClass.java">life/qbic/projectwizard/io/TissueClass.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.TissueClass.java">life/qbic/projectwizard/io/TissueClass.java</a>
                 </td>
                 <td>
                   0
@@ -1334,7 +1334,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.SummaryTable.java">life/qbic/projectwizard/uicomponents/SummaryTable.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.SummaryTable.java">life/qbic/projectwizard/uicomponents/SummaryTable.java</a>
                 </td>
                 <td>
                   0
@@ -1348,7 +1348,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.AttachmentMover.java">life/qbic/projectwizard/io/AttachmentMover.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.io.AttachmentMover.java">life/qbic/projectwizard/io/AttachmentMover.java</a>
                 </td>
                 <td>
                   0
@@ -1362,7 +1362,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.MetadataUploadView.java">life/qbic/projectwizard/views/MetadataUploadView.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.views.MetadataUploadView.java">life/qbic/projectwizard/views/MetadataUploadView.java</a>
                 </td>
                 <td>
                   0
@@ -1376,7 +1376,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OmeroAdapter.java">life/qbic/projectwizard/registration/OmeroAdapter.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.registration.OmeroAdapter.java">life/qbic/projectwizard/registration/OmeroAdapter.java</a>
                 </td>
                 <td>
                   0
@@ -1390,7 +1390,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MSExperimentModel.java">life/qbic/projectwizard/model/MSExperimentModel.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.MSExperimentModel.java">life/qbic/projectwizard/model/MSExperimentModel.java</a>
                 </td>
                 <td>
                   0
@@ -1404,7 +1404,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.Functions.java">life/qbic/projectwizard/control/Functions.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.control.Functions.java">life/qbic/projectwizard/control/Functions.java</a>
                 </td>
                 <td>
                   0
@@ -1418,7 +1418,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.RegisteredAnalyteInformation.java">life/qbic/projectwizard/model/RegisteredAnalyteInformation.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.RegisteredAnalyteInformation.java">life/qbic/projectwizard/model/RegisteredAnalyteInformation.java</a>
                 </td>
                 <td>
                   0
@@ -1432,7 +1432,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.TissueInfo.java">life/qbic/projectwizard/model/TissueInfo.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.model.TissueInfo.java">life/qbic/projectwizard/model/TissueInfo.java</a>
                 </td>
                 <td>
                   0
@@ -1446,7 +1446,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.ISAParseReady.java">life/qbic/projectwizard/processes/ISAParseReady.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.processes.ISAParseReady.java">life/qbic/projectwizard/processes/ISAParseReady.java</a>
                 </td>
                 <td>
                   0
@@ -1460,7 +1460,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="http://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.MSOptionComponent.java">life/qbic/projectwizard/uicomponents/MSOptionComponent.java</a>
+                  <a href="https://github.com/qbicsoftware/projectwizard-portlet/checkstyle.html#life.qbic.projectwizard.uicomponents.MSOptionComponent.java">life/qbic/projectwizard/uicomponents/MSOptionComponent.java</a>
                 </td>
                 <td>
                   0
