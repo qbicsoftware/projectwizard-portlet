@@ -4,9 +4,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>projectwizard-portlet</artifactId>
-	<version>1.12.3</version>
+	<version>1.12.4</version>
 	<name>ProjectWizard Portlet</name>
-	<url>http://github.com/qbicsoftware/projectwizard-portlet</url>
+	<url>https://github.com/qbicsoftware/projectwizard-portlet</url>
 	<description>Creates hierarchical experiments using factorial design.</description>
 	<packaging>war</packaging>
 	<parent>
@@ -17,6 +17,7 @@
 	<properties>
 		<vaadin.version>7.7.28</vaadin.version>
 		<vaadin.plugin.version>7.7.28</vaadin.plugin.version>
+		<log4j.version>2.16.0</log4j.version>
 	</properties>
 	<repositories>
 		<repository>
@@ -75,12 +76,12 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.15.0</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.15.0</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>life.qbic</groupId>
