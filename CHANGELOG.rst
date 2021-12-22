@@ -16,6 +16,74 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 **Deprecated**
 
 
+1.12.5 (2021-12-20)
+-------------------
+
+**Added**
+
+**Fixed**
+
+**Dependencies**
+
+* org.apache.logging.log4j 2.16.0 -> 2.17.0 (addresses CVE-2021-45105)
+
+**Deprecated**
+
+1.12.4 (2021-12-16)
+-------------------
+
+**Added**
+
+**Fixed**
+
+**Dependencies**
+
+* org.apache.logging.log4j 2.15.0 -> 2.16.0 (addresses CVE-2021-45046)
+
+**Deprecated**
+
+1.12.3 (2021-11-13)
+-------------------
+
+**Added**
+
+**Fixed**
+
+**Dependencies**
+
+* org.apache.logging.log4j 2.13.2 -> 2.15.0 (addresses CVE-2021-44228)
+
+**Deprecated**
+
+
+1.12.2 (2021-11-02)
+-------------------
+
+**Added**
+
+**Fixed**
+
+**Dependencies**
+
+* `com.vaadin:7.7.17` -> `7.7.28` (addresses CVE-2021-37714)
+
+**Deprecated**
+
+
+1.12.1 (2021-06-11)
+-------------------
+
+**Added**
+
+**Fixed**
+
+* Correctly replace selected vocabulary values for Cell Lysis in metabolomics import (`#32 <https://github.com/qbicsoftware/projectwizard-portlet/pull/32>`_)
+
+**Dependencies**
+
+**Deprecated**
+
+
 1.12.0 (2021-06-07)
 -------------------
 
