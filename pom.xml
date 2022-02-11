@@ -4,20 +4,21 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>projectwizard-portlet</artifactId>
+	<groupId>life.qbic</groupId>
 	<version>1.12.6</version>
 	<name>ProjectWizard Portlet</name>
 	<url>https://github.com/qbicsoftware/projectwizard-portlet</url>
 	<description>Creates hierarchical experiments using factorial design.</description>
 	<packaging>war</packaging>
-	<parent>
-		<groupId>life.qbic</groupId>
-		<artifactId>portlet-parent-pom</artifactId>
-		<version>3.1.4</version>
-	</parent>
 	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 		<vaadin.version>7.7.28</vaadin.version>
 		<vaadin.plugin.version>7.7.28</vaadin.plugin.version>
 		<log4j.version>2.17.1</log4j.version>
+		<liferay.version>6.2.5</liferay.version>
+		<jetty.plugin.version>9.4.10.v20180503</jetty.plugin.version>
+		<jetty.scanIntervalSeconds>2</jetty.scanIntervalSeconds>
 	</properties>
 	<repositories>
 		<repository>
@@ -73,6 +74,28 @@
 		</repository>
 	</repositories>
 	<dependencies>
+		<!-- Vaadin, Liferay and Servlet dependencies have been added in portal-parent-pom -->
+		<!-- Vaadin -->
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<artifactId>vaadin-server</artifactId>
+			<version>${vaadin.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<artifactId>vaadin-client-compiled</artifactId>
+			<version>${vaadin.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<artifactId>vaadin-client</artifactId>
+			<version>${vaadin.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<artifactId>vaadin-themes</artifactId>
+			<version>${vaadin.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
@@ -89,8 +112,15 @@
 			<version>1.7.0</version>
 		</dependency>
 		<dependency>
+			<groupId>com.liferay.portal</groupId>
+			<artifactId>portal-service</artifactId>
+			<version>${liferay.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
+			<version>2.7.5</version>
 		</dependency>
 		<!-- needed since isa-creator-lib uses old version leading to portlet compilation 
 			error -->
@@ -114,7 +144,7 @@
 		<dependency>
 			<groupId>life.qbic</groupId>
 			<artifactId>portal-utils-lib</artifactId>
-			<version>1.6.0</version>
+			<version>1.7.2</version>
 		</dependency>
 		<dependency>
 			<groupId>life.qbic</groupId>
@@ -166,4 +196,109 @@
 			</exclusions>
 		</dependency>
 	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.vaadin</groupId>
+				<artifactId>vaadin-maven-plugin</artifactId>
+				<version>${vaadin.plugin.version}</version>
+				<configuration>
+					<extraJvmArgs>-Xmx1024m -Xss1024k</extraJvmArgs>
+					<!-- We are doing "inplace" but into subdir VAADIN/widgetsets. This 
+						way compatible with Vaadin eclipse plugin. -->
+					<webappDirectory>${basedir}/src/main/webapp/VAADIN/widgetsets</webappDirectory>
+					<hostedWebapp>${basedir}/src/main/webapp/VAADIN/widgetsets</hostedWebapp>
+					<!-- Most Vaadin apps don't need this stuff, guide that to target -->
+					<persistentunitcachedir>${project.build.directory}</persistentunitcachedir>
+					<deploy>${project.build.directory}/gwt-deploy</deploy>
+					<!-- Compile report is not typically needed either, saves hundreds of 
+						disk -->
+					<compileReport>false</compileReport>
+					<noServer>true</noServer>
+					<!-- Remove draftCompile when project is ready -->
+					<draftCompile>false</draftCompile>
+					<style>OBF</style>
+				</configuration>
+				<executions>
+					<execution>
+						<configuration>
+							<!-- if you don't specify any modules, the plugin will find them -->
+						</configuration>
+						<goals>
+							<goal>clean</goal>
+							<goal>resources</goal>
+							<goal>update-theme</goal>
+							<goal>update-widgetset</goal>
+							<goal>compile-theme</goal>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>${jetty.plugin.version}</version>
+				<configuration>
+					<!-- Jetty's hot deploy enabled has been enabled by default! If you 
+						want to disable jetty's hot deploy feature, activate the 'jetty-cold-deploy' 
+						profile via the command line: mvn -P jetty-cold-deploy Or, alternatively, 
+						you can change your settings.xml to permanently activate this profile. For 
+						more information on how to permanently activate a property, see: https://maven.apache.org/settings.html#Profiles 
+						For more information about the origin of this long comment, see: https://github.com/qbicsoftware/parent-poms/issues/4 -->
+					<scanIntervalSeconds>${jetty.scanIntervalSeconds}</scanIntervalSeconds>
+					<useProvidedScope>true</useProvidedScope>
+					<stopPort>8005</stopPort>
+					<stopKey>STOP</stopKey>
+				</configuration>
+				<executions>
+					<execution>
+						<id>start-jetty</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>start</goal>
+						</goals>
+						<configuration>
+							<scanIntervalSeconds>${jetty.scanIntervalSeconds}</scanIntervalSeconds>
+						</configuration>
+					</execution>
+					<execution>
+						<id>stop-jetty</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- enable resource filtering for war files -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>3.2.2</version>
+				<configuration>
+					<nonFilteredFileExtensions>
+						<nonFilteredFileExtension>docx</nonFilteredFileExtension>
+						<nonFilteredFileExtension>pdf</nonFilteredFileExtension>
+					</nonFilteredFileExtensions>
+					<failOnMissingWebXml>true</failOnMissingWebXml>
+					<!-- Exclude an unnecessary file generated by the GWT compiler. -->
+					<packagingExcludes>WEB-INF/classes/VAADIN/widgetsets/WEB-INF/**</packagingExcludes>
+					<webResources>
+						<resource>
+							<filtering>true</filtering>
+							<directory>src/main/resources</directory>
+							<targetPath>WEB-INF/classes</targetPath>
+						</resource>
+						<resource>
+							<filtering>true</filtering>
+							<directory>src/main/webapp/WEB-INF</directory>
+							<targetPath>WEB-INF</targetPath>
+						</resource>
+					</webResources>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
 </project> 

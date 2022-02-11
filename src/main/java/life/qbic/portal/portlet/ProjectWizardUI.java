@@ -19,11 +19,11 @@ import org.vaadin.teemu.wizards.event.WizardStepActivationEvent;
 import org.vaadin.teemu.wizards.event.WizardStepSetChangedEvent;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserGroup;
+import com.vaadin.ui.themes.ValoTheme;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
-import com.vaadin.ui.themes.ValoTheme;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TabSheet;
@@ -50,7 +50,6 @@ import life.qbic.projectwizard.registration.OpenbisV3APIWrapper;
 import life.qbic.projectwizard.registration.OpenbisV3CreationController;
 import life.qbic.projectwizard.views.AdminView;
 import life.qbic.projectwizard.views.MetadataUploadView;
-
 
 @Theme("mytheme")
 @Widgetset("life.qbic.portlet.AppWidgetSet")
@@ -88,7 +87,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     if (PortalUtils.isLiferayPortlet()) {
       // read in the configuration file
       logger.info("Wizard is running on Liferay and user is logged in.");
-      userID = PortalUtils.getUser().getScreenName();
+      userID = PortalUtils.getScreenName();
     } else {
       if (development) {
         logger.warn("Checks for local dev version successful. User is granted admin status.");
