@@ -21,7 +21,7 @@
 
 ## Author
 
-Created by Andreas Friedrich (<a href="mailto:andreas.friedrich@qbic.uni-tuebingen.de?subject=project wizard portlet">andreas.friedrich@qbic.uni-tuebingen.de</a>).
+Created by Andreas Friedrich (<a href="mailto:andreas.friedrich@qbic.uni-tuebingen.de?subject=project+wizard+portlet">andreas.friedrich@qbic.uni-tuebingen.de</a>).
 
 ## Description
 
