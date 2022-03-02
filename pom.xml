@@ -17,6 +17,7 @@
 		<vaadin.plugin.version>7.7.28</vaadin.plugin.version>
 		<log4j.version>2.17.1</log4j.version>
 		<liferay.version>6.2.5</liferay.version>
+		<liferay.maven.plugin.version>6.2.5</liferay.maven.plugin.version>
 		<jetty.plugin.version>9.4.10.v20180503</jetty.plugin.version>
 		<jetty.scanIntervalSeconds>2</jetty.scanIntervalSeconds>
 	</properties>
@@ -298,7 +299,25 @@
 					</webResources>
 				</configuration>
 			</plugin>
-
+			<!--portal plugins -->
+			<plugin>
+				<groupId>com.liferay.maven.plugins</groupId>
+				<artifactId>liferay-maven-plugin</artifactId>
+				<version>${liferay.maven.plugin.version}</version>
+				<configuration>
+					<autoDeployDir>${liferay.auto.deploy.dir}</autoDeployDir>
+					<appServerDeployDir>${liferay.app.server.deploy.dir}</appServerDeployDir>
+					<appServerLibGlobalDir>${liferay.app.server.lib.global.dir}</appServerLibGlobalDir>
+					<appServerPortalDir>${liferay.app.server.portal.dir}</appServerPortalDir>
+					<liferayVersion>${liferay.version}</liferayVersion>
+					<pluginType>portlet</pluginType>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+			</plugin>
 		</plugins>
 	</build>
 </project> 
