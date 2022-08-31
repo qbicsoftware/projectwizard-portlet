@@ -221,7 +221,7 @@ public class MetadataUploadView extends VerticalLayout {
       public void uploadFinished(FinishedEvent event) {
         if (upload.wasSuccess()) {
           try {
-            boolean success = parseTSV(upload.getFile());
+            boolean isTsvParsed = parseTSV(upload.getFile());
             send.setVisible(success);
             reload.setVisible(true);
           } catch (IOException e) {
