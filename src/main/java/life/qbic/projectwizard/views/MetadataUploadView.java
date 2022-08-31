@@ -219,9 +219,10 @@ public class MetadataUploadView extends VerticalLayout {
 
       @Override
       public void uploadFinished(FinishedEvent event) {
-        if (upload.wasSuccess())
+        if (upload.wasSuccess()) {
           try {
-            send.setVisible(parseTSV(upload.getFile()));
+            boolean isTsvParsed = parseTSV(upload.getFile());
+            send.setVisible(isTsvParsed);
             reload.setVisible(true);
           } catch (IOException e) {
             e.printStackTrace();
@@ -229,6 +230,7 @@ public class MetadataUploadView extends VerticalLayout {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
+        }
       }
     });
 
@@ -240,6 +242,7 @@ public class MetadataUploadView extends VerticalLayout {
         ingestTable(new MetadataUpdateReadyRunnable(view), progressBar, progressInfo);
         send.setEnabled(false);
       }
+
     });
   }
 
@@ -543,6 +546,17 @@ public class MetadataUploadView extends VerticalLayout {
     }
     reader.close();
     String[] header = data.get(0);
+
+    Set<String> uniqueHeaders = new HashSet<>();
+    for (String currentHeader : header) {
+      if(!uniqueHeaders.add(currentHeader)) {
+        error = "Column names in your upload must be unique.";
+        Styles.notification(String.format("Duplicate header found: %s", currentHeader), error, NotificationType.ERROR);
+        reader.close();
+        return false;
+      }
+    }
+
     data.remove(0);
     int barcodeCol = -1;
     String projectCode = "";
@@ -571,8 +585,7 @@ public class MetadataUploadView extends VerticalLayout {
       }
       barcodeCol = 0;
     }
-    List<Sample> projectSamples =
-        openbis.getSamplesOfProject(projectCode);
+    List<Sample> projectSamples = openbis.getSamplesOfProject(projectCode);
 
     codesToSamples = new HashMap<String, Sample>();
     Map<String, List<String>> sampleTypeToAttributes = new HashMap<String, List<String>>();
@@ -652,9 +665,9 @@ public class MetadataUploadView extends VerticalLayout {
       row.add("Properties -->");
       for (int i = 1; i < header.length; i++) {
         String headline = header[i];
-        List<String> sortedOtions = new ArrayList<>(options);
-        Collections.sort(sortedOtions);
-        ComboBox attributeOptions = new ComboBox("", sortedOtions);
+        List<String> sortedOptions = new ArrayList<>(options);
+        Collections.sort(sortedOptions);
+        ComboBox attributeOptions = new ComboBox("", sortedOptions);
         attributeOptions.setStyleName(Styles.boxTheme);
         attributeOptions.setImmediate(true);
         attributeOptions.setInputPrompt("<Select Attribute>");
@@ -759,6 +772,7 @@ public class MetadataUploadView extends VerticalLayout {
     }
     addComponent(send);
     addComponent(progressBar);
+
     return true;
   }
 
