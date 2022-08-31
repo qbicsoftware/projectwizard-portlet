@@ -167,8 +167,13 @@ public class AdminView extends VerticalLayout {
                   "There seems to have been a problem while creating the space. Do the specified users already exist in openbis? If not, create them.",
                   NotificationType.ERROR);
             }
-            createSpace.setEnabled(true);
+
+          } else {
+            Styles.notification("Problem creating space",
+                    "This space already exists.",
+                    NotificationType.DEFAULT);
           }
+          createSpace.setEnabled(true);
         }
       }
     });
