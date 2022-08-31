@@ -547,12 +547,13 @@ public class MetadataUploadView extends VerticalLayout {
     reader.close();
     String[] header = data.get(0);
 
-    Set<String> uniqueHeader = new HashSet<>(Arrays.asList(header));
-    if (uniqueHeader.size() != header.length) {
-      error = "Column names in your upload must be unique.";
-      Styles.notification("Duplicate column name", error, NotificationType.ERROR);
-      reader.close();
-      return false;
+    Set<String> uniqueHeaders = new HashSet<>();
+    for (String currentHeader : header){
+      if(!uniqueHeaders.add(currentHeader)) {
+        error = "Column names in your upload must be unique.";
+        Styles.notification(String.format("Duplicate header found: %s", currentHeader), error, NotificationType.ERROR);
+        reader.close();
+        return false;
     }
 
     data.remove(0);
