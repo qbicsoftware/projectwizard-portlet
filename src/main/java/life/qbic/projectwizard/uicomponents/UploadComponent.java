@@ -153,6 +153,7 @@ public class UploadComponent extends VerticalLayout
     } else {
       StringWriter sw = new StringWriter();
       PrintWriter pw = new PrintWriter(sw);
+
       if (event.getReason() != null)
         event.getReason().printStackTrace(pw);
       logger.error("Upload cancelled due to error.");
