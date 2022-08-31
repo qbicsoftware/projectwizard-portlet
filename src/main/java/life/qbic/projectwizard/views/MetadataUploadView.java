@@ -222,7 +222,7 @@ public class MetadataUploadView extends VerticalLayout {
         if (upload.wasSuccess()) {
           try {
             boolean isTsvParsed = parseTSV(upload.getFile());
-            send.setVisible(success);
+            send.setVisible(isTsvParsed);
             reload.setVisible(true);
           } catch (IOException e) {
             e.printStackTrace();
@@ -548,12 +548,13 @@ public class MetadataUploadView extends VerticalLayout {
     String[] header = data.get(0);
 
     Set<String> uniqueHeaders = new HashSet<>();
-    for (String currentHeader : header){
+    for (String currentHeader : header) {
       if(!uniqueHeaders.add(currentHeader)) {
         error = "Column names in your upload must be unique.";
         Styles.notification(String.format("Duplicate header found: %s", currentHeader), error, NotificationType.ERROR);
         reader.close();
         return false;
+      }
     }
 
     data.remove(0);
