@@ -173,7 +173,7 @@ public class MetadataUploadView extends VerticalLayout {
     addComponent(separatorSelection);
     separatorSelection.select("Tab");
     separatorSelection.setVisible(false);
-    upload = new UploadComponent("Upload Metadata (tab-separated)", "Upload",
+    upload = new UploadComponent("Upload Metadata", "Upload",
         ProjectWizardUI.tmpFolder, user, 200000);
     upload.setVisible(false);
     addComponent(upload);
@@ -571,7 +571,7 @@ public class MetadataUploadView extends VerticalLayout {
     }
     if (barcodeCol == -1) {
       error =
-          "No barcode column found. Make sure one column contains QBiC Barcodes to map your information to existing samples!";
+          "No barcode column found or first sample code is wrong. Make sure one column contains QBiC Barcodes to map your information to existing samples!";
       Styles.notification("File Incomplete", error, NotificationType.ERROR);
       return false;
     }
