@@ -21,6 +21,20 @@
 		<jetty.plugin.version>9.4.10.v20180503</jetty.plugin.version>
 		<jetty.scanIntervalSeconds>2</jetty.scanIntervalSeconds>
 	</properties>
+	<distributionManagement>
+		<repository>
+			<uniqueVersion>true</uniqueVersion>
+			<id>nexus-releases</id>
+			<name>QBiC Releases</name>
+			<url>https://qbic-repo.qbic.uni-tuebingen.de/repository/maven-releases</url>
+		</repository>
+		<snapshotRepository>
+			<uniqueVersion>false</uniqueVersion>
+			<id>nexus-snapshots</id>
+			<name>QBiC Snapshots</name>
+			<url>https://qbic-repo.qbic.uni-tuebingen.de/repository/maven-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 	<repositories>
 		<repository>
 			<releases>
