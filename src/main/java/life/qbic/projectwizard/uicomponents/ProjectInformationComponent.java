@@ -79,7 +79,7 @@ public class ProjectInformationComponent extends VerticalLayout {
     addComponent(Styles.questionize(spaceBox, "Name of the project", "Project Name"));
 
     imgCheck = new CheckBox("Imaging Support");
-    addComponent(imgCheck);
+    addComponent(Styles.questionize(imgCheck, "Needs to be checked to store imaging data in Omero", "Imaging Support"));
 
     ComboBox prBox = new ComboBox("Sub-Project");
     prBox.setStyleName(Styles.boxTheme);
