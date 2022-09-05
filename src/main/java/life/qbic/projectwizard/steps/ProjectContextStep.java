@@ -70,9 +70,8 @@ public class ProjectContextStep implements WizardStep {
   private CheckBox pilotBox;
 
   /**
-   * Create a new Context Step for the wizard
-   * 
-   * @param newProjectCode
+   *
+   * @param projSelect ProjectInformationComponent storing project name and basic metadata
    */
   public ProjectContextStep(ProjectInformationComponent projSelect) {
     main = new VerticalLayout();
