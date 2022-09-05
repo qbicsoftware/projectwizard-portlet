@@ -100,7 +100,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     main.addComponent(Styles.questionize(tsvInfo,
         "You can download a technical spreadsheet to register your samples at a later time instead. More informative spreadsheets are available in the next step.",
         "TSV Download"));
-
+    
     Container cont = new IndexedContainer();
     cont.addContainerProperty("caption", String.class, "");
     cont.getContainerProperty(cont.addItem(), "caption").setValue(paidOption);
