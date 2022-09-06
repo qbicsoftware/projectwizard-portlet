@@ -285,7 +285,6 @@ public class ProjectWizardUI extends QBiCPortletUI {
       // workaround
       InputStream in = ProjectWizardUI.class.getClassLoader()
           .getResourceAsStream("portlet.properties");
-      System.out.println(in);
       try {
         prop.load(in);
         in.close();
