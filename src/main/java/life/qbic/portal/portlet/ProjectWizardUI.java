@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.teemu.wizards.Wizard;
@@ -33,8 +34,6 @@ import life.qbic.datamodel.attachments.AttachmentConfig;
 import life.qbic.omero.BasicOMEROClient;
 import life.qbic.openbis.openbisclient.IOpenBisClient;
 import life.qbic.openbis.openbisclient.OpenBisClient;
-import life.qbic.portal.portlet.QBiCPortletUI;
-import life.qbic.portal.samplegraph.GraphPage;
 import life.qbic.portal.utils.ConfigurationManager;
 import life.qbic.portal.utils.ConfigurationManagerFactory;
 import life.qbic.portal.utils.PortalUtils;
@@ -64,7 +63,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
   List<String> expTypes = new ArrayList<String>(
       Arrays.asList("Q_EXPERIMENTAL_DESIGN", "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION"));
 
-  private Logger logger = LogManager.getLogger(ProjectWizardUI.class);
+  private final static Logger logger = LogManager.getLogger(ProjectWizardUI.class);
 
   private ConfigurationManager config;
 
@@ -284,17 +283,17 @@ public class ProjectWizardUI extends QBiCPortletUI {
     if (PortalUtils.isLiferayPortlet()) {
       Properties prop = new Properties();
       // workaround
-      GraphPage p = new GraphPage();
-      InputStream in = p.getClass().getClassLoader()
-          .getResourceAsStream("WEB-INF/liferay-plugin-package.properties");
+      InputStream in = ProjectWizardUI.class.getClassLoader()
+          .getResourceAsStream("portlet.properties");
+      System.out.println(in);
       try {
         prop.load(in);
         in.close();
       } catch (IOException e1) {
-        // TODO Auto-generated catch block
+        logger.error("Could not load portlet.properties");
         e1.printStackTrace();
       }
-      String portletName = prop.getProperty("name");
+      String portletName = prop.getProperty("artifact.id");
 
       URI location = UI.getCurrent().getPage().getLocation();
       // http
