@@ -160,8 +160,8 @@ public class ExperimentImportView extends VerticalLayout implements IRegistratio
 
       Resource res =
           new ExternalResource(ProjectWizardUI.getPathToVaadinFolder() + "img/isatools.png");
-      Image imNotYourC_Pal = new Image(null, res);
-      layout.addComponent(imNotYourC_Pal);
+      Image isaTools = new Image(null, res);
+      layout.addComponent(isaTools);
 
       subWindow.setContent(layout);
       // Center it in the browser window
