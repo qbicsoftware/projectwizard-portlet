@@ -1188,8 +1188,8 @@ public class MetadataUploadView extends VerticalLayout {
     label.setRequired(true);
     label.setStyleName(Styles.fieldTheme);
     RegexpValidator factorLabelValidator = new RegexpValidator("[a-z]+[a-z0-9_]*",
-        "The name must start with a letter and may only contain letters (a-z), "
-            + "numbers and underscores ('_').");
+        "The name may only contain lower-case letters (a-z), "
+            + "numbers and underscores ('_'). It must start with a lower-case letter.");
     label.addValidator(factorLabelValidator);
     label.setValidationVisible(true);
     label.setImmediate(true);
