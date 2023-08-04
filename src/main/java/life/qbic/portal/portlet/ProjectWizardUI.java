@@ -55,7 +55,7 @@ import life.qbic.projectwizard.views.MetadataUploadView;
 public class ProjectWizardUI extends QBiCPortletUI {
 
   public static boolean development = false;
-  public static boolean v3RegistrationAPI = false;
+  public static boolean v3RegistrationAPI = true;
   public static String MSLabelingMethods;
   public static String tmpFolder;
 
