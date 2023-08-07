@@ -200,7 +200,7 @@ public class ProjectWizardUI extends QBiCPortletUI {
     try {
       int omeroPort = Integer.parseInt(config.getOmeroPort());
       omero = new BasicOMEROClient(config.getOmeroUser(), config.getOmeroPassword(),
-          config.getOmeroHostname(), omeroPort, "default");
+          config.getOmeroHostname(), omeroPort);
     } catch (NumberFormatException | NullPointerException e) {
       logger.warn("Omero port could not be parsed form the configuration file.");
     }
