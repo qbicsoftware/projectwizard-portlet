@@ -475,6 +475,9 @@ public class ExperimentImportController implements IRegistrationController {
             }
             omero.registerSamples(project, description, imagableSamples);
           }
+          if(getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)) {
+            correctFreeTextLCMSMethods(complexExperiments, new HashSet<>(vocabs.getLcmsMethods()));
+          }
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, description,
               complexExperiments, view.getProgressBar(), view.getProgressLabel(),
               new RegisteredSamplesReadyRunnable(view, control), entitiesToUpdate,
@@ -535,7 +538,7 @@ public class ExperimentImportController implements IRegistrationController {
 
       private Collection<? extends OpenbisExperiment> collectComplexExperiments(
           Map<String, Map<String, Object>> propsMap, ExperimentType type) {
-        List<OpenbisExperiment> res = new ArrayList<OpenbisExperiment>();
+        List<OpenbisExperiment> res = new ArrayList<>();
         if (propsMap != null) {
           for (String code : propsMap.keySet()) {
             res.add(new OpenbisExperiment(code, type, propsMap.get(code)));
@@ -545,6 +548,20 @@ public class ExperimentImportController implements IRegistrationController {
       }
     };
     view.getRegisterButton().addClickListener(cl);
+  }
+
+  private void correctFreeTextLCMSMethods(List<OpenbisExperiment> complexExperiments, Set<String> lcmsMethods) {
+    String LCMS_KEY = "Q_MS_LCMS_METHOD";
+    for(OpenbisExperiment experiment : complexExperiments) {
+      if(experiment.getType().equals(ExperimentType.Q_MS_MEASUREMENT)) {
+        Map<String, Object> metadata = experiment.getMetadata();
+        String lcmsInput = (String) metadata.get(LCMS_KEY);
+        if(!lcmsMethods.contains(lcmsInput)) {
+          metadata.put(LCMS_KEY, "SPECIAL_METHOD");
+          metadata.put("Q_MS_LCMS_METHOD_INFO", lcmsInput);
+        }
+      }
+    }
   }
 
   private String replaceChangedMetadata(String tsvContent,
@@ -767,7 +784,7 @@ public class ExperimentImportController implements IRegistrationController {
       for (String method : vocabs.getLcmsMethods()) {
         lcmsMap.put(method, method);
       }
-      catToVocabulary.put("LCMS Method", lcmsMap);
+      //catToVocabulary.put("LCMS Method", lcmsMap); <- freetext now for Proteomics import
       //// MC Device : Q_MS_DEVICE : Q_MS_DEVICES
       catToVocabulary.put("MS Device", vocabs.getMSDeviceMap());
       //// Sample Cleanup (peptide) : Q_PROTEIN_PURIFICATION_METHODS
@@ -799,6 +816,7 @@ public class ExperimentImportController implements IRegistrationController {
               "MS Device", "Fractionation Type", "Enrichment Method", "Labeling Type",
               "LCMS Method", "Digestion Method", "Digestion Enzyme", "Sample Preparation",
               "Species", "Tissue", "Sample Cleanup (Protein)", "Sample Cleanup (Peptide)")));
+      parsedCategoryToValues.remove("LCMS Method");
       // logger.warn(parsedCategoryToValues);
     }
     if (!getImportType().equals(ExperimentalDesignType.Metabolomics_LCMS)) {
@@ -974,7 +992,7 @@ public class ExperimentImportController implements IRegistrationController {
             // ms experiments
             keyToFields.put("Q_MS_DEVICE", new HashSet<>(Arrays.asList("MS Device")));
             keyToFields.put("Q_CHROMATOGRAPHY_TYPE", new HashSet<>(Arrays.asList("LC Column")));
-            keyToFields.put("Q_MS_LCMS_METHOD", new HashSet<>(Arrays.asList("LCMS Method")));
+            //keyToFields.put("Q_MS_LCMS_METHOD", new HashSet<>(Arrays.asList("LCMS Method")));
             keyToFields.put("Q_MS_PURIFICATION_METHOD", new HashSet<>(
                 Arrays.asList("Sample Cleanup (Protein)", "Sample Cleanup (Peptide)")));
             // TODO collisions between cleanup
@@ -1252,8 +1270,8 @@ public class ExperimentImportController implements IRegistrationController {
                 uniqueCodeToBarcode.put(uniqueID, code);
                 uniqueNumericIDToBarcode.put(numericID, code);
                 List<String> parents = t.getParentIDs();
-                t.setParents(new ArrayList<ISampleBean>());
-                List<String> newParents = new ArrayList<String>();
+                t.setParents(new ArrayList<>());
+                List<String> newParents = new ArrayList<>();
                 for (String parentID : parents) {
                   if (getImportType().equals(ExperimentalDesignType.Proteomics_MassSpectrometry)
                       || getImportType().equals(ExperimentalDesignType.Metabolomics_LCMS)) {
