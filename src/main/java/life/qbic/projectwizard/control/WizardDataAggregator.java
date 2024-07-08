@@ -742,7 +742,7 @@ public class WizardDataAggregator {
       else
         testPools = new ArrayList<AOpenbisSample>();
       String exp = dummy.getValueMap().get("EXPERIMENT");
-      List<Property> factors = new ArrayList<Property>();
+      List<Property> factors = new ArrayList<>();
       for (String secName : pools.keySet()) {
         incrementOrCreateBarcode();
         String parents = "";
@@ -778,9 +778,9 @@ public class WizardDataAggregator {
    */
   private List<List<AOpenbisSample>> buildTestSamples(List<AOpenbisSample> extracts,
       Map<String, Character> classChars) {
-    List<List<AOpenbisSample>> tests = new ArrayList<List<AOpenbisSample>>();
+    List<List<AOpenbisSample>> tests = new ArrayList<>();
     for (int j = 0; j < techTypeInfo.size(); j++) {// different technologies
-      List<AOpenbisSample> techTests = new ArrayList<AOpenbisSample>();
+      List<AOpenbisSample> techTests = new ArrayList<>();
       int techReps = techTypeInfo.get(j).getReplicates();
       String sampleType = techTypeInfo.get(j).getTechnology();
       int expNum = experiments.size() - techTypeInfo.size() + j;
@@ -847,7 +847,7 @@ public class WizardDataAggregator {
   private List<AOpenbisSample> parseEntities(List<Sample> entities, boolean copy)
       throws JAXBException {
     oldCodesToNewCodes = new HashMap<String, String>();
-    List<AOpenbisSample> res = new ArrayList<AOpenbisSample>();
+    List<AOpenbisSample> res = new ArrayList<>();
     String expCode = "";
     if (entities.get(0).getExperiment() != null) {
       expCode = entities.get(0).getExperiment().getCode();
@@ -899,7 +899,7 @@ public class WizardDataAggregator {
    */
   private List<AOpenbisSample> parseExtracts(List<Sample> extracts,
       Map<Sample, List<String>> childParentsMap) throws JAXBException {
-    List<AOpenbisSample> res = new ArrayList<AOpenbisSample>();
+    List<AOpenbisSample> res = new ArrayList<>();
     String exp = "";
     if (extracts.get(0).getExperiment() != null) {
       exp = extracts.get(0).getExperiment().getCode();
