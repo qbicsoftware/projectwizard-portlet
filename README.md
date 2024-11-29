@@ -1,19 +1,27 @@
+<div align="center">
+
 # ProjectWizard Portlet
+<i>Create hierarchical experiments using factorial design.</i>.
 
-[![Build Status](https://travis-ci.com/qbicsoftware/projectwizard-portlet.svg?branch=master)](https://travis-ci.com/qbicsoftware/projectwizard-portlet)
-[![Code Coverage](https://codecov.io/gh/qbicsoftware/projectwizard-portlet/branch/master/graph/badge.svg)](https://codecov.io/gh/qbicsoftware/projectwizard-portlet)
 
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/qbicsoftware/projectwizard-portlet)
-[![Sonatype Nexus Releases](https://img.shields.io/nexus/r/life.qbic/projectwizard-portlet?nexusVersion=3&server=https%3A%2F%2Fqbic-repo.qbic.uni-tuebingen.de%2F)](https://qbic-repo.qbic.uni-tuebingen.de/service/rest/repository/browse/maven-releases/life/qbic/projectwizard-portlet/)
-![Java Language](https://img.shields.io/badge/language-java-blue.svg)
-[![License](https://img.shields.io/github/license/qbicsoftware/projectwizard-portlet)](https://github.com/qbicsoftware/projectwizard-portlet/blob/master/LICENSE)
+
+[![Build Maven Package](https://github.com/qbicsoftware/projectwizard-portlet/actions/workflows/build-package.yml/badge.svg)](https://github.com/qbicsoftware/projectwizard-portlet/actions/workflows/build-package.yml)
+[![Run Maven Tests](https://github.com/qbicsoftware/projectwizard-portlet/actions/workflows/run-tests.yml/badge.svg)](https://github.com/qbicsoftware/projectwizard-portlet/actions/workflows/run-tests.yml)
+[![CodeQL](https://github.com/qbicsoftware/projectwizard-portlet/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/qbicsoftware/projectwizard-portlet/actions/workflows/codeql-analysis.yml)
+[![release](https://img.shields.io/github/v/release/qbicsoftware/projectwizard-portlet?include_prereleases)](https://github.com/qbicsoftware/projectwizard-portlet/releases)
+
+[![license](https://img.shields.io/github/license/qbicsoftware/projectwizard-portlet)](https://github.com/qbicsoftware/projectwizard-portlet/blob/master/LICENSE)
+![language](https://img.shields.io/badge/language-java-blue.svg)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3908302.svg)](https://doi.org/10.5281/zenodo.3908302)
 
-ProjectWizard Portlet - Create hierarchical experiments using factorial design.
+
+</div>
+
+
 
 ## Author
 
-Created by Andreas Friedrich (andreas.friedrich@qbic.uni-tuebingen.de).
+Created by Andreas Friedrich (<a href="mailto:andreas.friedrich@qbic.uni-tuebingen.de?subject=project+wizard+portlet">andreas.friedrich@qbic.uni-tuebingen.de</a>).
 
 ## Description
 
